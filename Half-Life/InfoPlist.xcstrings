@@ -1,0 +1,78 @@
+{
+  "sourceLanguage" : "en",
+  "strings" : {
+    "CFBundleName" : {
+      "comment" : "Bundle name",
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Half-Life"
+          }
+        }
+      }
+    },
+    "NSFaceIDUsageDescription" : {
+      "comment" : "Purpose string. iOS shows it below its own title when Half-Life first asks to use Face ID. Say why the app uses Face ID.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Half-Life uses Face ID to unlock the app, so only you can see your caffeine and health data."
+          }
+        }
+      }
+    },
+    "NSHealthClinicalHealthRecordsShareUsageDescription" : {
+      "comment" : "Purpose string. Apple Health shows it when Half-Life asks to read the user's clinical health records. Say what the app reads, why, and that the records stay on the device.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Half-Life reads only the health records you choose to share, to put your caffeine habits in context. Records stay on this device and are never stored in iCloud."
+          }
+        }
+      }
+    },
+    "NSHealthShareUsageDescription" : {
+      "comment" : "Purpose string. Apple Health shows it when Half-Life asks to read Health data. Say what the app reads, why, and that the data stays on the device.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Half-Life reads your caffeine, sleep, steps, and heart rate from Apple Health to show how caffeine timing relates to your sleep and heart rate. Health data stays on this device and is never stored in iCloud."
+          }
+        }
+      }
+    },
+    "NSHealthUpdateUsageDescription" : {
+      "comment" : "Purpose string. Apple Health shows it when Half-Life asks to save data to Health. Say what the app saves and why.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Half-Life saves the drinks you log to Apple Health as caffeine, so your intake appears alongside your other health data."
+          }
+        }
+      }
+    },
+    "NSSiriUsageDescription" : {
+      "comment" : "Purpose string. iOS shows it when Half-Life first asks to use Siri. Say what the user can do with Half-Life through Siri.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Siri can log your drinks in Half-Life and answer questions about your caffeine."
+          }
+        }
+      }
+    }
+  },
+  "version" : "1.0"
+}

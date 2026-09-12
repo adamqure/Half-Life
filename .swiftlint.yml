@@ -1,0 +1,100 @@
+# SwiftLint configuration for Half-Life (constitution Article IX).
+# Formatting is owned by swift-format (.swift-format); SwiftLint covers correctness and style rules.
+
+included:
+  - Half-Life
+  - Half-LifeTests
+  - Half-LifeUITests
+
+excluded:
+  - build
+  - DerivedData
+
+disabled_rules:
+  # These overlap with swift-format and can disagree with its output.
+  - trailing_comma
+  - opening_brace
+
+opt_in_rules:
+  # Article IV: no force unwraps without a documented reason (use `// swiftlint:disable:next force_unwrapping`).
+  - force_unwrapping
+  - implicitly_unwrapped_optional
+  # Article VI: accessibility.
+  - accessibility_label_for_image
+  - accessibility_trait_for_button
+  # SwiftUI hygiene.
+  - private_swiftui_state
+  # General correctness and clarity.
+  - empty_count
+  - first_where
+  - contains_over_first_not_nil
+  - sorted_first_last
+  - fatal_error_message
+
+line_length:
+  warning: 120
+  ignores_comments: false
+
+type_name:
+  # Xcode generates names like `Half_LifeApp` from the hyphenated product name.
+  allowed_symbols: ["_"]
+
+# Article XI: logging. These apply to the app target only, and skip comments.
+# See the DocC catalog's Logging article for what they catch and what they can't.
+custom_rules:
+  logging_forbidden_call:
+    name: "Log through Logger"
+    regex: '(?<![\w.])(?:print|debugPrint|dump|NSLog|os_log)\('
+    excluded: '/Half-Life(Tests|UITests)/'
+    excluded_match_kinds: [comment, comment.mark, comment.url, doccomment, doccomment.field, string]
+    message: "Log through `Logger(for:)`, not print, debugPrint, dump, NSLog, or os_log (constitution Article XI.1)."
+    severity: error
+  logging_print_changes:
+    name: "No _printChanges"
+    regex: '\._printChanges\('
+    excluded: '/Half-Life(Tests|UITests)/'
+    excluded_match_kinds: [comment, comment.mark, comment.url, doccomment, doccomment.field]
+    message: "Don't commit `._printChanges()`: it prints whole State changes, health values included (Article XI.1)."
+    severity: error
+  logging_level_alias:
+    name: "Logger level names"
+    regex: '\blogger\.(?:log|trace|warning|critical)\('
+    excluded: '/Half-Life(Tests|UITests)/'
+    excluded_match_kinds: [comment, comment.mark, comment.url, doccomment, doccomment.field]
+    message: "Use logger.debug, info, notice, error, or fault, not the log, trace, warning, or critical aliases (Article XI.4)."
+    severity: error
+  logging_explicit_privacy:
+    name: "Explicit log privacy"
+    # A logger message (a string literal on the call's line or the next, or a """ literal) containing an
+    # interpolation with no `privacy:` before its closing parenthesis. Allows one level of nested parentheses.
+    regex: '\blogger\.(?:debug|info|notice|error|fault)\(\s*(?:"(?!"")[^"\n]*?|"""(?:(?!""")[\s\S])*?)\\\((?!(?:[^()\n]|\([^()\n]*\))*privacy:)'
+    excluded: '/Half-Life(Tests|UITests)/'
+    excluded_match_kinds: [comment, comment.mark, comment.url, doccomment, doccomment.field]
+    message: "Give every interpolated value in a log message an explicit privacy: .public, .private, or .private(mask: .hash) (Article XI.5)."
+    severity: error
+
+  # Article IV.1: actor isolation. UI types state @MainActor, reducers state nonisolated, and a reducer is never
+  # @MainActor. These apply to the app target only, and skip comments and strings.
+  ui_explicit_main_actor:
+    name: "Explicit @MainActor on UI types"
+    # A struct or class that conforms to a SwiftUI or UIKit UI protocol, without @MainActor on the line directly above.
+    regex: '(?<!@MainActor\n)^[ \t]*(?:(?:private|fileprivate|internal|public)[ \t]+)?(?:final[ \t]+)?(?:struct|class)[ \t]+\w+[^{\n]*:[^{\n]*\b(?:View|App|Scene|ViewModifier|UIViewRepresentable|UIViewControllerRepresentable)\b'
+    excluded: '/Half-Life(Tests|UITests)/'
+    excluded_match_kinds: [comment, comment.mark, comment.url, doccomment, doccomment.field, string]
+    message: "Mark UI types @MainActor explicitly, on the line directly above the declaration (constitution Article IV.1.1)."
+    severity: error
+  reducer_explicit_nonisolated:
+    name: "Explicit nonisolated reducer"
+    # A @Reducer attribute followed directly by a struct or enum that isn't marked nonisolated.
+    regex: '@Reducer(?:\([^)\n]*\))?\s+(?:(?:private|fileprivate|internal|public)\s+)?(?:struct|enum)\b'
+    excluded: '/Half-Life(Tests|UITests)/'
+    excluded_match_kinds: [comment, comment.mark, comment.url, doccomment, doccomment.field, string]
+    message: "Declare @Reducer types nonisolated explicitly: `@Reducer nonisolated struct …` (constitution Article IV.1.2)."
+    severity: error
+  reducer_main_actor:
+    name: "No @MainActor reducer"
+    regex: '@MainActor\s+@Reducer\b|@Reducer(?:\([^)\n]*\))?\s+@MainActor\b'
+    excluded: '/Half-Life(Tests|UITests)/'
+    excluded_match_kinds: [comment, comment.mark, comment.url, doccomment, doccomment.field, string]
+    message: "A @Reducer type is never @MainActor. TCA runs reducers on the store, and a @MainActor reducer crashes at runtime (constitution Article IV.1.2)."
+    severity: error

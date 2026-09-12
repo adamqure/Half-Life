@@ -1,0 +1,192 @@
+{
+  "sourceLanguage" : "en",
+  "strings" : {
+    "%@ ago" : {
+      "comment" : "The drink was consumed this long ago. The argument is a short duration, such as \"1h\"."
+    },
+    "%@ per can" : {
+      "comment" : "A drink's caffeine in one can. The argument is an amount, such as \"34 mg\"."
+    },
+    "%@ per cup" : {
+      "comment" : "A drink's caffeine in one 8 fl oz cup. The argument is an amount, such as \"95 mg\"."
+    },
+    "%@ per shot" : {
+      "comment" : "A drink's caffeine in one espresso shot. The argument is an amount, such as \"63 mg\"."
+    },
+    "%lld cans" : {
+      "comment" : "How many cans of the chosen drink.",
+      "localizations" : {
+        "en" : {
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld can"
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld cans"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "%lld cups" : {
+      "comment" : "How many cups of the chosen drink.",
+      "localizations" : {
+        "en" : {
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld cup"
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld cups"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "%lld shots" : {
+      "comment" : "How many espresso shots of the chosen drink.",
+      "localizations" : {
+        "en" : {
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld shot"
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld shots"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "Add %@" : {
+      "comment" : "Logs the chosen drink. The argument is its caffeine, such as \"125 mg\"."
+    },
+    "Americano" : {
+      "comment" : "A drink in the drink composer's list."
+    },
+    "Black tea" : {
+      "comment" : "A drink in the drink composer's list."
+    },
+    "Caffeine" : {
+      "comment" : "Accessibility: the decay curve's vertical axis, the caffeine in the body in milligrams."
+    },
+    "Caffeine over the day" : {
+      "comment" : "Accessibility label of the Today screen's decay curve, which spans 12 hours either side of now."
+    },
+    "Cappuccino" : {
+      "comment" : "A drink in the drink composer's list."
+    },
+    "Close" : {
+      "comment" : "Closes the drink composer without logging."
+    },
+    "Cola" : {
+      "comment" : "A drink in the drink composer's list."
+    },
+    "Cold brew" : {
+      "comment" : "A drink in the drink composer's list."
+    },
+    "Current time" : {
+      "comment" : "Accessibility: the marker on the decay curve at the current time."
+    },
+    "Decrease quantity" : {
+      "comment" : "Accessibility label: removes one unit of the chosen drink."
+    },
+    "Down to about %@ by %@ — half of your last cup is gone by %@." : {
+      "comment" : "The decay card's tips. The arguments are the caffeine left at bedtime (such as \"34 mg\"), the bedtime (such as \"10:30 PM\"), and when the last drink is down to half its caffeine."
+    },
+    "Down to about %@ by %@." : {
+      "comment" : "The decay card's tip once the last drink is past half gone. The arguments are the caffeine left at bedtime (such as \"34 mg\") and the bedtime (such as \"10:30 PM\")."
+    },
+    "Drip coffee" : {
+      "comment" : "A drink in the drink composer's list."
+    },
+    "Energy drink" : {
+      "comment" : "A drink in the drink composer's list."
+    },
+    "Espresso" : {
+      "comment" : "A drink in the drink composer's list."
+    },
+    "Flat white" : {
+      "comment" : "A drink in the drink composer's list."
+    },
+    "Good afternoon" : {
+      "comment" : "The Today screen's greeting between 12:00pm and 5:00pm, when the user's name isn't known."
+    },
+    "Good afternoon, %@" : {
+      "comment" : "The Today screen's greeting between 12:00pm and 5:00pm. The argument is the user's first name."
+    },
+    "Good evening" : {
+      "comment" : "The Today screen's greeting between 5:00pm and 5:00am, when the user's name isn't known."
+    },
+    "Good evening, %@" : {
+      "comment" : "The Today screen's greeting between 5:00pm and 5:00am. The argument is the user's first name."
+    },
+    "Good morning" : {
+      "comment" : "The Today screen's greeting between 5:00am and 12:00pm, when the user's name isn't known."
+    },
+    "Good morning, %@" : {
+      "comment" : "The Today screen's greeting between 5:00am and 12:00pm. The argument is the user's first name."
+    },
+    "Green tea" : {
+      "comment" : "A drink in the drink composer's list."
+    },
+    "In your system now" : {
+      "comment" : "The decay card's heading above the caffeine in the body right now, and that figure's accessibility label."
+    },
+    "Increase quantity" : {
+      "comment" : "Accessibility label: adds one unit of the chosen drink."
+    },
+    "Instant coffee" : {
+      "comment" : "A drink in the drink composer's list."
+    },
+    "Latte" : {
+      "comment" : "A drink in the drink composer's list."
+    },
+    "Log a drink" : {
+      "comment" : "The drink composer's title, and the label of the root screen's log button."
+    },
+    "Matcha" : {
+      "comment" : "A drink in the drink composer's list."
+    },
+    "Nothing in your system right now." : {
+      "comment" : "The decay card's sentence when no drink's caffeine is still counting."
+    },
+    "Now" : {
+      "comment" : "The drink was consumed just now."
+    },
+    "The drink couldn't be saved. Try again." : {
+      "comment" : "Shown in the drink composer when logging a drink failed."
+    },
+    "Time" : {
+      "comment" : "Accessibility: the decay curve's horizontal axis, the time of day."
+    },
+    "When" : {
+      "comment" : "Heading above the choices for when the drink was consumed."
+    }
+  },
+  "version" : "1.0"
+}

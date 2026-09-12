@@ -1,11 +1,11 @@
-//  _______  __   __  ___   ___      ___      _______  __    _  _______ 
+//  _______  __   __  ___   ___      ___      _______  __    _  _______
 // |       ||  | |  ||   | |   |    |   |    |   _   ||  |  | ||       |
 // |   _   ||  | |  ||   | |   |    |   |    |  |_|  ||   |_| ||   _   |
 // |  | |  ||  |_|  ||   | |   |    |   |    |       ||       ||  | |  |
 // |  |_|  ||       ||   | |   |___ |   |___ |       ||  _    ||  |_|  |
-// |      | |       ||   | |       ||       ||   _   || | |   ||      | 
+// |      | |       ||   | |       ||       ||   _   || | |   ||      |
 // |____||_||_______||___| |_______||_______||__| |__||_|  |__||____||_|
-//  
+//
 // Half-LifeUITests Half_LifeUITestsLaunchTests
 //
 
@@ -13,7 +13,7 @@ import XCTest
 
 final class Half_LifeUITestsLaunchTests: XCTestCase {
 
-    override class var runsForEachTargetApplicationUIConfiguration: Bool {
+    override static var runsForEachTargetApplicationUIConfiguration: Bool {
         true
     }
 
@@ -26,12 +26,9 @@ final class Half_LifeUITestsLaunchTests: XCTestCase {
         let app = XCUIApplication()
         app.launch()
 
-        // Insert steps here to perform after app launch but before taking a screenshot,
-        // such as logging into a test account or navigating somewhere in the app
-        // XCUIAutomation Documentation
-        // https://developer.apple.com/documentation/xcuiautomation
+        let root = try app.resolve(AppRobot.self)
 
-        let attachment = XCTAttachment(screenshot: app.screenshot())
+        let attachment = XCTAttachment(screenshot: root.screenshot())
         attachment.name = "Launch Screen"
         attachment.lifetime = .keepAlways
         add(attachment)

@@ -1,0 +1,18 @@
+# macOS
+.DS_Store
+
+# Xcode per-user state
+xcuserdata/
+*.xcuserstate
+
+# Build output and test results
+build/
+DerivedData/
+*.xcresult
+
+# Python bytecode from scripts/
+__pycache__/
+
+# Swift Package Manager (Package.resolved is committed; checkouts are not)
+.build/
+.swiftpm/

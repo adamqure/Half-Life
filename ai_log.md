@@ -1,0 +1,2052 @@
+# AI Interaction Log
+
+> **Status: DRAFT.** Review the Rules section and adjust it to match how the team wants to log AI use.
+
+This file is the timestamped record of every interaction with AI on the Half-Life project, from its first session onward.
+
+## Rules
+
+1. **Scope: the entire project.** Log every interaction with an AI tool about Half-Life, whether or not it changes a file. That includes:
+   - generating code, tests, documentation, or configuration;
+   - code review and debugging;
+   - planning and design discussions;
+   - questions and explanations.
+
+   This applies to every contributor and every AI tool: coding agents, chat assistants, and IDE assistants.
+2. **One entry per task.** A task is one request to an AI tool plus the follow-up interaction needed to complete it. A session with several unrelated requests gets several entries. Inline code-completion tools (e.g. Xcode predictive code completion) are logged once per working session in which they were used, not once per suggestion.
+3. **Timestamps.**
+   1. Every entry records when its task started and ended.
+   2. Its **Interactions** timeline gives the time of each human prompt or decision.
+   3. Timestamps are local time with UTC offset in the form `YYYY-MM-DD HH:MM ±hhmm`, exactly what `date '+%Y-%m-%d %H:%M %z'` prints. Within the Interactions timeline, `HH:MM` is enough while the date is unchanged.
+   4. Take timestamps from the clock at the time, never from memory afterwards. If a time has to be reconstructed, prefer the session transcript's timestamps (Rule 9). Otherwise, prefix the time with `~` and say what it was reconstructed from.
+4. **Chronological and append-only.** Append entries at the bottom of the Log section, in order of start time. An entry may be revised while its task's changes are uncommitted. Once committed, it is never edited or deleted. To correct a committed entry, add a new entry that references it.
+5. **When to log.** Write the entry before the task is reported as finished. If the task changed files, commit the entry together with those changes. Otherwise commit it on its own.
+6. **Honesty.** Record what the AI actually did, including incorrect answers, rejected suggestions, withdrawn work, and outputs that needed significant human correction.
+7. **No sensitive data.** Never paste secrets, credentials, personal data, health data, or customer data into an entry or a transcript (Rule 9). Summarize prompts instead of copying them verbatim when they contain such data.
+8. **Accountability.** Every entry names the human responsible for the interaction and for reviewing and accepting its outcome.
+9. **Transcripts.** The full transcript of every AI session is kept in `ai_transcripts/`, one file per session.
+   1. Claude Code sessions are exported with `/usr/bin/python3 scripts/export_transcripts.py`, which renders Claude Code's local session files as Markdown. Re-run it before every commit so each committed transcript covers its session up to that point. Transcripts are generated files: never edit one by hand. A committed transcript changes only by being re-exported.
+   2. A transcript includes every human prompt, reply, and tool call in full, each with its time. Tool results are cut to their first 40 lines. Images, system context, and harness metadata are left out. Claude Code doesn't store the AI's reasoning or the progress updates it writes between tool calls, so transcripts can't include them.
+   3. The exporter redacts email addresses and the home directory path. It can't recognize secrets or health data typed into a prompt or read from a file, so review the transcript diff before committing, and apply Rule 7 to it.
+   4. For other AI tools, save the tool's own export of the conversation in `ai_transcripts/` if it offers one. Otherwise, say in the entry's **Transcript** field that no transcript exists.
+   5. Every entry names the transcript of the session it happened in. One session can cover several entries, and an entry whose task spans sessions lists each transcript.
+
+### Entry format
+
+```markdown
+### YYYY-MM-DD HH:MM ±hhmm — <short title>
+
+- **Started:** YYYY-MM-DD HH:MM ±hhmm
+- **Ended:** YYYY-MM-DD HH:MM ±hhmm
+- **Human:** <name of the responsible person>
+- **AI tool / model:** <e.g. Claude Code / Claude Opus 5>
+- **Transcript:** <path(s) under `ai_transcripts/`, or "None" and why>
+- **Type:** <one or more of: change, question, review, debugging, planning>
+- **Request:** <one or two sentences summarizing what was asked>
+- **Interactions:**
+  - `HH:MM` <each human prompt or decision, summarized>
+- **AI contribution:** <what the AI answered, generated, or changed>
+- **Human changes:** <what the human edited, rejected, or decided, or "None">
+- **Files:** <paths added/modified/deleted, or "None">
+- **Verification:** <tests run and result, coverage %, or "N/A">
+- **Notes:** <open questions, follow-ups, or "None">
+```
+
+## Log
+
+### 2026-09-11 20:00 -0400 — Define CLAUDE.md, constitution, and AI log
+
+- **Started:** 2026-09-11 20:00 -0400 (from the session transcript: first prompt at 20:00:27)
+- **Ended:** 2026-09-11 20:07 -0400 (from the session transcript: final reply at 20:07:28)
+- **Human:** Adam Ure
+- **AI tool / model:** Claude Code / Claude Opus 5
+- **Transcript:** `ai_transcripts/2026-09-11-2000-840c4ae6.md`
+- **Type:** change, planning
+- **Request:** Define a CLAUDE.md requiring every change to comply with `constitution.md`, `ai_log.md`, and the testing principles (TDD, 80% coverage). Interview the user for further rules.
+- **Interactions:** (times from the session transcript; they weren't recorded at the time)
+  - `20:00` Asked for a CLAUDE.md enforcing the constitution, the AI log, and the testing principles.
+  - `20:01` Mid-turn, invited the AI to interview them for further rules.
+  - `20:02` Interview 1: docs at the repository root (AI to draft them), commit directly to `main`, architecture defined in the constitution, coverage counting unit and UI tests.
+  - `20:05` Interview 2: ask before adding dependencies, Conventional Commits, accessibility, localization, linting, and DocC rules, architecture documented in the DocC catalog, TCA as the architecture.
+- **AI contribution:** Drafted `CLAUDE.md` (governing-document rules, TDD workflow, 80% coverage bar counting unit and UI tests, build/test/coverage/format/lint/docbuild commands, commit-to-main with Conventional Commits, dependency approval, definition of done). Drafted starter `constitution.md` (TCA architecture, dependencies, accessibility, localization, documentation, code style) and `ai_log.md`.
+- **Human changes:** Across two interview rounds, chose the file locations, commit-to-main, Conventional Commits, the coverage scope (unit and UI tests), TCA as the architecture, ask-before-adding dependencies, and the accessibility, localization, linting, and DocC rules. Added the rule that all architecture is documented in the DocC catalog.
+- **Files:** `CLAUDE.md` (added), `constitution.md` (added), `ai_log.md` (added)
+- **Verification:** N/A (docs only)
+- **Notes:** `constitution.md` still has one open `TODO` (Article V: data storage and transmission rules). TCA, `.swift-format`, `.swiftlint.yml`, and a String Catalog are not yet added to the project. The DocC catalog is still the Xcode template.
+
+### 2026-09-11 20:09 -0400 — Resolve setup follow-ups; add TCA and Clean Architecture
+
+- **Started:** 2026-09-11 20:09 -0400 (from the session transcript: prompt at 20:09:19)
+- **Ended:** 2026-09-11 20:29 -0400 (from the session transcript: final reply at 20:29:37)
+- **Human:** Adam Ure
+- **AI tool / model:** Claude Code / Claude Opus 5
+- **Transcript:** `ai_transcripts/2026-09-11-2000-840c4ae6.md`
+- **Type:** change, planning, debugging
+- **Request:** Handle the follow-ups from the previous entry. Extend TCA with Clean Architecture: actions call use cases, and features subscribe to repository state and reduce it into the store's `State`.
+- **Interactions:** (times from the session transcript; they weren't recorded at the time)
+  - `20:09` Asked to handle the open follow-ups.
+  - `20:10` Privacy interview: HealthKit plus custom caffeine intake records; on-device storage only; Apple-only analytics.
+  - `20:15` Mid-task instruction: extend TCA with Clean Architecture (actions call use cases; use cases are scoped; repositories hold state; features subscribe and reduce repository data into `State`).
+  - `20:17` Architecture interview: use cases are single-purpose and lifetime-scoped; features subscribe through `Observe…` use cases.
+  - `20:26` Isolation decision: deferred ("Decide later").
+- **AI contribution:**
+  - Filled in constitution Article V (privacy), rewrote Article I (TCA + Clean Architecture), and scoped the Article VIII doc-comment rule to the app target.
+  - Added the TCA package (1.26.2, up to next major) to the app target and committed `Package.resolved`.
+  - Added `.gitignore` and stopped tracking `xcuserdata`. Added a shared scheme with coverage limited to the app target.
+  - Added `.swift-format` and `.swiftlint.yml`, then formatted existing sources (this only stripped trailing whitespace from the banner comments). Replaced `class var` with `static var` in the launch tests.
+  - Added `Localizable.xcstrings`, DocC comments on `ContentView` and `Half_LifeApp`, and the DocC landing page and `Architecture` article.
+  - Added a `performAccessibilityAudit()` UI test and hid the decorative globe image from accessibility.
+  - Updated `CLAUDE.md`: architecture summary, per-layer testing, `-skipMacroValidation`, and the open isolation issue.
+- **Human changes:** Answered interviews on data types (HealthKit and custom caffeine intake records), storage (on-device only), and analytics (Apple-only). Defined the Clean Architecture layering, and chose single-purpose, lifetime-scoped use cases observed through `Observe…` use cases. Deferred the actor-isolation decision.
+- **Files:**
+  - Added: `.gitignore`, `.swift-format`, `.swiftlint.yml`, `Half-Life.xcodeproj/xcshareddata/xcschemes/Half-Life.xcscheme`, `Half-Life.xcodeproj/project.xcworkspace/xcshareddata/swiftpm/Package.resolved`, `Half-Life/Localizable.xcstrings`, `Half-Life/Documentation.docc/Architecture.md`
+  - Modified: `CLAUDE.md`, `constitution.md`, `ai_log.md`, `Half-Life.xcodeproj/project.pbxproj`, `Half-Life/Documentation.docc/Documentation.md`, `Half-Life/ContentView.swift`, `Half-Life/Half_LifeApp.swift`, `Half-LifeTests/Half_LifeTests.swift`, `Half-LifeUITests/Half_LifeUITests.swift`, `Half-LifeUITests/Half_LifeUITestsLaunchTests.swift`
+  - Removed from tracking: `Half-Life.xcodeproj/xcuserdata/`
+- **Verification:**
+  - Full unit + UI run on iPhone 17 Pro Max (iOS 26.5): 5/5 tests passed, no app-level compiler warnings.
+  - Coverage of `Half-Life.app`: 100.00% (25/25 lines).
+  - swift-format lint `--strict` and SwiftLint `--strict`: clean.
+  - `xcodebuild docbuild`: succeeded with no Half-Life catalog warnings. One warning remains inside the SwiftNavigation package's own docs.
+- **Notes:**
+  - **Accessibility test withdrawn.** The AI first wrote a UI test asserting `app.images.count == 0`. It failed for the expected reason before the fix, but it still failed after `.accessibilityHidden(true)` was applied, even though that build contained the fix. The evidence suggests XCUITest's element tree includes elements hidden from VoiceOver, so the test could not verify the behavior, and it was removed before any commit. The fix is enforced by SwiftLint's `accessibility_label_for_image` rule, which failed before the fix and passes after. There is no runtime test for it.
+  - **Open decision: actor isolation vs. TCA** (recorded in `CLAUDE.md` and the `Architecture` article). Tested in scratch copies of the project, not the repository:
+    - With the app's `SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor`, `TestStore` tests crash with infinite `Reducer.reduce`/`_reduce` recursion (crash report reviewed).
+    - Marking reducers and their `State`/`Action` `nonisolated` passes the tests but leaves 20 warnings from TCA macro-generated conformances.
+    - A `nonisolated` target default passes with zero warnings.
+    - The human deferred the choice until before the first TCA feature.
+  - Command-line builds need `-skipMacroValidation` for TCA's macros.
+
+### 2026-09-11 20:33 -0400 — Require a timestamped log of all AI interactions
+
+- **Started:** 2026-09-11 20:33 -0400
+- **Ended:** 2026-09-11 20:36 -0400
+- **Human:** Adam Ure
+- **AI tool / model:** Claude Code / Claude Opus 5
+- **Transcript:** `ai_transcripts/2026-09-11-2000-840c4ae6.md`
+- **Type:** change
+- **Request:** Make `ai_log.md` require a timestamped log of interactions with AI for the entire project.
+- **Interactions:**
+  - `20:33` Asked for the `ai_log.md` instructions to require a timestamped log of all AI interactions for the entire project.
+  - `20:36` Approved the per-task granularity, the reconstructed times on earlier entries, and the rule set as written.
+- **AI contribution:**
+  - Rewrote the Rules and entry format. Every AI interaction on the project is now logged, including ones that change no files, across all contributors and tools.
+  - Set the granularity to one entry per task, with completion tools logged once per session.
+  - Required start and end timestamps plus a timed Interactions timeline, taken from `date` in local time with UTC offset. Entries are chronological.
+  - Added reconstructed, `~`-marked start and end times and untimed interaction lists to the two earlier entries, which were still uncommitted and could therefore be revised.
+  - Updated `CLAUDE.md` section 2 to match.
+- **Human changes:** Reviewed and approved the AI's choices (per-task entries, completion tools logged per session, `~`-marked reconstructed times). Did not request a constitution amendment.
+- **Files:** `ai_log.md` (modified), `CLAUDE.md` (modified)
+- **Verification:** N/A (docs only)
+- **Notes:**
+  - The two earlier entries' times were reconstructed from file-system timestamps. Per-prompt times from before this rule weren't recorded, and were not estimated.
+  - Constitution Article X.1 still says only AI-assisted *changes* are logged. It wasn't amended, because the constitution changes only on explicit request.
+
+### 2026-09-11 20:38 -0400 — Document the feature implementation order
+
+- **Started:** 2026-09-11 20:38 -0400
+- **Ended:** 2026-09-11 20:44 -0400
+- **Human:** Adam Ure
+- **AI tool / model:** Claude Code / Claude Opus 5
+- **Transcript:** `ai_transcripts/2026-09-11-2037-23b1c101.md`
+- **Type:** change, planning
+- **Request:** Document the owner's feature priority list (27 items scored for effort and value on a Fibonacci scale, from the priority map `half-life-priority.jsx`) as the project's feature implementation order.
+- **Interactions:**
+  - `20:38` Asked to document the priority list in `~/Downloads/half-life-priority.jsx` as the feature implementation order.
+  - `20:44` Declined the offer to publish the interactive priority map, and asked not to export anything. Asked the AI not to pursue the constitution conflicts for now.
+- **AI contribution:**
+  - Added `roadmap.md`. It reproduces the owner's order, scores, quadrants, and rationale verbatim from the priority map.
+  - Computed V/E ratios, cumulative effort and value, and the "Where to stop" checkpoints with a script run on the map's data (totals: 174 effort, 747 value).
+  - Added a "Constitution notes" section flagging items that meet a governing rule: the open actor-isolation decision (before rank 2), HealthKit fallbacks (V.3.1, V.3.3), test, documentation, and accessibility items that can't be deferred (Articles II, VIII, VI), and CloudKit backup (rank 23), which conflicts directly with V.1 and V.3.4. Removed the section at the owner's request.
+  - Added a "Feature order" section to `CLAUDE.md` pointing to the roadmap.
+  - Offered to publish the priority map as an artifact. The offer was declined, and nothing was published.
+- **Human changes:** Declined the artifact. Had the constitution notes removed from the roadmap.
+- **Files:** `roadmap.md` (added), `CLAUDE.md` (modified), `ai_log.md` (modified)
+- **Verification:** N/A (docs only). Cumulative figures were computed by script from the map's data, not by hand.
+- **Notes:**
+  - The ranking wasn't changed. The owner deferred the constitution conflicts.
+  - Delete + undo (rank 20) is described as required by one-tap favourites (rank 3). With this order, one-tap logs can't be undone for 17 ranks.
+
+### 2026-09-11 20:41 -0400 — Import the case-study brief and prototype screenshots
+
+- **Started:** 2026-09-11 20:41 -0400
+- **Ended:** 2026-09-11 20:45 -0400
+- **Human:** Adam Ure
+- **AI tool / model:** Claude Code / Claude Opus 5
+- **Transcript:** `ai_transcripts/2026-09-11-2041-95eaddbb.md`
+- **Type:** change
+- **Request:** Import the project spec (`femmli Case Study [09.11.26].pdf`) into the repository.
+- **Interactions:**
+  - `20:41` Asked to import the project spec from `~/Downloads/femmli Case Study [09.11.26].pdf`.
+  - `20:42` Mid-task, asked to include `~/Desktop/Half-Life Screenshots.zip` as the prototype.
+- **AI contribution:**
+  - Transcribed the three-page brief verbatim into `spec.md`, converting only the formatting to Markdown, and committed the original as `spec/brief.pdf`.
+  - Tried to read the prototype artifact linked in the brief. The read failed because public artifacts can't be read as a non-member, so nothing was imported from it directly.
+  - Extracted the 13 screenshots from the zip, skipping the `__MACOSX` metadata, and saved them unmodified as `spec/prototype/01.png`–`13.png` in capture order. Viewed each one and added a "Prototype screenshots" section to `spec.md` describing every screen. The section is marked as added on import, not part of the brief.
+  - Added a "Product spec" section to `CLAUDE.md` that imports `@spec.md`. It says that `roadmap.md` sets the order and the brief sets the requirements, that the constitution wins any conflict with the brief, and that `spec/` is edited only to fix transcription errors.
+  - Chose the file locations without asking: `spec.md` at the repository root next to the other project documents, and its assets under `spec/`.
+  - A concurrent session added `roadmap.md` and edited `CLAUDE.md` and `ai_log.md` during this task. The AI re-read both files before editing, and no changes collided.
+- **Human changes:** Added the prototype screenshots to the task's scope mid-task.
+- **Files:**
+  - Added: `spec.md`, `spec/brief.pdf`, `spec/prototype/01.png`–`13.png`
+  - Modified: `CLAUDE.md`, `ai_log.md`
+- **Verification:** N/A (docs only). The copied PDF's SHA-1 matches the source (`68b4b71…`). The screenshot descriptions were written from viewing each image, not from memory.
+- **Notes:**
+  - Conflicts with the brief, recorded but not pursued (the owner deferred constitution conflicts at 20:44 in another task):
+    - The bonus asks for logging by texting a phone number. That needs a server, which conflicts with constitution V.1 (on-device only, no backend).
+    - The prototype's "Continue with Apple / email" sign-in conflicts with the brief's "no accounts infrastructure" rule.
+  - Deliverable 4 asks for "time-stamped scripts" of AI interactions. `ai_log.md` holds summaries, not full transcripts.
+  - The screenshots add about 16 MB of uncompressed PNGs to the repository.
+
+### 2026-09-11 20:46 -0400 — Add the robot pattern for UI tests to the constitution
+
+- **Started:** 2026-09-11 20:46 -0400
+- **Ended:** 2026-09-11 21:12 -0400
+- **Human:** Adam Ure
+- **AI tool / model:** Claude Code / Claude Opus 5
+- **Transcript:** `ai_transcripts/2026-09-11-2046-02219dad.md`
+- **Type:** change, planning
+- **Request:** Add instructions to the constitution for how UI tests are run. They follow the robot pattern: one robot per feature, elements referenced by accessibility identifiers set in the source, semantic commands, and tests that work out which robot is on screen and fail if it's unexpected.
+- **Interactions:**
+  - `20:46` Asked for the robot-pattern UI-test rules in the constitution.
+  - `20:56` Answered three questions. Robots verify, and tests make no direct UI assertions. Tests always resolve the robot on screen, and commands never return a robot. Accessibility identifiers are a type nested in the view, reached from the UI tests through `@testable import`.
+  - `20:59–21:06` Declined the follow-up question about where the identifiers live, asking to clarify first. The exact minute wasn't recorded.
+  - `21:06` Said that making the view `public` should let the UI tests reach it through `@testable import`.
+  - `21:07` Chose a per-view identifier file compiled into both targets.
+  - `21:11` Accepted the finding, recalling that their earlier experience came from unit-testing views with ViewInspector. Asked to keep this approach and avoid ViewInspector to reduce the project's SOUP burden.
+- **AI contribution:**
+  - Asked the three design questions above instead of choosing.
+  - Challenged the nested-type premise and tested it in a scratch copy of the project, outside the repository:
+    - `@testable import Half_Life` from the UI test target compiles, but the link fails with `Undefined symbol: Half_Life.ContentView.AccessibilityID.greeting.unsafeMutableAddressor`, and it adds `SwiftUICore` linker warnings.
+    - Making the view and its nested type `public` failed the same way. The first run of that probe failed for an unrelated reason: a stale project entry for a scratch file that had been deleted. The AI fixed the entry and re-ran it.
+    - A top-level `ContentViewAccessibilityID` enum in its own file, with membership in both targets through a synchronized-folder membership exception, built, linked, and passed a UI test that found the element by its identifier.
+  - Wrongly guessed that the owner's earlier experience came from views in a Swift package. The owner corrected this: it was ViewInspector.
+  - `constitution.md`: added "UI tests: the robot pattern" to Article II (items 5–11, with no existing numbers changed) and an Amendments row.
+  - `CLAUDE.md`: replaced the UI testing bullet with a summary of the robot pattern, including the warning not to use `@testable import` from UI tests.
+  - `Architecture` article: added `<Feature>ViewAccessibilityID.swift` and a `Half-LifeUITests/` tree to the folder structure, plus a "UI tests" section with an identifier file, robot, test, and multi-robot resolution example, and an empty Robots table.
+  - Saved the owner's SOUP preference (avoid ViewInspector) to Claude Code's local memory, outside the repository.
+  - A concurrent session edited `CLAUDE.md`, the `Architecture` article, and `ai_log.md` during this task. One `Architecture` edit was refused because the file had changed on disk. The AI re-read the files and re-applied that edit, and no changes collided.
+- **Human changes:** Chose robot-owned verifications, tests that always resolve the robot on screen, and the per-view shared identifier file. Kept this approach over ViewInspector to limit SOUP.
+- **Files:** `constitution.md`, `CLAUDE.md`, `Half-Life/Documentation.docc/Architecture.md`, `ai_log.md` (all modified)
+- **Verification:**
+  - `xcodebuild docbuild` succeeded with zero warnings.
+  - The identifier approaches were tested only in the scratch copy (results above).
+  - App tests and coverage: N/A (docs only, no app code changed).
+- **Notes:**
+  - The existing UI tests (`Half_LifeUITests`, `Half_LifeUITestsLaunchTests`) predate this rule and query `XCUIApplication` directly. They haven't been migrated to robots, so `ContentView` has no identifier file or robot yet. Resolved in the 21:15 entry.
+  - Left open: how resolution chooses when more than one expected robot's screen is present, for example a sheet over a screen. Decide this with the first feature that presents one. The 21:15 entry implemented first-listed-wins provisionally, and the owner hasn't confirmed it.
+  - The `Robot` protocol, `resolve` helper, and robot code in the `Architecture` article are unbuilt sketches. The `descendants(matching: .any)` screen lookup hasn't been verified. Resolved in the 21:15 entry: the infrastructure is built and tested, and the article's sketches now match it.
+  - This session's transcript is a snapshot. Re-export it before committing (Rule 9.1).
+
+### 2026-09-11 20:54 -0400 — Design the caffeine decay function
+
+- **Started:** 2026-09-11 20:54 -0400
+- **Ended:** 2026-09-11 20:58 -0400
+- **Human:** Adam Ure
+- **AI tool / model:** Claude Code / Claude Opus 5
+- **Transcript:** `ai_transcripts/2026-09-11-2047-3ff5a5ee.md`
+- **Type:** planning, change
+- **Request:** Design the exponential decay function behind roadmap rank 1 (Decay + superposition) without writing code. Identify the function, justify it, define its starting constants (a 5.5 half-life for 200 mg, tunable per user later), and document it in the DocC catalog.
+- **Interactions:**
+  - `20:54` Asked to design and document the decay function. Proposed `y = C^(k·t)` as the standard form, and a half-life of "5.5 days" for 200 mg.
+- **AI contribution:**
+  - Flagged two corrections before writing anything:
+    - The brief gives the half-life in **hours** ("roughly 5–6 hours"), not days, so the article uses 5.5 hours.
+    - The exponential-decay form is `y = C · e^(−k·t)`, not `C^(k·t)`.
+  - Noted that under first-order kinetics the half-life doesn't depend on the dose, so "200 mg" is just the size of the brief's example.
+  - Added the `Caffeine Decay Model` article. It covers first-order elimination with instant absorption and superposition across drinks, with `k = ln 2 / T½`. It also shows that the total decays as a single exponential after the last drink, which gives a closed-form "when will I be below X mg" answer.
+  - Set the constants: `T½` = 5.5 h (19,800 s), with `k` ≈ 0.1260 h⁻¹ always derived from it, never stored.
+  - Added a justification, a sensitivity table across the brief's 5–6 h range, assumptions and limitations, edge-case rules, and worked examples intended as the first unit-test reference cases.
+  - Chose instant absorption for this first model because the roadmap schedules Bateman absorption separately (rank 5).
+  - Linked the article from the catalog's landing page under a new "Caffeine model" topic.
+  - The first draft left a malformed placeholder formula in the superposition section and a same-page link, which the AI caught and fixed before the build.
+- **Human changes:** During the 21:04 task, confirmed the 5.5-hour half-life and deferred sourcing the physiology claims until the decay is personalized.
+- **Files:** `Half-Life/Documentation.docc/CaffeineDecayModel.md` (added), `Half-Life/Documentation.docc/Documentation.md` (modified), `ai_log.md` (modified)
+- **Verification:**
+  - The worked-example numbers were computed by a Python script, not by hand. The brief's example comes out at 82.8 mg against its "80 mg", which corresponds to a 5.3 h half-life.
+  - `xcodebuild docbuild`: succeeded with zero warnings, and the new article appears in `Half-Life.doccarchive`.
+  - Tests and coverage: N/A (docs only, no code changed).
+- **Notes:**
+  - Some physiology claims in the article are stated qualitatively and have no citations: the absorption peak of about 30 min to 2 h, the half-life modifiers, saturation at high doses, and paraxanthine. The owner deferred adding sources until the decay is personalized.
+  - Left open for later features:
+    - Where the function lives in code. Resolved in the 21:04 entry: a Domain business rule that the repository executes.
+    - The allowed range for a tuned half-life (roadmap ranks 6, 9, and 21).
+
+### 2026-09-11 20:54 -0400 — Add full session transcripts to the AI log
+
+- **Started:** 2026-09-11 20:54 -0400
+- **Ended:** 2026-09-11 21:09 -0400
+- **Human:** Adam Ure
+- **AI tool / model:** Claude Code / Claude Opus 5
+- **Transcript:** `ai_transcripts/2026-09-11-2041-95eaddbb.md`
+- **Type:** change, planning
+- **Request:** Update the AI log to include full transcripts of the AI interactions.
+- **Interactions:**
+  - `20:54` Asked to update the log to include full transcripts.
+  - `20:58` Chose the AI's recommended option on all four questions: rendered Markdown rather than raw JSONL copies, tool results truncated to 40 lines, a Python exporter written test-first, and backfilling earlier entries' times from the transcripts.
+- **AI contribution:**
+  - Inspected Claude Code's local session files for the project (six sessions, several of them running concurrently). They contain the user's email, system context, harness metadata, and base64 images. The AI's reasoning is stored as empty blocks, and the progress updates it writes between tool calls aren't stored at all. Asked the four questions above instead of choosing.
+  - Wrote `scripts/export_transcripts.py` test-first. It uses only the standard library and runs on the Python 3.9 bundled with Xcode. The 26 initial tests failed with `ModuleNotFoundError` before the script existed, then passed. It renders each session as Markdown with a time on every prompt, reply, tool call, and tool result. It redacts email addresses and the home path, drops images, system reminders, and harness entries, and cuts tool results to 40 lines.
+  - Exported all six sessions to `ai_transcripts/`. The redaction audit turned up a bug: reminder stripping also mangled AI-written text and tool-call inputs containing reminder tags, including the exporter's own regex in this session's transcript. Wrote a 27th test, confirmed it failed, then fixed the exporter to strip reminders only from prompts and tool results.
+  - `ai_log.md`: added Rule 9 (Transcripts), extended Rule 7 to transcripts, made Rule 3.4 prefer transcript timestamps, and added a **Transcript** field to the entry format and to every existing entry.
+  - Backfilled the first two entries from the transcript. Their `~` reconstructions were wrong: the first task ran 20:00–20:07, not ~19:38–~20:13, and the second 20:09–20:29, not ~20:13–~20:29. Timed their interactions too.
+  - Corrected this session's import entry. The transcript shows the screenshots request arrived at 20:42, but the AI had logged 20:43, when it read the message.
+  - `CLAUDE.md`: a transcript bullet in section 2, a "Tooling" testing rule, and the export and test commands. `.gitignore`: ignores `__pycache__/`.
+- **Human changes:** Chose the four options above.
+- **Files:**
+  - Added: `scripts/export_transcripts.py`, `scripts/tests/test_export_transcripts.py`, `ai_transcripts/` (six transcripts, 588 KB)
+  - Modified: `ai_log.md`, `CLAUDE.md`, `.gitignore`
+- **Verification:**
+  - 27/27 exporter tests pass under `/usr/bin/python3` 3.9.6 and Homebrew Python 3.14.6.
+  - Redaction audit across all six transcripts: 0 email addresses, 0 home-directory paths, and 0 base64 runs of 400+ characters. The exporter's regex appears intact in this session's transcript after the fix.
+  - App tests and coverage: N/A (no app code changed).
+- **Notes:**
+  - Transcripts of sessions that are still running are snapshots. Re-export before committing (Rule 9.1). This session's transcript stops before this entry was written.
+  - Known limitation: a tool result that legitimately contains `<system-reminder>` tags, such as a read of the exporter's source, loses that text, because injected reminders can't be told apart from file content.
+  - The 20:33 entry was timed from the clock and wasn't changed, although the transcript shows its prompt arrived at 20:32:42. Its note about file-system-reconstructed times now describes history: those entries carry transcript times.
+  - Session `02219dad` (UI-test robot pattern) has no log entry yet. Its transcript is exported.
+  - Constitution Article X.1 still covers only AI-assisted changes. It wasn't amended.
+
+### 2026-09-11 20:57 -0400 — Extract a design system from the prototype screenshots
+
+- **Started:** 2026-09-11 20:57 -0400
+- **Ended:** 2026-09-11 21:18 -0400
+- **Human:** Adam Ure
+- **AI tool / model:** Claude Code / Claude Opus 5
+- **Transcript:** `ai_transcripts/2026-09-11-2057-114a5432.md`
+- **Type:** planning, review, change
+- **Request:** Extract a design system from the prototype screenshots, using semantic naming. Review it with the owner before adding anything to the project.
+- **Interactions:**
+  - `20:57` Asked to extract the design system from the screenshots, review it before creating it in the project, and follow semantic naming guidelines.
+  - `21:14` Decided: the standard SF fonts, not Instrument Serif; accept the contrast fix (two grey text tiers); solid cards. Dark mode is documented as an intentional decision and goes to the end of the backlog. The heart-rate hue is delegated to the AI. Said the tokens aren't the top priority right now.
+- **AI contribution:**
+  - Viewed all 13 screenshots. Sampled about 200 colors with a throwaway Swift script in the session scratchpad, outside the repository. The script converts the PNGs' Display P3 profile to sRGB, measures glyph heights and corner radii, and computes WCAG contrast.
+  - Found that 33 of 51 sampled text-on-surface pairs fail WCAG AA at the size they're used (constitution VI.3). Twenty-one fail outright, and 12 more pass only the large-text threshold but are set in small text. The AI's first draft of this entry said "23 of 52" before the results were recounted. Computed the smallest darkening that fixes each one. Raising the prototype's third grey tier to 4.5:1 lands it on the same value as the second tier.
+  - Proposed semantic color, typography, spacing, radius, sizing, and elevation tokens, and listed the decisions the owner needs to make. These include the serif typeface (Instrument Serif, which is third-party, or Apple's New York), dark mode, and merging the two dark action colors. The proposal was presented in the terminal. Nothing was published or exported.
+  - A concurrent session appended its 20:54 entry while this one was being written. The AI moved this entry below it to keep the log in start-time order.
+  - After the owner's decisions, wrote the `Design System` DocC article: naming rules, a decisions table, final color values with contrast ratios, SF-only typography mapped to Dynamic Type styles, spacing, shape, elevation, chart specs, accessibility rules, and the deferred dark-mode plan (lock the app to the light appearance until then). Linked it from the catalog's landing page.
+  - Chose the heart-rate hue as delegated: `dataHeart` #9B4459 on `dataHeartSubtle` #F1DFE1, at 4.55:1 on the page background's darkest point and 4.87:1 on its tile.
+  - Made follow-on choices that the owner didn't review individually:
+    - Solid cards also apply to the emphasis cards, which became a single #3E2C1F instead of the prototype's gradient.
+    - With SF, the stat values snap to the `title2` and `title3` text styles (22 and 20 pt). The measured serif sizes were 24 and 19 pt.
+    - Weights: light for the large metrics, bold for screen titles.
+  - Added a "Backlog" section to `roadmap.md` holding dark mode, without scores, so the ranked order and its totals are unchanged.
+  - Wrote no Swift code, color sets, or tests. The article says tokens enter the code test-first when the first screen needs them, because the owner said the tokens aren't the priority and constitution III.1 rules out abstractions with no consumer.
+  - Recorded in the AI's memory that the owner's preference for first-party options covers fonts as well as packages.
+- **Human changes:** Chose the SF fonts over the proposed Instrument Serif, accepted the two-tier contrast fix and solid cards, deferred dark mode to the end of the backlog, and delegated the heart-rate hue.
+- **Files:** `Half-Life/Documentation.docc/DesignSystem.md` (added), `Half-Life/Documentation.docc/Documentation.md` (modified), `roadmap.md` (modified), `ai_log.md` (modified)
+- **Verification:**
+  - Colors and contrast ratios were computed by script from the screenshots, not estimated by eye. Sizes are estimates from browser captures at about 2x and are accurate to about ±2 pt.
+  - The first draft of the article reported three text contrast ratios against the wrong surface (`textPrimary` 12.0, `textOnEmphasis` 11.7) or rounded one up (`textOnEmphasisSecondary` 5.1). The AI corrected them to the darkest surface each token sits on (> 10, 9.4, 5.0) before the build.
+  - `xcodebuild docbuild`: `BUILD DOCUMENTATION SUCCEEDED`, with no warnings from the Half-Life catalog.
+  - Tests and coverage: N/A (documentation only, no code changed).
+- **Notes:**
+  - The elevation values were estimated by eye.
+  - The article's contrast figures come from sampled prototype colors. The planned unit test becomes the enforcement once the color sets exist.
+  - Prototype elements below the 44 pt hit target (the "When" chips, stepper buttons, avatar, 7D/30D segments, and delete buttons) need resizing when their screens are built.
+
+### 2026-09-11 21:04 -0400 — Design the decay model's entities and business rule
+
+- **Started:** 2026-09-11 21:04 -0400
+- **Ended:** 2026-09-11 21:07 -0400
+- **Human:** Adam Ure
+- **AI tool / model:** Claude Code / Claude Opus 5
+- **Transcript:** `ai_transcripts/2026-09-11-2047-3ff5a5ee.md`
+- **Type:** planning, change
+- **Request:** Define the decay model's entities so that they don't change when Bateman absorption replaces instant absorption.
+- **Interactions:**
+  - `21:04` Said Bateman absorption is important and will change how the curve is shown. Asked to define entities that won't change with the Bateman implementation.
+  - `21:04–21:06` Confirmed the 5.5-hour half-life, and deferred sourcing the physiology claims until the decay is personalized. This message arrived mid-turn, so its exact minute wasn't recorded.
+  - `21:06` Decided that the calculation lives in the Domain layer as a business rule that the repository executes, with no use case for the calculation itself, and that the observation carries the curve. Deferred the actor-isolation decision again.
+- **AI contribution:**
+  - Added an "Entities" section to the `Caffeine Decay Model` article:
+    - `CaffeineIntake` (`id`, `milligrams`, `consumedAt`), `CaffeineHalfLife` (`seconds`, a `standard` value of 19,800 s, `k` derived rather than stored), and `CaffeineLevel` (`date`, `milligrams`).
+    - A table showing the entities are unchanged under Bateman absorption.
+    - The units rationale: `Double` milligrams and `TimeInterval` seconds, with `Measurement` used only when presenting values.
+  - Qualified the owner's premise: the entities stay unchanged under Bateman only if its absorption rate is a single constant of the model. A per-drink or per-person rate would add a value.
+  - Changed "logged" to "consumed" throughout the model, because backdating makes the two times differ, and tightened the dose rule to "greater than zero".
+  - Noted that the closed-form "when below X" answer holds only under instant absorption.
+  - Added a "Where the calculation lives" section: `CaffeineDecayRule` (working name) with Level and Curve operations, plus two open questions.
+  - Updated the `Architecture` article for the new Domain component: business rules in the layer table, lifetimes, folder structure (`Domain/BusinessRules/`), and flow prose, plus a Business rules table.
+  - Told the owner that `ai_log.md` cited a nonexistent Rule 9 and had entries out of start-time order. On re-reading, both were a concurrent session's edits in progress, and both had already resolved.
+- **Human changes:** Confirmed the 5.5-hour half-life. Deferred the physiology sources. Chose the business-rule placement over a use case. Deferred actor isolation again.
+- **Files:** `Half-Life/Documentation.docc/CaffeineDecayModel.md` (modified), `Half-Life/Documentation.docc/Architecture.md` (modified), `ai_log.md` (modified)
+- **Verification:** `xcodebuild docbuild` succeeded with zero warnings. Tests and coverage: N/A (docs only, no code changed).
+- **Notes:**
+  - Constitution Article I's Domain row lists entities, use cases, and repository protocols. It doesn't name business rules. The constitution wasn't amended, because it changes only on explicit request.
+  - A worked-example line in `CaffeineDecayModel.md` reads `5.5 h  log₂(295.4 / 50)`. The `·` was removed outside this session. The AI left the line as it is and raised it with the owner.
+  - Open questions:
+    - Which moments the curve covers and how far apart they are. "Now" moves between emissions.
+    - Which repository owns the curve, and where it gets the half-life.
+    - The entity and rule names are working names. Resolved in part in the 21:18 entry: the owner confirmed `CaffeineIntake`, and decided that the absorption rate becomes its own entity with Bateman.
+
+### 2026-09-11 21:15 -0400 — Move the existing UI tests to robots
+
+- **Started:** 2026-09-11 21:15 -0400
+- **Ended:** 2026-09-11 21:25 -0400
+- **Human:** Adam Ure
+- **AI tool / model:** Claude Code / Claude Opus 5
+- **Transcript:** `ai_transcripts/2026-09-11-2046-02219dad.md`
+- **Type:** change
+- **Request:** Fix the existing UI tests so they follow the robot pattern adopted in the 20:46 entry (constitution Article II.5–11).
+- **Interactions:**
+  - `21:15` Asked to fix the existing tests.
+- **AI contribution:**
+  - Built the robot infrastructure in `Half-LifeUITests/Robots/Robot.swift`:
+    - A `@MainActor` `Robot` protocol with a `screenIdentifier`, the app, and `init(app:)`. An extension gives every robot `auditAccessibility()` and `screenshot()`.
+    - A `Robots.all` registry of known robots.
+    - `XCUIApplication.resolve(_:timeout:)` and `resolve(expecting:timeout:)`, which wait on a single query for any expected screen identifier instead of sleeping.
+    - `UnexpectedScreenError`, which names the expected robots and the known robot whose screen is showing.
+  - Added `ContentRobot` for `ContentView`.
+  - Converted the existing tests:
+    - Replaced the template `testExample`, which launched the app and asserted nothing, with `testLaunchShowsContentScreen`.
+    - Renamed the audit test `testContentScreenPassesAccessibilityAudit`. It now runs through the robot.
+    - The launch-screenshot test now resolves the robot and takes its screenshot through it.
+    - Left `testLaunchPerformance` unchanged, because it only launches the app.
+    - Removed Xcode's template comments and the empty `tearDownWithError`.
+  - Added `RobotResolutionUITests`: one test resolves among several robots, and one checks the failure message. Both use a private `AbsentRobot` test double whose identifier is a deliberate literal that no view defines.
+  - Worked test-first:
+    - Red 1: the build failed with `cannot find 'ContentViewAccessibilityID' in scope`.
+    - The AI then added `ContentViewAccessibilityID` (`screen`) and a membership exception in `project.pbxproj`, written by hand in the format proven in the scratch copy during the 20:46 task.
+    - Red 2: three tests failed with "Expected ContentRobot, but no known screen is showing."
+    - Green: made the root `VStack` an accessibility container (`.accessibilityElement(children: .contain)`) carrying the screen identifier.
+  - Chose, without asking, that the first listed robot wins when several expected screens are showing. The 20:46 entry had left this open. It was the simplest behavior, and it's flagged for the owner.
+  - Updated the `Architecture` article's sketches to match the built API (`screenIdentifier`, `Robots.all`, protocol-provided audit and screenshot, `UnexpectedScreenError`, the container modifier). Filled in the Robots table, and added `Robots.all` to `CLAUDE.md`.
+  - The in-place `swift-format format` command didn't run, because zsh doesn't split an unquoted word list. The strict lint afterwards was clean, so no formatting was needed.
+- **Human changes:** None
+- **Files:**
+  - Added: `Half-Life/ContentViewAccessibilityID.swift`, `Half-LifeUITests/Robots/Robot.swift`, `Half-LifeUITests/Robots/ContentRobot.swift`, `Half-LifeUITests/RobotResolutionUITests.swift`
+  - Modified: `Half-Life/ContentView.swift`, `Half-LifeUITests/Half_LifeUITests.swift`, `Half-LifeUITests/Half_LifeUITestsLaunchTests.swift`, `Half-Life.xcodeproj/project.pbxproj`, `Half-Life/Documentation.docc/Architecture.md`, `CLAUDE.md`, `ai_log.md`
+- **Verification:**
+  - Full run on iPhone 17 Pro (iOS 26.5): all 9 UI test cases passed, with the launch test running once for each of its 4 UI configurations. The one unit test also passed. There were no compiler warnings from project files.
+  - Coverage of `Half-Life.app`: 100.00% (27/27 lines).
+  - `swift-format lint --strict` and `swiftlint lint --strict`: clean.
+  - `xcodebuild docbuild`: succeeded with no warnings from the Half-Life catalog. The only warnings came from the TCA and swift-navigation packages' own docs.
+- **Notes:**
+  - The membership exception was edited into `project.pbxproj` by hand. Open the project in Xcode once and check that `ContentViewAccessibilityID.swift` shows both targets under Target Membership.
+  - The owner hasn't confirmed first-listed-wins for overlapping screens.
+  - This session's transcript is a snapshot. Re-export it before committing (Rule 9.1).
+
+### 2026-09-11 21:18 -0400 — Drop negligible intakes from the decay rule
+
+- **Started:** 2026-09-11 21:18 -0400
+- **Ended:** 2026-09-11 21:21 -0400
+- **Human:** Adam Ure
+- **AI tool / model:** Claude Code / Claude Opus 5
+- **Transcript:** `ai_transcripts/2026-09-11-2047-3ff5a5ee.md`
+- **Type:** planning, change
+- **Request:** Make the decay rule stop counting an intake's decay curve once its remaining caffeine is statistically insignificant.
+- **Interactions:**
+  - `21:18` Confirmed `CaffeineIntake`, because it leaves out the drink's details. Decided that the absorption rate becomes a new entity when Bateman is built. Asked for the rule to drop decay curves whose remaining value is statistically insignificant.
+  - `21:19` Chose a 0.5 mg threshold. The options offered were 1 mg (the AI's recommendation), 0.5 mg, and 10 half-lives.
+- **AI contribution:**
+  - Suggested calling the threshold "negligible" (below the model's precision) instead of "statistically insignificant", because the model is deterministic and no statistical test is involved.
+  - Pointed out that under Bateman a new drink starts at 0 mg, so "below the threshold" on its own would drop every drink as it's logged. Defined the rule as: drop an intake once it's past its peak and below `ε`.
+  - Overstated one point in the option text, claiming that 0.5 mg meant dropping a drink "can never visibly change a number". Corrected it before documenting: that holds only when the dropped intake is the last one counting. Otherwise, the rounded total can tick down by 1 mg early.
+  - Updated the `Caffeine Decay Model` article:
+    - Added a fourth modelling choice to the overview, and a "Dropping negligible intakes" section: the filtered superposition formula, each intake's drop time `tᵢ + T½ · log₂(Dᵢ / ε)`, the justification, the effects (a step under 0.5 mg, bounded error and work, the "when" formula's error), and the rule that survives Bateman.
+    - Added `ε` = 0.5 mg to the constants.
+    - Noted that `CaffeineIntake` leaves drink details to the composer's types, and recorded the absorption rate as a future entity.
+    - Said that both of the rule's operations leave out negligible intakes, and replaced the "10 half-lives" edge rule.
+    - Added drop-time worked examples, including an exact boundary case: 128 mg is exactly 0.5 mg after 44 h.
+- **Human changes:** Confirmed the `CaffeineIntake` name. Decided that the absorption rate is a separate future entity. Chose 0.5 mg over the recommended 1 mg.
+- **Files:** `Half-Life/Documentation.docc/CaffeineDecayModel.md` (modified), `ai_log.md` (modified)
+- **Verification:**
+  - Drop times and windows were computed by a Python script.
+  - `xcodebuild docbuild`: `BUILD DOCUMENTATION SUCCEEDED`, with no warnings from the Half-Life catalog. This build recompiled the packages, so it also showed 472 warning lines from the TCA (426) and swift-navigation (46) packages' own docs, plus an AppIntents metadata notice.
+  - Tests and coverage: N/A (docs only, no code changed).
+- **Notes:**
+  - The display rounding to whole milligrams is taken from the prototype and hasn't been decided. Resolved in the 21:27 entry: two decimal places.
+  - The worked-example line missing its `·` (see the 21:04 entry) is unchanged. Fixed in the 21:27 entry.
+  - Still open from the 21:04 entry: which moments the curve covers, and which repository owns the curve and supplies the half-life. Partly resolved in the 21:27 entry: `CaffeineDecayRepository` owns the curve and publishes all of it, and presentation filters it to a time window.
+
+### 2026-09-11 21:21 -0400 — Add the design-system constants and color sets
+
+- **Started:** 2026-09-11 21:21 -0400
+- **Ended:** 2026-09-11 21:37 -0400
+- **Human:** Adam Ure
+- **AI tool / model:** Claude Code / Claude Opus 5
+- **Transcript:** `ai_transcripts/2026-09-11-2057-114a5432.md`
+- **Type:** change
+- **Request:** Create a `DesignSystem` directory for the spacing, radius, and other constants, and add the design system's colors to the asset catalog.
+- **Interactions:**
+  - `21:21` Asked for a `DesignSystem` directory holding the constants, and for the colors in the asset catalog.
+  - `21:29` Mid-task, disagreed with locking the app to the light appearance. Asked that the lock be marked as the AI's decision, to be reversed when the dark-mode feature is built.
+- **AI contribution:**
+  - Worked in two red → green cycles.
+    - **Cycle 1:** Wrote `ColorTokenTests` and `AppearanceTests` first. They failed at runtime because the color sets and the Info.plist key didn't exist yet.
+      - Generated 36 color sets in `Assets.xcassets/Colors/`, grouped in eight folders without namespaces, and gave `AccentColor` the accent value (#B87333).
+      - Added `INFOPLIST_KEY_UIUserInterfaceStyle = Light` to the app target's Debug and Release configurations.
+    - **Cycle 2:** Wrote `LayoutTokenTests` first. It failed to compile until the new types existed. Then added `Spacing`, `CornerRadius`, `Sizing`, and `Elevation` in `Half-Life/DesignSystem/`. They're `nonisolated` because the app target defaults to `MainActor` and the unit-test target doesn't.
+  - `ColorTokenTests` checks all 37 color values and 36 WCAG pairings from the Design System article. `LayoutTokenTests` checks the constants, the 4 pt grid, and the 44 pt minimum hit target.
+  - Renamed `separator` to `separatorOnCard`. The first name would have generated a symbol clashing with UIKit's `UIColor.separator` and SwiftUI's `.separator` style.
+  - The grid test caught a design error. The previous task's article set the large corner radius to 22, which isn't on its own 4 pt grid. The AI changed it to 20, within the measured 20–22 range.
+  - Used `yOffset` rather than `y` for the shadow offset, to satisfy SwiftLint's identifier-name rule.
+  - **Light lock.** The lock was the AI's decision: the previous task's article committed to it, and the AI added it here. The owner disagrees with it. At the owner's request, it's kept but marked as an AI decision to be reversed with the dark-mode backlog item, in the Design System article (decisions table and Dark mode section), in `roadmap.md`, and in the `AppearanceTests` comment.
+  - Didn't implement typography. The three large metric sizes need a Dynamic Type scaling mechanism, which is better designed alongside the first screen that uses it. The article says so.
+  - Updated the Design System article with an "In code" section, the code names (`CornerRadius.large`, `Sizing.iconTile`, `Elevation.floating`, `AccentColor`), and SwiftUI shadow radii. Added `DesignSystem/` and `Assets.xcassets/Colors/` to the `Architecture` article's folder tree.
+  - Mistakes caught and fixed before finishing:
+    - `LayoutTokenTests` read static members without `Self.`, which failed to compile.
+    - The new tests had swift-format violations, plus SwiftLint `large_tuple` violations, fixed by replacing the tuples with a small `RGBA` struct.
+    - A `<doc:>` link was placed inside a code block in the Architecture article, where it can't render as a link. It was replaced with plain text.
+- **Human changes:** Rejected the light-appearance lock as the owner's decision. Kept it, marked as the AI's decision, to be reversed at the dark-mode feature.
+- **Files:**
+  - Added: `Half-Life/DesignSystem/Spacing.swift`, `CornerRadius.swift`, `Sizing.swift`, `Elevation.swift`; `Half-Life/Assets.xcassets/Colors/` (36 color sets in 8 folders); `Half-LifeTests/DesignSystem/ColorTokenTests.swift`, `LayoutTokenTests.swift`, `AppearanceTests.swift`
+  - Modified: `Half-Life/Assets.xcassets/AccentColor.colorset/Contents.json`, `Half-Life.xcodeproj/project.pbxproj` (one build setting in two configurations), `Half-Life/Documentation.docc/DesignSystem.md`, `Half-Life/Documentation.docc/Architecture.md`, `roadmap.md`, `ai_log.md`
+- **Verification:**
+  - **Red:** 37 color-value tests, 36 pairing tests, and the appearance test failed before the color sets and build setting existed. `LayoutTokenTests` failed to compile before the constants existed.
+  - **Unit tests:** all passed, with no compiler warnings.
+  - **Full unit and UI run:** `xcresulttool` reports 17 tests passed and 0 failed (parameterized tests count once).
+  - **Coverage:** `Half-Life.app` is at 100.00% (27/27 lines). The constants files have no executable lines, so they don't add to the count.
+  - **Lint:** swift-format `lint --strict` and SwiftLint `--strict` are clean. Formatting was applied only to this task's files, because concurrent sessions were editing the UI-test files.
+  - **Docs:** `xcodebuild docbuild` succeeded with 0 warnings from the Half-Life target. The remaining warnings come from the Point-Free packages.
+- **Notes:**
+  - Builds and tests used their own paths (`build/DerivedData-DesignSystem`, `build/TestResults-DesignSystem.xcresult`, `build/DocBuild-DesignSystem`) to avoid colliding with concurrent sessions.
+  - Typography tokens are still open.
+  - The generated asset symbols (such as `Color.textPrimary`) are Xcode-generated code and carry no DocC comments.
+
+### 2026-09-11 21:22 -0400 — Create the private GitHub repository and push
+
+- **Started:** 2026-09-11 21:22 -0400
+- **Ended:** 2026-09-11 21:23 -0400
+- **Human:** Adam Ure
+- **AI tool / model:** Claude Code / Claude Opus 5
+- **Transcript:** `ai_transcripts/2026-09-11-2122-52336d49.md`
+- **Type:** change
+- **Request:** Using the `adamqure` GitHub account, create a private repository for the project, link it as the remote, and push what is already committed.
+- **Interactions:**
+  - `21:22` Asked for a private repository under `adamqure`, linked, with existing commits pushed.
+- **AI contribution:**
+  - Confirmed that `gh` was logged in with `adamqure` as the active account. Found that every GitHub SSH host alias on the machine authenticates as the other account, `aure-snifr`, so an SSH remote couldn't have pushed to an `adamqure` private repository.
+  - Created `adamqure/Half-Life` as a private repository. Added it as `origin` over HTTPS, which authenticates through `gh`'s credential helper as the active `adamqure` account, and pushed `main` with upstream tracking.
+  - Pushed only the one existing commit, `5779347` ("Initial Commit"). Uncommitted and untracked work, including this entry, was not staged, committed, or pushed.
+- **Human changes:** None
+- **Files:** `ai_log.md` (modified). Also a local git config change: the `origin` remote and `main`'s upstream.
+- **Verification:** `gh repo view` reports the visibility as `PRIVATE`. `git ls-remote origin main` matches local `HEAD` (`5779347`), and `main` tracks `origin/main`.
+- **Notes:**
+  - The pushed commit includes `Half-Life.xcodeproj/xcuserdata/adamure.xcuserdatad/xcschemes/xcschememanagement.plist`, whose deletion is staged but not yet committed. It stays in the repository's history.
+  - This entry is uncommitted. Per Rule 5 it goes in its own commit or with the next change.
+
+### 2026-09-11 21:27 -0400 — Write testable requirements for the decay rule and repository
+
+- **Started:** 2026-09-11 21:27 -0400
+- **Ended:** 2026-09-11 21:30 -0400
+- **Human:** Adam Ure
+- **AI tool / model:** Claude Code / Claude Opus 5
+- **Transcript:** `ai_transcripts/2026-09-11-2047-3ff5a5ee.md`
+- **Type:** planning, change
+- **Request:** Document the negligible-intake flow as testable requirements, set two-decimal rounding, and fix the worked example.
+- **Interactions:**
+  - `21:27` Specified the flow:
+    - The data source returns only intakes that aren't marked negligible. When the business rule "throws" that an intake is negligible, the repository has the data source mark it.
+    - The repository returns the entire curve, and presentation filters it to a time window. A `CaffeineDecayRepository` owns it.
+    - Rounding goes to two decimal places.
+    - Asked for the worked example to be fixed.
+- **AI contribution:**
+  - Updated the `Caffeine Decay Model` article:
+    - Rewrote "Where the calculation lives" around `CaffeineDecayRepository`: fetching unmarked intakes, marking negligible ones, publishing the whole curve, and presentation filtering it. Added a third rule operation, Negligible intakes.
+    - Stated that the negligible mark is stored by the data source and isn't part of `CaffeineIntake`.
+  - Added a "Testable requirements" section with 15 requirements: RULE-1–6, REPO-1–4, DATA-1–3, and VIEW-1–2. The AI derived several of them rather than the owner stating them:
+    - RULE-5: the curve's extent, from the earliest intake until the last one stops counting.
+    - RULE-6: the rule is pure, and the current time is an input.
+    - REPO-4: marking changes nothing from the current time onward.
+    - DATA-3: marking never deletes an intake.
+  - Worded the rule as "reporting" negligible intakes rather than throwing, and raised throwing versus returning as a question.
+  - Recomputed every worked example to two decimal places by script. The 12:00pm total became 131.99 mg, where it was previously shown as 132.0. Restored the missing `·` in the "below 50 mg" check.
+  - Rewrote the 0.5 mg justification. At two decimal places, the drop step is visible (0.50 → 0.00 mg), so the earlier "below what the display shows" argument no longer held. The justification now rests on the model's error alone.
+  - Added `CaffeineDecayRepository` to the `Architecture` article's Repositories table as designed but not built.
+  - Raised these consequences with the owner:
+    - Marks are permanent, but the half-life, intake edits, and Bateman can make a marked intake count again.
+    - Once marked, an intake disappears from the curve's past as well, so past-day curves (Patterns) need another source.
+    - Two-decimal display implies more precision than the model has (the brief's Honesty criterion).
+- **Human changes:** Designed the mark-and-filter flow, named `CaffeineDecayRepository`, gave curve filtering to presentation, and chose two-decimal rounding.
+- **Files:** `Half-Life/Documentation.docc/CaffeineDecayModel.md` (modified), `Half-Life/Documentation.docc/Architecture.md` (modified), `ai_log.md` (modified)
+- **Verification:**
+  - Worked-example values were recomputed by a Python script.
+  - `xcodebuild docbuild`: `BUILD DOCUMENTATION SUCCEEDED`, with no warnings from the Half-Life catalog.
+  - Tests and coverage: N/A (docs only, no code changed).
+- **Notes:**
+  - Still open:
+    - How far apart the curve's samples are.
+    - What clears a negligible mark.
+    - How `CaffeineDecayRepository` learns about new intakes, and where it gets the half-life.
+    - Whether the rule throws or returns negligible intakes. Resolved in the 21:37 entry: it returns them, and it doesn't throw.
+  - Actor isolation is still deferred.
+
+### 2026-09-11 21:31 -0400 — Define the logging convention and the log-export requirement
+
+- **Started:** 2026-09-11 21:31 -0400 (from the session transcript: prompt at 21:31:04. The AI's clock reading on receipt was 21:33.)
+- **Ended:** 2026-09-11 21:42 -0400
+- **Human:** Adam Ure
+- **AI tool / model:** Claude Code / Claude Opus 5
+- **Transcript:** `ai_transcripts/2026-09-11-2131-f00d2af0.md`
+- **Type:** planning, change
+- **Request:** Create a convention for logging with `OSLog`'s `Logger`, including severities and redaction of sensitive data. Write the requirement for a Settings button that packages the log so it works with Console.app, and drafts an email to the owner with the log attached as a bug report.
+- **Interactions:**
+  - `21:31` Asked for the logging convention, the log-export requirement, and documentation of the logging architecture.
+- **AI contribution:**
+  - Checked the facts behind the design before writing, instead of relying on memory:
+    - Apple's log-level documentation: persistence per level, and the default redaction. Integers, floating-point numbers, and Booleans are *public* by default, so a caffeine amount would be logged unredacted.
+    - Apple DTS forum threads: in an iOS app, `OSLogStore(scope: .currentProcessIdentifier)` returns only the current launch's entries, so a crash's log is lost. Xcode unredacts a process it launches, including in `OSLogStore` exports, while TestFlight builds are redacted.
+    - The iOS 26.5 SDK's `OSLog` headers: iOS has no API that writes a `.logarchive`. `OSLogStore.local()` and the `.system` scope are macOS-only. So the export can't be a true Console archive, and is a plain-text `.log` file instead.
+    - Compiled probes in the session scratchpad, outside the repository. `import Foundation` alone fails with "cannot find 'Logger' in scope", so Domain can't log under Article I. The export's `OSLogStore` calls and the article's code sketches type-check under Swift 6 for iOS 26.5.
+  - `constitution.md`: added Article XI (Logging) and an Amendments row. It covers `Logger` only (no `print`, `NSLog`, `os_log`, or committed `._printChanges()`), one subsystem with the owning type as the category, and Presentation and Data logging while Domain throws. It adds a five-level guide (anything a bug report needs goes at `notice` or above, no aliases), explicit `privacy:` on every interpolated value, and a classification of what may be logged. Health values are never logged, not even as private. Personal data is `.private`. IDs use `.private(mask: .hash)`. Errors log their domain and code publicly and their description privately.
+  - Raised a subtlety the request didn't mention: log timestamps can themselves be health data. "Intake saved" at 4:02pm records when the user drank caffeine, so Article XI.7 keeps successful routine health events at `debug` (never stored), while failures stay at `error` without values.
+  - Added the `Logging` DocC article: subsystem and categories, a `Logger(for:)` sketch, what each layer logs, a level table with Half-Life examples, a privacy classification table, ✗/✓ examples, when redaction does and doesn't apply, reading logs in Console.app and Terminal, and the Settings log export. The export covers the user flow, iOS limits, the file format, Clean Architecture components (export state held by `DiagnosticLogRepository` and observed by Settings, which keeps Article I.5's one-way flow), the export's privacy, requirements EXPORT-1–10, a manual TestFlight redaction check, open questions, and sources.
+  - Updated the `Architecture` article (a `Logging/` folder, a Logging pattern section, and designed-but-not-built rows for the export's use cases, repository, data sources, and temporary file), the catalog landing page, and `CLAUDE.md` (the article list, a "Log safely" rule, and the definition of done).
+  - Wrote Article XI.8 to say the user-sent export leaves Article V.1 intact, and flagged that reading for the owner to confirm.
+  - Made several choices without asking, flagged for the owner: category = the owning type's name; counts of health records treated as health values; the Health authorization outcome logged `.public`; a tab-separated file format with ISO 8601 timestamps; the working component names; and MessageUI's composer treated as a UI framework under Article I.14.
+- **Human changes:** None
+- **Files:**
+  - Added: `Half-Life/Documentation.docc/Logging.md`
+  - Modified: `constitution.md`, `CLAUDE.md`, `Half-Life/Documentation.docc/Architecture.md`, `Half-Life/Documentation.docc/Documentation.md`, `ai_log.md`
+- **Verification:**
+  - `xcodebuild docbuild`: `BUILD DOCUMENTATION SUCCEEDED`, with 0 diagnostics in the Half-Life catalog's diagnostics file.
+  - The article's Swift sketches type-check under Swift 6 for iOS 26.5 in a scratchpad probe. The deliberately wrong ✗ example compiles too, which is the point: nothing stops it but review.
+  - Tests and coverage: N/A (docs only, no app code changed).
+- **Notes:**
+  - Open for the owner (also listed in the `Logging` article):
+    - The recipient address. It will be visible in the repository and TestFlight build that go to femmli.
+    - The fallback when no Mail account is set up: the share sheet or a disabled button.
+    - Whether to attach MetricKit crash diagnostics, since a crash's log is lost when the app relaunches.
+    - SwiftLint rules to enforce the convention.
+    - Confirming the Article V.1 and I.14 readings.
+    - Resolved in the 21:45 entry: the recipient, a disabled button when Mail isn't set up, crash reports attached to the next send, the SwiftLint rules, and the V.1 reading. The I.14 reading is still unconfirmed.
+  - The log export adds scope to roadmap rank 21 (Settings, effort 2), which wasn't re-scored because the roadmap changes only at the owner's request. In the 21:45 entry, the owner said the effort is unchanged.
+  - `Console.app` opening a plain-text `.log` file wasn't tested in this task.
+  - Actor isolation is still deferred.
+  - This session's transcript is a snapshot. Re-export it before committing (Rule 9.1).
+
+### 2026-09-11 21:37 -0400 — Settle the negligible-mark semantics and curve spacing
+
+- **Started:** 2026-09-11 21:37 -0400
+- **Ended:** 2026-09-11 21:39 -0400
+- **Human:** Adam Ure
+- **AI tool / model:** Claude Code / Claude Opus 5
+- **Transcript:** `ai_transcripts/2026-09-11-2047-3ff5a5ee.md`
+- **Type:** planning, change
+- **Request:** Answered the open questions from the 21:27 entry: return versus throw, clearing marks, past-day curves, and rounding. Mid-task, set the curve's spacing.
+- **Interactions:**
+  - `21:37` Decided:
+    - The rule returns negligible intakes rather than throwing, because throws are for errors.
+    - A mark is state on the data source's record and never needs clearing, and the data source filters its query on it.
+    - Past-day curves use a separate path to the data source, designed separately. The active curve leaves out negligible intakes.
+    - The model keeps two decimal places, and presentation can round further for display.
+  - `21:38` Mid-task, set minute-level spacing for the curve, since users mostly look at the next few hours. Noted it may change because of the number of points.
+- **AI contribution:**
+  - Updated the `Caffeine Decay Model` article:
+    - The rule now "returns" negligible intakes (RULE-4, REPO-3).
+    - Marks are never cleared (DATA-2). The data source's active-curve query leaves marked intakes out (DATA-1), and past-day curves read history through a separate path (DATA-3). Introduced the term "active curve".
+    - Documented the accepted consequence of never clearing marks: a later, longer half-life leaves some marked intakes out even though they'd count again. A 200 mg intake marked at 47.54 h would still hold 0.82, 1.81, or 3.25 mg under a 6, 7, or 8 h half-life.
+    - The model's values are specified to two decimal places and aren't rounded by the rule. Presentation chooses the display rounding (VIEW-2). The drop-step wording now covers both two decimals and whole milligrams.
+    - Added the curve spacing constant (1 minute), the Curve operation's spacing, and RULE-7.
+    - Made RULE-5 precise: the curve ends at the first sample at which no intake counts, so its last level is 0.
+    - Added point counts computed by script: 2,854 levels for one 200 mg drink, 3,286 for the example day, and about 4,700 (about 75 KB) in the steady state of that day repeated daily.
+  - Removed the resolved "What clears a mark" and "sample spacing" items from "Still to decide".
+- **Human changes:** All the decisions listed under Interactions.
+- **Files:** `Half-Life/Documentation.docc/CaffeineDecayModel.md` (modified), `ai_log.md` (modified)
+- **Verification:**
+  - Point counts and half-life-change figures were computed by a Python script.
+  - `xcodebuild docbuild`: `BUILD DOCUMENTATION SUCCEEDED`, with no warnings from the Half-Life catalog.
+  - Tests and coverage: N/A (docs only, no code changed).
+- **Notes:**
+  - Two choices the AI made without asking:
+    - The curve's samples are measured from the earliest intake's `consumedAt`, not aligned to clock minutes.
+    - RULE-5 ends the curve on a zero sample.
+    - Both were superseded in the 21:43 entry by the ±12 h window on whole clock minutes. The owner interrupted this task's final reply to set that window.
+  - Still open: how `CaffeineDecayRepository` learns about new intakes, and where it gets the half-life. Actor isolation is still deferred.
+
+### 2026-09-11 21:43 -0400 — Bound the active curve to a ±12-hour window
+
+- **Started:** 2026-09-11 21:43 -0400
+- **Ended:** 2026-09-11 21:45 -0400
+- **Human:** Adam Ure
+- **AI tool / model:** Claude Code / Claude Opus 5
+- **Transcript:** `ai_transcripts/2026-09-11-2047-3ff5a5ee.md`
+- **Type:** planning, change
+- **Request:** Limit the curve to the current time ±12 hours (1,440 one-minute points). An intake is marked negligible when the first element calculated for it is negligible.
+- **Interactions:**
+  - `21:43` Interrupted the previous task's final reply. Set the window to the current time ±12 hours, giving 1,440 points, and set the marking trigger: the intake is negligible at the window's first element.
+  - `21:43–21:45` Mid-task, noted that the window becomes a Domain concern rather than a presentation one, which makes the design more complicated. The exact minute wasn't recorded.
+- **AI contribution:**
+  - Split the responsibilities. The Domain owns the ±12 h window, because the rule decides negligibility at its first sample. Presentation shows the window or part of it, and reads "now" from the middle sample. Identified the real complication: the window moves with time, so the repository has to recalculate as time passes. Left how often as an open question, with once a minute suggested.
+  - Updated the `Caffeine Decay Model` article:
+    - Constants: the window, and spacing on whole clock minutes.
+    - "Where the calculation lives": the window bullet, marking at the window's first sample, and presentation's role. The Curve and Negligible intakes operations now take the current time.
+    - The active curve is now the window. The half-life-change figures were recomputed for marking at 59.54 h: 0.21, 0.55, or 1.15 mg under a 6, 7, or 8 h half-life.
+    - Requirements rewritten: RULE-4, RULE-5 (1,440 levels, index 720 is the current minute, all zeros when there are no intakes), RULE-7, REPO-2, REPO-3, and REPO-4. REPO-4 now holds for the whole window, because a marked intake adds nothing anywhere in it. VIEW-1 was also rewritten.
+    - Added a "Marked after" column to the drop-out table (stop time + 12 h), and the 128 mg boundary for marking.
+  - Replaced the variable point counts with the fixed 1,440 (about 23 KB).
+- **Human changes:** Set the ±12 h window and the first-element marking trigger. Identified the window as a Domain concern.
+- **Files:** `Half-Life/Documentation.docc/CaffeineDecayModel.md` (modified), `ai_log.md` (modified)
+- **Verification:**
+  - Marking times and half-life-change figures were computed by a Python script.
+  - `xcodebuild docbuild`: `BUILD DOCUMENTATION SUCCEEDED`, with no warnings from the Half-Life catalog. A search for wording made stale by the window change found none.
+  - Tests and coverage: N/A (docs only, no code changed).
+- **Notes:**
+  - Choices the AI made without asking:
+    - Samples fall on whole clock minutes.
+    - The window is half-open, so the owner's 1,440 is exact: 720 minutes before the current minute and 719 after it.
+    - A curve with no intakes is 1,440 zeros rather than empty.
+    - Per-sample counting (RULE-3) still applies inside the window, so a contribution below 0.5 mg past its peak is 0 even before its intake is marked.
+  - Still open:
+    - How often the repository recalculates as time passes.
+    - How `CaffeineDecayRepository` learns about new intakes, and where it gets the half-life.
+    - Actor isolation is still deferred.
+
+### 2026-09-11 21:45 -0400 — Settle the log export's open questions; add crash reports and lint rules
+
+- **Started:** 2026-09-11 21:45 -0400
+- **Ended:** 2026-09-11 21:54 -0400
+- **Human:** Adam Ure
+- **AI tool / model:** Claude Code / Claude Opus 5
+- **Transcript:** `ai_transcripts/2026-09-11-2131-f00d2af0.md`
+- **Type:** planning, change
+- **Request:** Answered the 21:31 entry's open questions:
+  - The recipient is the owner's iCloud address.
+  - When no Mail account is set up, the button is disabled with an explanation.
+  - Crash reports are attached to the next send.
+  - The V.1 reading is agreed.
+  - Add the SwiftLint rules, and don't re-score Settings.
+
+  Also asked for a roadmap item that sends crash reports automatically on the next launch.
+- **Interactions:**
+  - `21:45` Gave the answers above and asked for the automatic crash-report item.
+  - `21:47` Chose the AI's recommended options on two questions:
+    - A prompt on the launch after a crash, rather than a truly automatic send.
+    - The item goes in the roadmap's Backlog, unscored.
+- **AI contribution:**
+  - Raised a conflict before adding the roadmap item. With no user action, a send needs a server or a third-party service, which Articles V.1, V.6, and XI.8 rule out. Offered three options: a prompt that opens the Mail draft, relying on Apple's crash reports in Xcode's Organizer, or amending the constitution for a truly automatic send.
+  - `roadmap.md`: added "Crash report prompt" to the Backlog, recording both the owner's original ask and the choice. The ranked order, scores, and totals are unchanged.
+  - Checked MetricKit in the iOS 26.5 SDK headers:
+    - `pastDiagnosticPayloads` and `didReceiveDiagnosticPayloads:` exist from iOS 14.
+    - `MXCrashDiagnostic` carries call stacks, exception type, code, signal, and termination reason, plus the Objective-C exception's composed message from iOS 17.
+    - The `MXMetaData` fields are listed in the article.
+
+    Checked the web too: next-launch delivery from iOS 15, with forum reports of it failing on some iOS 17 releases.
+  - `Logging` article:
+    - Recipient: the owner's address, which the article now contains at the owner's request.
+    - A disabled button with a visible explanation when Mail isn't set up (EXPORT-9).
+    - A new Crash reports section: captured via MetricKit, stored until sent, attached as separate `.json` files, deleted only on Mail's `sent` result, and offered after a crash (Backlog). Also what a report contains, and that a report delivered while the device is locked is lost under complete protection.
+    - Crash components and requirements CRASH-1–7.
+    - An Enforcement section.
+    - Sources and status rows. Removed the resolved open questions.
+  - `constitution.md` Article XI, still uncommitted from the 21:31 entry:
+    - `dump` added to XI.1.
+    - XI.6.5: crash messages follow the logging rules.
+    - XI.8 now covers crash reports and the post-crash draft, and says nothing is ever sent automatically.
+    - New XI.9 (Enforcement). The amendment row was updated to match.
+  - `Architecture` article: rows for the crash use case, repository, and data sources, and a Data and privacy row for unsent crash reports.
+  - `.swiftlint.yml`: four custom rules for the app target, all skipping comments:
+    - `logging_forbidden_call` (also skips strings)
+    - `logging_print_changes`
+    - `logging_level_alias`
+    - `logging_explicit_privacy`, a regular expression over single-line, next-line, and `"""` messages, allowing one level of nested parentheses
+  - **Red run redone.** The first "red" run passed `--config` with the repository's config. SwiftLint then resolved `included` from the repository and linted the repository's 16 files, not the fixtures, so the result (0 violations) showed nothing. The first green run failed the same way, which exposed the problem. Both were redone with scratch configs pointed at the fixtures.
+  - Made two choices without asking: crash reports only (hangs and other diagnostics ignored), and no `pastDiagnosticPayloads`.
+- **Human changes:** Chose the recipient, the disabled-button fallback, crash reports on the next send, the prompt over a truly automatic send, and the Backlog placement. Agreed to the V.1 reading. Kept Settings' score.
+- **Files:** `constitution.md`, `.swiftlint.yml`, `roadmap.md`, `Half-Life/Documentation.docc/Logging.md`, `Half-Life/Documentation.docc/Architecture.md`, `ai_log.md` (all modified)
+- **Verification:**
+  - Lint fixtures in the session scratchpad, outside the repository: `Bad.swift` (15 violating lines) and `Good.swift` (compliant, including comments, strings containing `print(`, a `.print` method, ordinary interpolation after a log call, `.private(mask: .hash)`, and `String(describing:)` with privacy).
+    - Red, with the pre-change config: 0 violations.
+    - Green: all 15 `Bad.swift` lines flagged by the expected rule, and 0 in `Good.swift`.
+  - `swiftlint lint --strict` on the repository: 0 violations in 16 files.
+  - `xcodebuild docbuild`: `BUILD DOCUMENTATION SUCCEEDED`, with 0 catalog diagnostics.
+  - Transcript redaction check: the owner's address appears 0 times, as 3 `[email redacted]` markers.
+  - Tests and coverage: N/A (no app code changed).
+- **Notes:**
+  - The fixtures aren't committed, so no committed test guards the rules against regressions.
+  - Still open: the Article I.14 reading of MessageUI, and whether a user-sent log and crash report count as collected data for the privacy label (V.7, at ship time). Both were resolved in the 22:00 entry.
+  - Actor isolation is still deferred.
+  - This session's transcript is a snapshot. Re-export it before committing (Rule 9.1).
+
+### 2026-09-11 21:48 -0400 — Settle recalculation triggers, intake input, and the half-life source
+
+- **Started:** 2026-09-11 21:48 -0400
+- **Ended:** 2026-09-11 21:49 -0400
+- **Human:** Adam Ure
+- **AI tool / model:** Claude Code / Claude Opus 5
+- **Transcript:** `ai_transcripts/2026-09-11-2047-3ff5a5ee.md`
+- **Type:** planning, change
+- **Request:** Recalculate the curve on data refresh or view refresh rather than live, because the 24-hour window makes per-minute recalculation unnecessary. Mid-task, specified how the repository gets new intakes and the half-life.
+- **Interactions:**
+  - `21:48` Decided that recalculation happens on data refresh and/or view refresh, with no live updates of the 1,440 points.
+  - `21:48` Mid-task, decided that the repository gets new intakes when a use case calls a repository method, and gets the half-life from a half-life data source.
+- **AI contribution:**
+  - Mapped "view refresh" onto the existing architecture. A view's `.task` starts a new subscription, and the repository already emits a freshly calculated curve to every new subscriber (Article I.12), so no timer is needed.
+  - Identified a knock-on requirement. Without per-minute recalculation, presentation must find the current level by date, not at the fixed middle index, or the "now" figure would freeze at calculation time. Added VIEW-3, and rewrote the presentation bullet so a feature can move its "now" marker along the curve it already has.
+  - Rewrote REPO-2: a fresh curve for each new subscriber, a new curve whenever the underlying data changes, and never a timer.
+  - Documented the use-case → repository-method path for new intakes, and the half-life data source. Added REPO-5 (adding an intake stores it, then publishes a recalculated curve), REPO-6 (the repository calculates with the stored half-life), DATA-4 (new intakes are stored unmarked), and HALF-1 (the standard half-life applies when nothing is stored). DATA-4 and HALF-1 are the AI's additions.
+  - Updated the `Architecture` article's Repositories row to name both data sources.
+  - Replaced the resolved open questions with a new one: whether returning to the foreground counts as a view refresh. `.task` doesn't restart on foregrounding, so a curve can outlive its 12 hours ahead.
+- **Human changes:** Chose refresh-driven recalculation, the use-case → repository-method path for intakes, and a half-life data source.
+- **Files:** `Half-Life/Documentation.docc/CaffeineDecayModel.md` (modified), `Half-Life/Documentation.docc/Architecture.md` (modified), `ai_log.md` (modified)
+- **Verification:**
+  - `xcodebuild docbuild`: `BUILD DOCUMENTATION SUCCEEDED`, with no warnings from the Half-Life catalog.
+  - Tests and coverage: N/A (docs only, no code changed).
+- **Notes:**
+  - `LogCaffeineIntakeUseCase` is used as an example name only.
+  - Still open: whether foregrounding counts as a view refresh. Actor isolation is still deferred.
+
+### 2026-09-11 21:51 -0400 — Implement the Domain layer for decay and superposition
+
+- **Started:** 2026-09-11 21:51 -0400
+- **Ended:** 2026-09-11 22:11 -0400
+- **Human:** Adam Ure
+- **AI tool / model:** Claude Code / Claude Opus 5
+- **Transcript:** `ai_transcripts/2026-09-11-2047-3ff5a5ee.md`
+- **Type:** change, planning
+- **Request:** Treat refresh as a presentation concern to revisit later, and implement the Domain layer for decay and superposition (roadmap rank 1).
+- **Interactions:**
+  - `21:51` Made refresh a presentation concern and asked for it to be documented as needing a revisit. Asked for the Domain layer to be implemented.
+  - `22:03` Mid-task, asked why the entities were `nonisolated`, saying they "should 100% be isolated".
+  - `22:06` Mid-task, said repositories could be their own actors, and that only the presentation and UI layers should act on the main actor.
+  - `22:06–22:11` Mid-task, asked for a use-case pattern that uses `execute` rather than `callAsFunction`. The message arrived during the full test run, and the next clock reading was 22:11.
+- **AI contribution:**
+  - Documented refresh as a deferred presentation concern in the `Caffeine Decay Model` article, and dropped "working name" from the now-built types.
+  - Wrote the Domain layer test-first in three red → green cycles:
+    1. `CaffeineHalfLife`: `standard` is 19,800 s, and the failable initializer rejects values that aren't positive and finite.
+    2. `CaffeineIntake`, `CaffeineLevel`, and `CaffeineDecayRule`, with tests for RULE-1 to RULE-7, the constants, and the worked examples as parameterized cases. The rule uses the half-life form `D · 2^(−t / T½)` (`exp2`), which is exact at whole half-lives, so the 128 mg boundary at 44 h is exactly 0.5 mg.
+    3. The `CaffeineDecayRepository` protocol (`curve()`, `add(_:)`), `ObserveCaffeineCurveUseCase`, and `LogCaffeineIntakeUseCase`, tested against an in-memory `FakeCaffeineDecayRepository`.
+  - Isolation changed twice during the task:
+    - The AI first declared the Domain types `nonisolated`, following the design system's `nonisolated enum Spacing`.
+    - After the owner's objection, it moved every Domain type to the target's default `MainActor`, with `@MainActor` tests and a `@MainActor` fake. The Domain suites passed.
+    - After the owner's second message, it explained that a value handed between a repository's actor and presentation's main actor can't be isolated to either, and that immutable `Sendable` values are safe without an actor. It reverted to explicit `nonisolated` Domain types, with an actor fake.
+    - The `Architecture` article records the principle: only presentation runs on the main actor, repositories will be actors, and each opt-out is explicit (Article IV.1).
+  - Updated the `Architecture` article's use case, business rule, and repository rows. Kept a concurrent session's logging rows in the use-case table.
+  - Raised that the `execute` request conflicts with constitution Article I.7 ("exposed as `callAsFunction`"). Didn't change the use cases, and asked the owner.
+  - Checked the drink-composer session's work for type-name collisions and found none. That session wrote docs only.
+- **Human changes:** Made refresh a presentation concern. Set the isolation principle: only presentation and UI on the main actor, with repositories as their own actors. Objected to the first `nonisolated` choice, then clarified it. Requested the `execute` pattern, which is pending.
+- **Files:**
+  - Added: `Half-Life/Domain/Entities/CaffeineIntake.swift`, `CaffeineHalfLife.swift`, `CaffeineLevel.swift`; `Half-Life/Domain/BusinessRules/CaffeineDecayRule.swift`; `Half-Life/Domain/Repositories/CaffeineDecayRepository.swift`; `Half-Life/Domain/UseCases/ObserveCaffeineCurveUseCase.swift`, `LogCaffeineIntakeUseCase.swift`; `Half-LifeTests/Domain/CaffeineHalfLifeTests.swift`, `CaffeineDecayRuleTests.swift`, `ObserveCaffeineCurveUseCaseTests.swift`, `LogCaffeineIntakeUseCaseTests.swift`; `Half-LifeTests/Fakes/FakeCaffeineDecayRepository.swift`
+  - Modified: `Half-Life/Documentation.docc/CaffeineDecayModel.md`, `Half-Life/Documentation.docc/Architecture.md`, `ai_log.md`
+- **Verification:**
+  - Each red step failed for the expected reason: `cannot find 'CaffeineHalfLife'`, `'CaffeineDecayRule'`/`'CaffeineIntake'`, and `'CaffeineDecayRepository'` in scope. Each green step passed.
+  - Full unit + UI run on the iPhone 17 simulator (iOS 26.5, derived data `build/DerivedData-decay`): `TEST SUCCEEDED`, with 146 "passed" lines and 0 failures, and no warnings from app or test sources. The passed lines count each parameterized argument, and some appear twice.
+  - Coverage: `Half-Life.app` is at 100.00% (84/84 lines). Every new Domain file is at 100%.
+  - Lint and format: the run at the time was invalid, although the AI reported it as clean. In zsh, an unquoted `$FILES` isn't word-split, so the tools never received the files. The AI found this during the 22:16 task and re-ran them properly:
+    - `swift-format format` changed nothing.
+    - `swift-format lint --strict` exits 0. A deliberately bad file fails, which shows the tool was checking.
+    - `swiftlint lint --strict` found 0 violations in 14 files.
+    - A diff against the pre-format backup confirmed the invalid run changed nothing. Lint and format run only on this task's files, so they don't touch concurrent sessions' in-progress work.
+  - `xcodebuild docbuild`: succeeded, with no warnings from the Half-Life catalog, and the new symbol links resolve. One warning comes from TCA's own `TreeBasedNavigation.md`.
+- **Notes:**
+  - The red steps were compile failures for missing types, not failed assertions.
+  - Not built yet: the live repository, the intake and half-life data sources, and the `DependencyKey` registrations (Article I.15). Domain can't import swift-dependencies, so registration belongs with the live repository.
+  - Constitution gaps, not amended:
+    - Article I's Domain row doesn't list business rules.
+    - The isolation principle isn't in the constitution.
+    - The TCA isolation decision is still deferred, although the owner's principle points toward a `nonisolated` target default.
+  - The drink-composer session raised a possible double storage between `LogCaffeineIntakeUseCase` and its planned `DrinkLogRepository`.
+  - Pending: the `execute` use-case pattern, which needs a constitution amendment. Resolved in the 22:16 entry.
+
+### 2026-09-11 21:52 -0400 — Design the drink composer's entities and repository
+
+- **Started:** 2026-09-11 21:52 -0400
+- **Ended:** 2026-09-11 22:31 -0400
+- **Human:** Adam Ure
+- **AI tool / model:** Claude Code / Claude Opus 5
+- **Transcript:** `ai_transcripts/2026-09-11-2152-a445bdd1.md`
+- **Type:** planning, change
+- **Request:** Design the architecture for the drink composer (roadmap rank 2). Write a DocC catalog entry that defines the Domain entities and the repository, extracted from the spec, and shared with one-tap favourites and the Siri intent. The data flow is traced in a later task.
+- **Interactions:**
+  - `21:52` Asked for the drink composer's entities and repository in a catalog entry.
+  - `21:58` Two mid-task messages. The entity holds a drink type (an enum), a quantity (shots for coffee, cups otherwise), a timestamp, and the total caffeine, estimated as the drink's caffeine per unit × quantity. Asked for research on caffeinated drinks, with an enum case for each.
+  - `22:03` Mid-task, replaced the prototype's "Build it" composer with a scrollable list of drinks. One-tap favourites show the three or four most common drinks. Asked for an icon for each drink. The time is the AI's clock reading when it saw the message.
+  - `22:15` Accepted shots, cups, and cans, and the stepper. Chose SF Symbols for now. Said a use case can act on more than one repository. The time is the AI's clock reading on receipt.
+  - `22:28` Pointed out that the second write only informs the curve, and proposed a subscription from the data source to the live repositories instead. The time is the AI's clock reading on receipt.
+- **AI contribution:**
+  - Added the `Drink Composer` article:
+    - A table mapping each prototype element to an entity, to presentation, or to a cut. "Oat" is cut because milk doesn't change caffeine.
+    - Entities: `DrinkType` (13 cases, with unit, caffeine per unit, and default quantity), `ServingUnit` (shot, cup, can), and `LoggedDrink` (`id`, `type`, `quantity`, `milligrams`, `consumedAt`). `LoggedDrink` projects to a `CaffeineIntake` with the same `id`.
+    - `DrinkLogRepository` (publishes the whole log, stores before it publishes) and `LogDrinkUseCase`, which all three entry points call.
+    - Iconography, privacy and logging, and requirements TYPE-1–4, DRINK-1, USE-1–4, and DLOG-1–3.
+  - Researched the caffeine estimates:
+    - Brewed drinks: USDA FoodData Central SR Legacy, per 100 g, retrieved through its API.
+    - Canned drinks: the makers' declared amounts, from coca-cola.com and redbull.com.
+    - Spreads: the FDA's "Spilling the Beans" page. Its black-tea figure matches USDA's.
+    - Matcha: 18.9–44.4 mg/g, from the Kochman et al. review on PMC.
+    - Cold brew: Starbucks' 205 mg per Grande, through Caffeine Informer, because starbucks.com's page didn't render.
+    - Mayo Clinic (403) and CSPI (no data in the page) couldn't be read. Every number was computed by a script, not by hand.
+  - Checked this Mac's SF Symbols list for drink icons. It covers the families, but the five espresso drinks share one symbol, and nothing shows a can.
+  - Made choices without asking, all flagged in the article:
+    - Shots, cups, and cans instead of the owner's "shots if coffee, cups if not", because drip coffee, cold brew, and instant coffee aren't made from shots, and cans differ in size. Accepted at 22:15.
+    - A stepper after picking from the list. Accepted at 22:15.
+    - `milligrams` is stored at log time and never recalculated, so later catalog corrections don't rewrite history.
+    - The use case rejects a quantity below 1 and a future `consumedAt`.
+    - Default quantities, and cutting mocha (its chocolate's caffeine is unsourced) and decaf.
+  - After the 22:15 decisions:
+    - `LogDrinkUseCase` holds both `DrinkLogRepository` and `CaffeineDecayRepository`. It logs the drink, then adds the drink's intake (new requirement USE-4). Each repository keeps its own record, linked by the shared `id`, so the intake is no longer an unresolved double store. The privacy section now says the drink is stored twice.
+    - Gave cola `takeoutbag.and.cup.and.straw.fill`, shared with cold brew. The owner didn't pick this symbol.
+    - Replaced "Still to decide" items on units, the stepper, and icons with two new ones: what happens when the second write fails, and whether `LogCaffeineIntakeUseCase` keeps a caller.
+    - `Architecture` article: added a sentence that one business operation can act on more than one repository, listed both repositories on `LogDrinkUseCase`'s row, and gave `DrinkLogRepository` its own drink data source.
+  - Added the composer, `LogDrinkUseCase`, and `DrinkLogRepository` to the `Architecture` article's tables as designed but not built. Added a "Features" topic to the landing page and a link from the `Caffeine Decay Model` article.
+  - A concurrent session changed the `Architecture` article's use-case table during this task, so one edit was refused. The AI re-read the table and re-applied the edit, and no changes collided. The same session had built `LogCaffeineIntakeUseCase` and the `nonisolated` Domain convention. The AI updated the article's sketches to `nonisolated` and its open question to match.
+  - First appended this entry after the concurrent 22:00 entry. Moved it here to keep the log in start-time order.
+  - During the revisions, a concurrent session amended constitution I.7: every use case now conforms to a `UseCase` protocol and exposes `execute(_:)`, taking one `Input`. The AI rewrote the `LogDrinkUseCase` sketch to match, with a nested `Input` holding the type, quantity, and `consumedAt`. The protocol wasn't in the code yet, so the sketch follows the constitution's wording and the `Architecture` article's example.
+  - After the 22:28 decision, which replaces the two-repository write above:
+    - `LogDrinkUseCase` holds only `DrinkLogRepository` again, and USE-4 was removed. A drink is stored once, by a new `DrinkDataSource`. After each successful store, it signals every subscribed repository, and each re-reads through its own query. `CaffeineDecayRepository` re-reads the unmarked intakes projected from stored drinks.
+    - Added a "Data flow" section with a command and update diagram, the `DrinkDataSource` operations, and requirements SRC-1–4. DLOG-1 and DLOG-2 now publish on the data source's signal.
+    - Decided without asking, flagged in the article: marking negligible intakes doesn't signal, because a mark changes nothing any repository publishes (REPO-4), so a signal would only cause a pointless recalculation. The signal carries no data, and each repository re-reads, which keeps REPO-1's unmarked-only query.
+    - `Caffeine Decay Model` article: "New intakes arrive from the data source" replaces the use-case bullet, REPO-5 now recalculates on the data source's signal, the intake data source is identified as `DrinkDataSource`, and DATA-5 was added.
+    - `Architecture` article: a paragraph on repositories sharing a data source that signals changes, `LogCaffeineIntakeUseCase` marked superseded, `DrinkDataSource` added to the data-source table and to both repositories' rows, and `LogDrinkUseCase` back to one repository.
+    - The privacy section now says the drink is stored once, carrying its negligible mark.
+- **Human changes:** Defined the entity's fields and the caffeine estimate. Asked for researched drink cases. Replaced the build-it composer with a list, derived one-tap favourites from the most common drinks, and required icons. Accepted shots, cups, and cans, and the stepper. Chose SF Symbols for now. Allowed a use case to act on more than one repository.
+- **Files:** `Half-Life/Documentation.docc/DrinkComposer.md` (added); `Half-Life/Documentation.docc/Architecture.md`, `Half-Life/Documentation.docc/Documentation.md`, `Half-Life/Documentation.docc/CaffeineDecayModel.md`, `ai_log.md` (modified)
+- **Verification:**
+  - `xcodebuild docbuild` (derived data in `build/DocBuild-DrinkComposer`), run four times: first draft, after the 22:15 revisions, after the `execute` rewrite, and after the 22:28 redesign. `BUILD DOCUMENTATION SUCCEEDED` each time, with 0 warnings from the Half-Life catalog. The article is in `Half-Life.doccarchive`.
+  - After the 22:28 redesign, a search of the Drink Composer and Architecture articles for two-write wording found only the intended "no use case writes twice".
+  - A search of the article for wording made stale by the 22:15 decisions found none.
+  - Tests, coverage, and lint: N/A (docs only, no code changed).
+- **Notes:**
+  - The USDA API's demo key hit its rate limit after the first portion lookup. Only espresso's 29.6 g per fl oz comes from USDA. The other drinks were converted at 29.57 g per fl oz, the AI's water-density assumption.
+  - The 2 g level teaspoon of matcha comes from a vendor's guide, not a study.
+  - Open for the owner (also in the article's "Still to decide"): whether the change signal should carry the changed drinks, how "most common" is counted, the last two catalog slots, and the quantity's upper limit.
+  - Superseded code, not changed in this task: `CaffeineDecayRepository.add(_:)` and `LogCaffeineIntakeUseCase` are built but now have no caller. Removing them and their tests is a code change, and a concurrent session was working on that code during this task.
+  - The `LogDrinkUseCase` sketch uses the `execute` pattern from the amended I.7. Check it against the `UseCase` protocol once that protocol is built.
+  - Siri can run while the device is locked, which conflicts with `NSFileProtectionComplete`. It's decided with App Intents (rank 14).
+  - Actor isolation is still deferred, and it has to be settled before the composer's reducer is written.
+  - The constitution wasn't amended. Article I already has use cases depend on repository protocols in the plural (I.9).
+  - This session's transcript is a snapshot. Re-export it before committing (Rule 9.1).
+
+### 2026-09-11 22:00 -0400 — Move the Mail composer into a data source; define the privacy label
+
+- **Started:** 2026-09-11 22:00 -0400
+- **Ended:** 2026-09-11 22:07 -0400
+- **Human:** Adam Ure
+- **AI tool / model:** Claude Code / Claude Opus 5
+- **Transcript:** `ai_transcripts/2026-09-11-2131-f00d2af0.md`
+- **Type:** planning, change
+- **Request:** Resolve the 21:45 entry's two open items:
+  - The Mail composer is not a screen component. A data source commands it.
+  - For the privacy label, what a bug report sends is defined as metrics captured for diagnostic purposes only.
+- **Interactions:**
+  - `22:00` Gave both decisions.
+  - `22:03` Chose the AI's recommended option: amend Article I.6 rather than record a DocC-only exception.
+- **AI contribution:**
+  - Raised a conflict before redesigning. A data source that commands the composer has to present it through UIKit, outside TCA's state-driven navigation, which Article I.6 requires. Pointed to HealthKit's authorization sheet as the same pattern already in the design.
+  - `constitution.md`: I.6 now says its navigation rules govern the app's own screens. System UI that a framework provides, such as the Mail composer or HealthKit's authorization sheet, is presented by its data source, and the feature learns the outcome through the repository. Added an Amendments row.
+  - Redesigned the bug report in the `Logging` article:
+    - `MessageUIMailDataSource` is the only code that touches MessageUI. It reports `canSendMail()`, presents the composer over the app's frontmost view controller, and returns how the draft closed.
+    - `BugReportRepository` replaces `DiagnosticLogRepository`. It owns and publishes `BugReportStatus` (whether Mail can send, and whether a report is being sent).
+    - `SendBugReportUseCase` and `ObserveBugReportStatusUseCase` replace four use cases: export, observe export, discard, and delete sent crash reports. `SendBugReportUseCase` deletes the crash reports it passed when the outcome is sent.
+    - Removed `DiagnosticLogExport` and the Presentation-layer `MailComposeView`, and added `BugReportOutcome`.
+  - Noticed that MessageUI takes attachments as data (`addAttachmentData(_:mimeType:fileName:)`), so the log never needs a temporary file. Removed `FileDiagnosticLogDataSource` and the temporary file. The earlier design had missed this. The log now exists only in memory until Mail takes it.
+  - Rewrote requirements EXPORT-3–9 and CRASH-3, and merged CRASH-5–7 into CRASH-5–6. Added a manual check for the real composer (recipient, attachments, and that cancelling keeps crash reports). "Open questions" is now empty.
+  - Mapped the owner's privacy definition onto Apple's terms, which the AI checked on Apple's App Privacy Details page and against the manifest keys:
+    - Crash Data (`NSPrivacyCollectedDataTypeCrashData`) and Other Diagnostic Data (`NSPrivacyCollectedDataTypeOtherDiagnosticData`).
+    - The App Functionality purpose, which covers "minimize app crashes … or perform customer support". Not Analytics, which is about user behavior.
+    - Tracking: no.
+    - Linked to the user: yes. This one is the AI's reading, because the report arrives from the user's email address.
+  - `Architecture` article: updated the use-case, repository, and data-source rows, added a Navigation paragraph on system UI, and changed the log's Data and privacy row to "memory only". `CLAUDE.md`: the architecture bullet now covers data sources presenting system UI.
+- **Human changes:** Put the Mail composer behind a data source, defined the bug report as diagnostic data for diagnostic purposes only, and chose to amend I.6.
+- **Files:** `constitution.md`, `CLAUDE.md`, `Half-Life/Documentation.docc/Logging.md`, `Half-Life/Documentation.docc/Architecture.md`, `ai_log.md` (all modified)
+- **Verification:**
+  - `xcodebuild docbuild`: `BUILD DOCUMENTATION SUCCEEDED`, with 0 catalog diagnostics.
+  - A search for the removed names across the docs found none left, apart from one stale "log file" wording, which the AI fixed.
+  - Tests, coverage, and lint: N/A (docs only; `.swiftlint.yml` unchanged).
+  - Transcript redaction check: the owner's full address appears 0 times. The AI's own check command searched for a fragment of the address without its domain suffix, which the exporter's email pattern can't match, so that fragment is in the transcript once. Transcripts can't be edited by hand (Rule 9.1). The full address is in the `Logging` article at the owner's request, so the fragment exposes nothing new. Review it before committing (Rule 9.3).
+- **Notes:**
+  - "Linked to the user: yes" is the AI's reading, not the owner's decision. Apple's optional-disclosure criteria for user-initiated customer-service submissions might make the declaration optional altogether. The sender's email address also reaches the developer, which is Contact Info. The owner decides both when the export ships.
+  - The data source finds the frontmost view controller through UIKit's scene and window hierarchy. The manual check covers presentation, because there's no automated test for it.
+  - Mail availability is rechecked only when Settings appears and after each send.
+  - Actor isolation is still deferred.
+  - This session's transcript is a snapshot. Re-export it before committing (Rule 9.1).
+
+### 2026-09-11 22:16 -0400 — Replace callAsFunction with a UseCase protocol and execute(_:)
+
+- **Started:** 2026-09-11 22:16 -0400
+- **Ended:** 2026-09-11 22:22 -0400
+- **Human:** Adam Ure
+- **AI tool / model:** Claude Code / Claude Opus 5
+- **Transcript:** `ai_transcripts/2026-09-11-2047-3ff5a5ee.md`
+- **Type:** change, planning
+- **Request:** Make a pattern for use cases to `execute`, instead of `callAsFunction`. The request arrived during the 21:51 task and is logged there.
+- **Interactions:**
+  - `22:16` Approved amending constitution Article I.7. Chose a single `UseCase` protocol (`Input`, `Output`, `async throws execute(_:)`) over the AI's recommended convention-only option.
+- **AI contribution:**
+  - Raised the conflict with Article I.7 ("exposed as `callAsFunction`") before changing anything. Asked whether to amend it, and offered three shapes with code previews.
+  - Amended Article I.7 in a dedicated edit and added an Amendments row. The first attempt at the row failed because a concurrent session had changed the table, so the AI re-read it and appended after the current last row. Updated `CLAUDE.md`'s architecture summary to match.
+  - Test-first:
+    - The use-case tests now call through a generic `executeThroughProtocol` helper, so a use case that doesn't conform fails to compile.
+    - Red: `cannot find type 'UseCase' in scope`.
+    - Green: a `nonisolated` `UseCase` protocol with `Sendable` associated `Input` and `Output`, and both use cases conform. `ObserveCaffeineCurveUseCase` leaves out `async throws`, which the protocol allows, so callers using the concrete type need no `try await`. The protocol's doc comment says so.
+  - Rewrote the `Architecture` article's use-case pattern around the real `ObserveCaffeineCurveUseCase`, switched the feature sample's calls to `.execute(…)`, and noted the protocol in the folder structure.
+  - Didn't change the `Drink Composer` article's `LogDrinkUseCase` sketch, which still shows `callAsFunction` with three parameters. It needs a single `Input`, either a labeled tuple or an input type, and that's the owner's call.
+  - Found that the lint and format commands it used earlier in this session never received their files (zsh doesn't word-split an unquoted `$FILES`). Re-ran them properly, and corrected the 21:51 entry.
+- **Human changes:** Approved the amendment, and chose one `UseCase` protocol over the recommended convention.
+- **Files:**
+  - Added: `Half-Life/Domain/UseCases/UseCase.swift`, `Half-LifeTests/Domain/UseCaseTesting.swift`
+  - Modified: `constitution.md`, `CLAUDE.md`, `Half-Life/Domain/UseCases/ObserveCaffeineCurveUseCase.swift`, `Half-Life/Domain/UseCases/LogCaffeineIntakeUseCase.swift`, `Half-LifeTests/Domain/ObserveCaffeineCurveUseCaseTests.swift`, `Half-LifeTests/Domain/LogCaffeineIntakeUseCaseTests.swift`, `Half-Life/Documentation.docc/Architecture.md`, `ai_log.md`
+- **Verification:**
+  - Red, then green, as above.
+  - Full unit + UI run (iPhone 17 simulator, iOS 26.5): `TEST SUCCEEDED`, with 151 "passed" lines and 0 failures, and no warnings from app or test sources.
+  - Coverage: `Half-Life.app` is at 100.00% (84/84 lines).
+  - `swift-format format` changed nothing. `swift-format lint --strict` exits 0, and a deliberately bad file fails. `swiftlint lint --strict` found 0 violations in 14 files.
+  - `xcodebuild docbuild`: succeeded, with no warnings from the Half-Life catalog, and the ``UseCase`` symbol links resolve.
+- **Notes:**
+  - Adding primary associated types (`UseCase<Input, Output>`) would let reducer tests override use cases through `any UseCase<…>` (Article I.16). It wasn't added, because nothing uses it yet (Article III.1).
+  - Still open:
+    - Article I's Domain row doesn't list business rules.
+    - The isolation principle (only presentation on the main actor) isn't in the constitution.
+    - The TCA isolation decision is still deferred.
+  - Re-export this session's transcript before committing (Rule 9.1).
+
+### 2026-09-11 22:26 -0400 — Build the Today screen's greeting; settle actor isolation
+
+- **Started:** 2026-09-11 22:26 -0400
+- **Ended:** 2026-09-11 23:50 -0400
+- **Human:** Adam Ure
+- **AI tool / model:** Claude Code / Claude Opus 5
+- **Transcript:** `ai_transcripts/2026-09-11-2226-df99ce49.md`
+- **Type:** change, planning, debugging
+- **Request:** Put together the Today screen while other sessions build the decay model and the drink composer. The requested features and repositories:
+  - `DailyGreetingFeature`: `UserProfileRepository` and `TimeOfDayRepository`.
+  - `CaffeineDecayFeature`: `CaffeineDecayRepository`, `CaffeineLevelRepository`, and `TimeOfDayRepository`.
+  - `CaffeineIntakeTodayFeature`: `DrinkLogRepository`.
+  - `LastCupFeature`: its own cutoff repository and `DrinkLogRepository`.
+  - `OneTapLogFeature` and `HistoryFeature`: `DrinkLogRepository`.
+- **Interactions:** Times are from the session transcript (Rule 3.4). The clock was read at 22:26, 22:28, 22:33, 22:54, 23:04, 23:17, and 23:19.
+  - `22:26` Gave the Today screen's composition and each feature's repositories.
+  - `22:32` Answered four questions:
+    - Settle actor isolation with a `nonisolated` target default (the AI's recommendation).
+    - Build the greeting and the decay card first, and the four drink-log features once `DrinkLogRepository` lands (the AI's recommendation).
+    - Fold the current level and the tips into `CaffeineDecayRepository`, recalculated every minute, reversing REPO-2's "never on a timer" for them. The AI had recommended a use case.
+    - Show two tips: half of the last cup gone, and the level at bedtime.
+  - `22:45` Chose to reuse the composer session's `CurrentTimeRepository` instead of adding `TimeOfDayRepository`, with `ObserveTimeOfDayUseCase` executing `DayPeriodRule`. The AI had recommended keeping `TimeOfDayRepository` over a shared clock data source.
+  - `22:52` Chose for this session to build the live clock, its data source, and its registration.
+  - `22:53` Rejected a unit-test build. At `22:54`, asked the AI to continue with the reducers.
+  - `23:43` Chose to move the eyebrow style from 11 pt `caption2` to 12 pt `caption`, because `caption2` fails the accessibility audit (the AI's recommendation). The other options were 11 pt scaled along `footnote`, and 13 pt `footnote`.
+- **AI contribution:**
+  - Raised CLAUDE.md's actor-isolation blocker before any TCA code. Also raised two conflicts with the documented design: a per-minute `CaffeineLevelRepository` against REPO-2 and VIEW-3, and four features that depend on types another session was building.
+  - Isolation:
+    - Removed `SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor` from the app target, and amended Article IV.1 in a dedicated edit with an Amendments row. Replaced CLAUDE.md's open-issue section.
+    - A concurrent session then extended IV.1 (explicit `@MainActor` on UI types, `@Reducer nonisolated`, and SwiftLint rules) and aligned the Architecture article. This session followed those rules.
+  - Wrote the `Today Screen` article, and revised it after the 22:45 decision:
+    - the composition, and the greeting's design
+    - the decay card's design: `CaffeineStatus`, its per-minute stream, and a 10:30pm default bedtime
+    - requirements PERIOD, CLOCK, TOD, PROF, GREET, TODAY, DEP, and UI, and what's still to decide
+  - Built test-first:
+    - Domain: `DayPeriod`, `TimeOfDay`, `UserProfile`, `DayPeriodRule`, `UserProfileRepository`, `ObserveUserProfileUseCase`, and `ObserveTimeOfDayUseCase`, which takes the calendar as input from TCA's `\.calendar`.
+    - Data: `UserProfileDataSource`, `EmptyUserProfileDataSource` (nothing is stored until onboarding), and `LiveUserProfileRepository`.
+    - Registrations in `App/Dependencies/`: `\.userProfileRepository`, `\.observeUserProfile`, `\.currentTimeRepository` (one `LiveCurrentTimeRepository` over `SystemClockDataSource`), and `\.observeTimeOfDay`. Each has live, test (issue-reporting), and preview values.
+      - Use cases are built from their repository keys' values, not through `@Dependency`, because cached dependency values would capture one test's override.
+      - The Architecture article documents this as a pattern.
+    - Presentation: `DailyGreetingFeature`, `TodayFeature`, `DailyGreetingView`, `TodayView`, and their `…AccessibilityID` files. Also `Font.eyebrow`, `Font.titleLarge`, `Typography.eyebrowTracking`, and six greeting strings.
+    - UI: `TodayRobot`, added to `Robots.all`, and `TodayUITests`: UI-1 checks the greeting and UI-2 runs the accessibility audit.
+  - Didn't build the live clock after the 22:52 answer. The composer session reported that it was already building `ClockDataSource`, `SystemClockDataSource`, and `LiveCurrentTimeRepository`, following the owner's 22:47 instruction to it. At that session's request, this session registered the live clock instead.
+  - Debugged a compile error that appeared only in Xcode's module-emission job: "'nonisolated' modifier cannot be applied to this declaration", on `LiveUserProfileRepository`.
+    - Reproduced it in a scratch `-emit-module` of the whole module, and bisected it with leave-one-out builds and then code variants.
+    - Fixed it by removing `nonisolated` from the `UserProfileRepository` and `UserProfileDataSource` protocols.
+    - The decay session independently found the same cause: under SE-0449, a conforming type in the same module inherits a protocol's `nonisolated`. That session is documenting "never write `nonisolated` on a protocol".
+  - Coordinated with the drink composer session by message: who builds the clock and the root, the internal `CurrentTimeRepositoryKey`, and the UI-test membership lines. That session built `AppFeature` and put `TodayView` in its Today slot.
+  - Updated the Architecture article's folder structure, patterns, and tables, the Design System article's typography note, and the catalog's landing page.
+  - UI-2's accessibility audit failed: "Dynamic Type font sizes are partially unsupported", on the "GOOD EVENING" eyebrow. The composer session saw the same failure in its full run, which also failed its root screen's audit.
+    - The AI printed each audit issue's element, then tested variants of the view in a scratch copy.
+    - Removing the tracking, the uppercase, or the weight didn't help. Plain `.caption2` still failed.
+    - `.footnote.weight(.semibold)`, `.caption.weight(.semibold)`, and 11 pt scaled along `footnote` with `@ScaledMetric` all passed.
+    - So `caption2` itself fails the check. The owner chose `caption`. The Design System article's eyebrow row and accessibility rules now record this.
+    - Other sessions' UI runs kept the shared "iPhone 17 Pro" simulator busy ("Application failed preflight checks"). The AI created two simulators of its own, `HalfLife-Today-df99` and `HalfLife-Today-df99-b` (iPhone 17 Pro, iOS 26.5). Some runs still hit "busy" until the simulator was erased first.
+- **Human changes:** Settled actor isolation, the build order, where the level and the tips come from, the two tips, reusing `CurrentTimeRepository`, and who builds the live clock. Rejected one build, and redirected the AI to the reducers. Chose 12 pt `caption` for the eyebrow.
+- **Files:**
+  - Added:
+    - `Half-Life/Documentation.docc/TodayScreen.md`
+    - `Half-Life/Domain/Entities/DayPeriod.swift`, `TimeOfDay.swift`, `UserProfile.swift`; `Half-Life/Domain/BusinessRules/DayPeriodRule.swift`; `Half-Life/Domain/Repositories/UserProfileRepository.swift`; `Half-Life/Domain/UseCases/ObserveUserProfileUseCase.swift`, `ObserveTimeOfDayUseCase.swift`
+    - `Half-Life/Data/DataSources/UserProfileDataSource.swift`, `EmptyUserProfileDataSource.swift`; `Half-Life/Data/Repositories/LiveUserProfileRepository.swift`
+    - `Half-Life/App/Dependencies/UserProfileDependencies.swift`, `CurrentTimeDependencies.swift`
+    - `Half-Life/Features/DailyGreeting/DailyGreetingFeature.swift`, `DailyGreetingView.swift`, `DailyGreetingViewAccessibilityID.swift`; `Half-Life/Features/Today/TodayFeature.swift`, `TodayView.swift`, `TodayViewAccessibilityID.swift`; `Half-Life/DesignSystem/Typography.swift`
+    - `Half-LifeTests/Domain/DayPeriodRuleTests.swift`, `ObserveTimeOfDayUseCaseTests.swift`, `ObserveUserProfileUseCaseTests.swift`; `Half-LifeTests/Data/LiveUserProfileRepositoryTests.swift`, `EmptyUserProfileDataSourceTests.swift`; `Half-LifeTests/Presentation/DailyGreetingFeatureTests.swift`, `TodayFeatureTests.swift`; `Half-LifeTests/App/DependencyRegistrationTests.swift`; `Half-LifeTests/DesignSystem/TypographyTests.swift`; `Half-LifeTests/Fakes/FakeUserProfileRepository.swift`, `FakeUserProfileDataSource.swift`, `SilentCurrentTimeRepository.swift`
+    - `Half-LifeUITests/Robots/TodayRobot.swift`, `Half-LifeUITests/TodayUITests.swift`
+  - Modified: `constitution.md`, `CLAUDE.md`, `Half-Life.xcodeproj/project.pbxproj`, `Half-Life/Documentation.docc/Architecture.md`, `DesignSystem.md`, `Documentation.md`, `Half-Life/Localizable.xcstrings`, `Half-LifeUITests/Robots/Robot.swift`, `ai_log.md`
+  - `TimeOfDayDependencies.swift` and `FakeTimeOfDayRepository.swift` were created and deleted during the task.
+- **Verification:**
+  - After the isolation switch, a full unit + UI run on the iPhone 17 Pro simulator (iOS 26.5) gave `TEST SUCCEEDED`, with no warnings from app or test sources.
+  - Red steps, each a compile failure for missing types:
+    - Domain and Data: `cannot find type 'TimeOfDay'`, `'UserProfile'`, and their repositories, then `cannot find 'LiveUserProfileRepository'` and `'EmptyUserProfileDataSource'`. The rewritten `ObserveTimeOfDayUseCase` test's own failure was masked, because the compiler stopped at other failing files.
+    - Reducers: `cannot find 'DailyGreetingFeature'` and `'TodayFeature'`, and `DependencyValues` has no member `observeUserProfile`.
+    - Registrations: the `\.currentTimeRepository` key paths couldn't be inferred. The profile registration tests' red step was masked by the reducer tests' errors, and never shown on its own.
+    - Typography: `type 'Font' has no member 'eyebrow'`, and `cannot find 'Typography'`.
+    - Eyebrow token: after the owner's 23:43 decision, the test expects `Font.caption.weight(.semibold)`. It failed on its assertion against the `caption2` code, while the other two typography tests passed. The requirement changed, so the test changed with it; it wasn't weakened. UI-2's audit failure was the red step for the view.
+    - UI: the views were written before the UI red step was seen. The only UI red was `TodayRobot` failing to compile in the live tree ("cannot find 'TodayViewAccessibilityID'"), reported by the composer session before the membership lines went in.
+  - Green, in an isolated scratch snapshot: `TEST SUCCEEDED`, with 24 test cases passing and no errors or warnings. Other sessions' in-progress red steps kept the live test target from compiling, so the snapshot's unit tests were pruned to this task's suites, and its UI-test target was neutralized.
+  - UI tests in a scratch snapshot, where the app shows `TodayView` directly:
+    - With the original eyebrow, UI-1 passed and UI-2's audit failed on it.
+    - With the `caption` eyebrow, on the `HalfLife-Today-df99-b` simulator: `TEST SUCCEEDED`. `testLaunchShowsAGreetingForTheTimeOfDay` and `testTodayScreenPassesAccessibilityAudit` both pass.
+  - `xcodebuild docbuild` succeeded twice, both times with 0 diagnostics from the Half-Life catalog. All its warnings come from the packages' own catalogs (TCA, swift-navigation, CasePaths, Clocks).
+    - First in the scratch snapshot.
+    - Again in the live tree after the final article edits (derived data in `build/DocBuild-today`).
+  - swift-format: `format` and `lint --strict` both exit 0 on this task's 33 Swift files. `swiftlint lint --strict` exits 0 on them too. Unlike earlier sessions' runs, the file list was a zsh array, so the tools really received every file.
+  - Full live-tree run (unit + UI) on the `HalfLife-Today-df99` simulator (iPhone 17 Pro, iOS 26.5), after the eyebrow fix:
+    - The result is `TEST FAILED`, but only because of the composer session's `DrinkComposerUITests.testComposerPassesAccessibilityAudit` ("Contrast failed"). That session said it's fixing it.
+    - Every unit test passed, with 336 "passed" lines. Every other UI test passed, including both `TodayUITests`, and so did the root screen's audit, which had failed on the eyebrow before.
+  - Coverage: `Half-Life.app` is at 95.96% (1425/1485 lines), from `build/TestResults-Today.xcresult`.
+    - This task's app files are at 100%, except `UserProfileDependencies.swift` at 90.00% (9/10) and `CurrentTimeDependencies.swift` at 93.33% (14/15).
+    - One line in each registration file isn't covered.
+- **Notes:**
+  - Not built yet:
+    - `CaffeineDecayFeature`, which needs the status stream added to `CaffeineDecayRepository`.
+    - The four drink-log features, which need a live `DrinkLogRepository`.
+  - `ObserveTimeOfDayUseCase` is the only use case that executes a business rule. Article I.10 says "Repositories execute business rules", and the catalog records this exception as the owner's choice. The owner may want I.10 amended to allow it.
+  - The one-session TDD loop was slowed by three sessions sharing one test target. The composer and purpose-string sessions' red steps repeatedly kept this session's tests from compiling, so the red and green steps ran in a pruned scratch copy. The final check ran in the live tree.
+  - Open for the owner, also in the Today Screen article: the day periods' boundaries, the next bedtime once bedtime has passed, the cutoff rule, how "most common" is counted, what History shows, and refreshing on returning to the foreground.
+  - The two simulators this session created, `HalfLife-Today-df99` and `HalfLife-Today-df99-b`, can be deleted with `xcrun simctl delete`.
+  - Re-export this session's transcript before committing (Rule 9.1).
+
+### 2026-09-11 22:32 -0400 — Amend the constitution for business rules and explicit actor isolation
+
+- **Started:** 2026-09-11 22:32 -0400
+- **Ended:** 2026-09-11 22:47 -0400
+- **Human:** Adam Ure
+- **AI tool / model:** Claude Code / Claude Opus 5
+- **Transcript:** `ai_transcripts/2026-09-11-2047-3ff5a5ee.md`
+- **Type:** change, planning, debugging
+- **Request:** Amend the constitution for the gaps raised in the 21:51 and 22:16 entries: business rules in the Domain, and the isolation principle. Make the app's default isolation `nonisolated`, but require explicit actor declarations in the UI and presentation layers.
+- **Interactions:**
+  - `22:32` Asked for the amendments. Decided on a `nonisolated` target default with explicit actor declarations for UI and presentation.
+  - `22:32–22:43` Mid-task, said reducers can be `nonisolated`, because they take `Sendable` state and reduce it into the store's state. The exact minute wasn't recorded.
+- **AI contribution:**
+  - Before writing a rule for reducers, re-ran the earlier scratch-copy experiment under a `nonisolated` default (TCA 1.26.2):
+    - A `@MainActor @Reducer` crashed its `TestStore` tests. The xcresult reports "Crash: Half-Life at CounterFeatureTests.increments()".
+    - `@Reducer nonisolated struct`, with a `@MainActor` view, passed with zero warnings, including an effect that sends an action back.
+    - `@Reducer nonisolated enum` passed with no isolation warnings. Its only two warnings came from the experiment's deprecated `@Reducer(state: .equatable)` form.
+  - Found that someone else had already made part of the change, with no log entry claiming it: the app target's `SWIFT_DEFAULT_ACTOR_ISOLATION` lines were removed, and `CLAUDE.md`, Article IV.1, a new Amendments row, and the `Architecture` article were rewritten with the implicit form ("SwiftUI views are isolated … through `View`"). Replaced that wording with the explicit rules the owner asked for, keeping its rationale and "don't add the setting back". Ordered the two Article IV amendment rows so the earlier one comes first, and worded this one as a revision.
+  - Constitution:
+    - The Article I layer table and the Domain heading now include business rules, and I.10 covers them.
+    - I.13: repositories stay off the main actor.
+    - IV.1 has four sub-rules: UI types are explicitly `@MainActor`, reducers are explicitly `nonisolated` and never `@MainActor`, Domain and Data stay off the main actor, and SwiftLint enforces the UI and reducer rules.
+    - Added two Amendments rows.
+  - `CLAUDE.md`: an isolation section with the evidence table, and a "State isolation explicitly" bullet under "Every change must also". `Architecture`: the isolation bullets.
+  - SwiftLint: three custom rules for the app target, `ui_explicit_main_actor`, `reducer_explicit_nonisolated`, and `reducer_main_actor`.
+    - Red: with the old config, sample files produced no violations.
+    - Green: all 7 expected violations in `Violations.swift` are flagged, and none in `Compliant.swift`.
+    - Against the project, the rules flagged `ContentView` and `Half_LifeApp`. The AI added `@MainActor` above both.
+- **Human changes:** Requested the amendments. Decided on the `nonisolated` default and explicit isolation for UI and presentation. Confirmed that reducers are `nonisolated`.
+- **Files:** `constitution.md`, `CLAUDE.md`, `.swiftlint.yml`, `Half-Life/ContentView.swift`, `Half-Life/Half_LifeApp.swift`, `Half-Life/Documentation.docc/Architecture.md`, and `ai_log.md` (all modified). The `project.pbxproj` isolation change was already there, and this AI didn't make it.
+- **Verification:**
+  - App target build on the live tree: `BUILD SUCCEEDED`, with zero warnings from app sources.
+  - A full test run on the live tree didn't compile, because other sessions' tests were in their red step. First `FakeCurrentTimeRepository` referred to a missing `CurrentTimeRepository`, then `FakeUserProfileDataSource` referred to a missing `UserProfileDataSource`.
+  - Full unit + UI run on a snapshot (the live tree minus 18 other-session Domain, test, and fake files): `TEST SUCCEEDED`, with 151 "passed" lines, 0 failures, and no warnings. Coverage was 100.00% (84/84). These figures describe the snapshot, not the live tree.
+  - `swiftlint lint --strict` on the whole project: the only violation is another session's `large_tuple` in `Half-LifeTests/Domain/DrinkTypeTests.swift`. `swift-format lint --strict` is clean on the edited files.
+  - `xcodebuild docbuild`: succeeded, with no warnings from the Half-Life catalog.
+- **Notes:**
+  - Re-run the full suite on the live tree once the concurrent sessions are green.
+  - Limits of the new lint rules:
+    - The UI rule needs `@MainActor` on the line directly above a one-line `struct`/`class … : View` declaration, and it doesn't check `extension` conformances.
+    - The reducer rule can't see `nonisolated` if another attribute sits between `@Reducer` and the declaration.
+  - The Domain types' explicit `nonisolated` is now redundant under the default, but kept.
+
+### 2026-09-11 22:33 -0400 — Assess readiness to implement the drink composer's Domain layer
+
+- **Started:** 2026-09-11 22:33 -0400
+- **Ended:** 2026-09-11 22:33 -0400
+- **Human:** Adam Ure
+- **AI tool / model:** Claude Code / Claude Opus 5
+- **Transcript:** `ai_transcripts/2026-09-11-2152-a445bdd1.md`
+- **Type:** question
+- **Request:** Asked whether the drink composer's Domain layer is ready to implement.
+- **Interactions:**
+  - `22:33` Asked whether the Domain layer is ready to implement.
+- **AI contribution:**
+  - Checked the code and log instead of answering from memory. The `UseCase` protocol, the `executeThroughProtocol` test helper, the `Fakes/` folder, and the `nonisolated` Domain convention exist. `CaffeineIntake` is built. No use case is registered with swift-dependencies yet.
+  - Answered yes, with two decisions for the owner first:
+    - The shape of `LogDrinkUseCase`'s `Input`. The 22:16 entry left it as the owner's call. The AI's 22:18 sketch uses a nested struct, and the AI recommends keeping it.
+    - How the use case gets the current time and a new ID. Domain can't import swift-dependencies, and injected closures may conflict with Article I.8 ("no state … beyond references to the repositories").
+  - Noted that the open design questions don't block the Domain layer, that rank 1 isn't finished (the decay repository implementation and data sources are unbuilt, and `add(_:)` and `LogCaffeineIntakeUseCase` are superseded), and that a concurrent session is working in `Domain/`.
+- **Human changes:** None
+- **Files:** `ai_log.md` (modified)
+- **Verification:** N/A (question; no code changed)
+- **Notes:** None
+
+### 2026-09-11 22:38 -0400 — Implement the drink composer's Domain layer and the current time
+
+- **Started:** 2026-09-11 22:38 -0400
+- **Ended:** 2026-09-11 22:59 -0400
+- **Human:** Adam Ure
+- **AI tool / model:** Claude Code / Claude Opus 5
+- **Transcript:** `ai_transcripts/2026-09-11-2152-a445bdd1.md`
+- **Type:** change, planning
+- **Request:** Implement the drink composer's Domain layer. The use case reads the current time from a current time repository, applies an offset from its input, and logs through `DrinkLogRepository`, whose business rule rejects drinks in the future. New drinks get a default `UUID`.
+- **Interactions:**
+  - `22:38` Approved the nested `Input`. Said the use case gets the current time from a current time repository and applies an offset from the input, that the repository's business rules forbid logging in the future, and that the ID is a default `UUID`.
+  - `22:38–22:47` Answered three questions (the exact minute wasn't recorded): a `CurrentTimeRepository` with `now()` plus a minute stream, both logging checks in the repository's rule, and `secondsAgo: TimeInterval` for the offset. All three were the AI's recommendations.
+  - `22:38–22:47` Mid-task: the `CurrentTimeRepository` gets an injected `CurrentTimeDataSource` that reads `Date.now`. Later, also mid-task: "Go ahead with CurrentTimeRepository". Neither minute was recorded.
+  - `22:47` Chose to merge the Today screen's planned `TimeOfDayRepository` into `CurrentTimeRepository` over one `ClockDataSource`, rather than the AI's recommended option of two repositories sharing the data source.
+- **AI contribution:**
+  - Raised a constitution conflict before building. A clock repository with only `now()` would break Article I.12, which requires every repository to publish a stream. The owner chose `now()` plus a stream of the time at each whole minute.
+  - Raised an overlap with the Today screen design: a second clock data source would have broken that article's rule that only one type reads the clock. Checked the live tree, messaged both busy peer sessions to claim the clock work, and confirmed that neither was building it.
+  - Test-first, in two cycles:
+    - **Domain.** Red: the test target failed to compile (`cannot find type 'CurrentTimeRepository'`, `'DrinkLogRepository'`, `'LoggedDrink'`). Green: `ServingUnit`, `DrinkType` (13 cases), `LoggedDrink` (default `UUID`, `intake`), `DrinkLogRule` (`quantityBelowOne`, then `consumedInFuture`), the `DrinkLogRepository` and `CurrentTimeRepository` protocols, and `LogDrinkUseCase`, with a nested `Input` of type, quantity, and `secondsAgo`. Tests: `DrinkTypeTests`, `LoggedDrinkTests`, `DrinkLogRuleTests`, `LogDrinkUseCaseTests`, and the fakes `FakeDrinkLogRepository` and `FakeCurrentTimeRepository`. The peer's `ObserveTimeOfDayUseCase` now uses them too.
+    - **Current time.** Red: `cannot find type 'ClockDataSource'`. Green: the `ClockDataSource` protocol (`now()`, `minutes()`), `SystemClockDataSource` (`Date.now` and `Task.sleep`, both injected; it sleeps to each whole minute and yields the later of the wake time and that minute), and the actor `LiveCurrentTimeRepository`. Tests: `SystemClockDataSourceTests` (CLOCK-1 to CLOCK-5), `LiveCurrentTimeRepositoryTests` (TIME-1 and TIME-2), and `FakeClockDataSource`.
+  - Made choices without asking:
+    - The rule's `Violation` enum, checked quantity first.
+    - `Input` is also `Equatable`.
+    - The calendar was left out of `ClockDataSource`, because the peer's use case takes it as input.
+    - Where the drink log's implementation gets the time is left open in the article, with reading `ClockDataSource` as the design.
+  - Fixed a SwiftLint `large_tuple` violation in `DrinkTypeTests` by replacing a 4-tuple with a `CatalogRow` struct, and added a test that the catalog covers every case.
+  - A date check caught a wrong comment in the AI's own test: the fixture is 12:15:30 UTC, not 10:15:30 as written. Only the comment changed.
+  - Docs: the `Drink Composer` article gained built status, the `secondsAgo` input, a `DrinkLogRule` section, a "Current time" section, DRINK-2, LOGRULE-1–4, rewritten USE-1–3, DLOG-4, TIME-1–2, and CLOCK-5. The `Architecture` article gained `LogDrinkUseCase`, `DrinkLogRule`, `DrinkLogRepository`, `LiveCurrentTimeRepository`, and `SystemClockDataSource` rows.
+  - Coordinated with the peer sessions. Told the decay session when the live test target compiled again, offered the live clock to the Today session for its dependency registration (the AI registered nothing), and acknowledged the decay session's claim on `DrinkLogDataSource` and the live decay repository. The decay session will rename `DrinkDataSource` in the docs.
+- **Human changes:** Chose the input shape, the time source, the rule placement, the offset, and the default `UUID`. Required an injected clock data source. Merged the time-of-day repository into `CurrentTimeRepository`.
+- **Files:**
+  - Added: `Half-Life/Domain/Entities/ServingUnit.swift`, `DrinkType.swift`, `LoggedDrink.swift`; `Half-Life/Domain/BusinessRules/DrinkLogRule.swift`; `Half-Life/Domain/Repositories/DrinkLogRepository.swift`, `CurrentTimeRepository.swift`; `Half-Life/Domain/UseCases/LogDrinkUseCase.swift`; `Half-Life/Data/DataSources/ClockDataSource.swift`, `SystemClockDataSource.swift`; `Half-Life/Data/Repositories/LiveCurrentTimeRepository.swift`; `Half-LifeTests/Domain/DrinkTypeTests.swift`, `LoggedDrinkTests.swift`, `DrinkLogRuleTests.swift`, `LogDrinkUseCaseTests.swift`; `Half-LifeTests/Data/SystemClockDataSourceTests.swift`, `LiveCurrentTimeRepositoryTests.swift`; `Half-LifeTests/Fakes/FakeDrinkLogRepository.swift`, `FakeCurrentTimeRepository.swift`, `FakeClockDataSource.swift`
+  - Modified: `Half-Life/Documentation.docc/DrinkComposer.md`, `Half-Life/Documentation.docc/Architecture.md`, `ai_log.md`
+- **Verification:**
+  - Red, then green, for both cycles. Unit tests on the live tree: `TEST SUCCEEDED`, with all six new suites running.
+  - The full unit and UI run couldn't use the live tree, because the Today session's `TodayFeatureTests`, `DailyGreetingFeatureTests`, and `DependencyRegistrationTests` were in their red step and didn't compile. It ran in a scratch copy without `Half-LifeTests/App/` and `Half-LifeTests/Presentation/`: `TEST SUCCEEDED`, 79 tests (242 Swift Testing results including parameterized cases), 0 failures.
+  - Coverage in that copy: `Half-Life.app` 100.00% (268/268). Every new file is at 100%.
+  - swift-format `lint --strict` and SwiftLint `--strict`, including the new isolation rules: 0 violations across all 19 new files.
+  - `xcodebuild docbuild`: `BUILD DOCUMENTATION SUCCEEDED`, with 0 warnings from the Half-Life catalog or sources, and the new symbol links resolve.
+- **Notes:**
+  - The coverage figure comes from the scratch copy, not the live tree. Re-run on the live tree once the Today session's tests compile.
+  - Not built: `DrinkLogRepository`'s implementation, the use cases' dependency registration, and the composer feature. The decay session is building `DrinkLogDataSource`, `LiveCaffeineDecayRepository`, and `HalfLifeDataSource`, and removing `add(_:)` and `LogCaffeineIntakeUseCase`. The Today session is registering `currentTimeRepository`.
+  - The Today Screen article still describes `TimeOfDayRepository`. That session owns the article.
+  - Re-export this session's transcript before committing (Rule 9.1).
+
+### 2026-09-11 22:52 -0400 — Build the drink log data source and the live decay repository
+
+- **Started:** 2026-09-11 22:52 -0400
+- **Ended:** 2026-09-11 23:35 -0400
+- **Human:** Adam Ure
+- **AI tool / model:** Claude Code / Claude Opus 5
+- **Transcript:** `ai_transcripts/2026-09-11-2047-3ff5a5ee.md`
+- **Type:** change, planning, debugging
+- **Request:** Build the data layer:
+  - a concrete `CaffeineDecayRepository` that reads from a `DrinkLogDataSource`
+  - a data source protocol with a method that fetches the drinks that aren't negligible
+  - its implementation, `SwiftDataDrinkLogDataSource`, which stores through SwiftData and syncs to CloudKit
+- **Interactions:**
+  - `22:52` Asked for the data layer as above. The owner interrupted the AI's exploration and re-sent the request at `22:53`.
+  - `22:53` Chose to amend constitution V.1 and add CloudKit now, over the recommended local-only store. Approved removing `add(_:)` and `LogCaffeineIntakeUseCase` with their tests. Chose to build the half-life data source now, over the recommended deferral.
+- **AI contribution:**
+  - Before building, raised that CloudKit sync conflicts with V.1 ("no iCloud sync"), V.3.4, and the brief ("no sync"), and asked three questions. Amended V.1: the drink log syncs to the user's private CloudKit database, and nothing read from HealthKit is synced. Added its Amendments row, and updated `CLAUDE.md`'s privacy bullet.
+  - Coordinated with the drink-composer session (half-life-6f):
+    - Claimed the data source, the repository, and the half-life source.
+    - Applied the owner's renames: `DrinkDataSource` to `DrinkLogDataSource`, and `activeIntakes()` to `nonNegligibleDrinks()`. `changes()` became `async`.
+    - Handed over its red test for `Logger(for:)` (`LoggerHalfLifeTests`). That session built `Logger+HalfLife.swift`.
+    - Shared `FakeDrinkLogDataSource` for that session's future `LiveDrinkLogRepository`.
+  - Found the root cause of a live build break outside this session's code: `LiveUserProfileRepository` failed with "'nonisolated' modifier cannot be applied to this declaration".
+    - In the same module, an actor that conforms to a `nonisolated protocol` inherits `nonisolated`.
+    - Proved it in a scratch copy: removing the keyword from the protocol fixed the build, and adding `import Foundation` didn't.
+    - Told the Today session (half-life-2a), which fixed it.
+    - Removed `nonisolated` from `CaffeineDecayRepository` and `UseCase` for the same reason, and added a "Protocols never say `nonisolated`" rule to the `Architecture` article.
+  - Test-first, in two cycles:
+    - Cycle A covered HALF-1, DATA-1 to DATA-5, SRC-1, SRC-3, SRC-4, and skipping a drink with an unknown type.
+    - Cycle B removed `add(_:)`, `LogCaffeineIntakeUseCase`, and their tests. It added `FakeDrinkLogDataSource`, `FakeHalfLifeDataSource`, and REPO-1 to REPO-6.
+    - Other sessions' in-progress code blocked the red run twice. When it ran, it failed for the expected reason: `cannot find type 'HalfLifeDataSource'`.
+  - Green:
+    - `HalfLifeDataSource` and `StandardHalfLifeDataSource`, and the `DrinkLogDataSource` protocol.
+    - `DrinkRecord`, a CloudKit-compatible `@Model` (every property defaulted, none unique).
+    - `SwiftDataDrinkLogDataSource`, a `@ModelActor`. The app's container uses `.automatic` CloudKit, and tests use an in-memory store with `.none`.
+    - `LiveCaffeineDecayRepository`, an actor. It subscribes to changes before publishing its first curve, marks negligible intakes, and logs failures with only the error's domain and code.
+  - Verified green first in a snapshot. It was the live tree minus the other sessions' in-progress composer and `AppFeature` files. The UI test target was also removed from the snapshot's scheme, because Xcode's 23:10 project rewrite had dropped its membership exceptions.
+  - Added error-path tests after the code: a failed mark still publishes, a failed read recovers on the next change, and marking nothing changes nothing. The catch blocks were written with the implementation, before a failing test, which deviates from TDD.
+  - The first full run on the live tree crashed the test host in `SwiftDataDrinkLogDataSourceTests.init()`: `EXC_BAD_ACCESS` in Core Data's `_generateTriggerSQL` while adding a store. Parallel tests were creating in-memory containers for the same model at once. `@Suite(.serialized)` fixed it, and the next full run didn't crash.
+  - Docs:
+    - `Drink Composer`: the rename, the new method names, an SRC-2 note, privacy with CloudKit and an open protection class, the built note, and the resolved item removed.
+    - `Architecture`: the protocol rule, the removed use case, the built repository, data-source, and business-rule rows, and a "Data and privacy" row.
+    - `Caffeine Decay Model`: the built names, the removed `add(_:)` path, and DATA-1.
+  - An entitlements file appeared at 23:03 that no session claims: iCloud with CloudKit (`iCloud.com.quillanq.Half-Life`), push, and HealthKit with background delivery. It's probably the owner, in Xcode.
+- **Human changes:** Chose CloudKit now and the V.1 amendment. Approved the removal. Chose to build the half-life source now.
+- **Files:**
+  - Added: `Half-Life/Data/DataSources/DrinkLogDataSource.swift`, `DrinkRecord.swift`, `SwiftDataDrinkLogDataSource.swift`, `HalfLifeDataSource.swift`, `StandardHalfLifeDataSource.swift`; `Half-Life/Data/Repositories/LiveCaffeineDecayRepository.swift`; `Half-LifeTests/Data/SwiftDataDrinkLogDataSourceTests.swift`, `StandardHalfLifeDataSourceTests.swift`, `LiveCaffeineDecayRepositoryTests.swift`; `Half-LifeTests/Fakes/FakeDrinkLogDataSource.swift`, `FakeHalfLifeDataSource.swift`; `Half-LifeTests/Logging/LoggerHalfLifeTests.swift`, now owned by half-life-6f
+  - Modified: `Half-Life/Domain/Repositories/CaffeineDecayRepository.swift`, `Half-Life/Domain/UseCases/UseCase.swift`, `Half-LifeTests/Fakes/FakeCaffeineDecayRepository.swift`, `constitution.md`, `CLAUDE.md`, `Half-Life/Documentation.docc/Architecture.md`, `CaffeineDecayModel.md`, `DrinkComposer.md`, `ai_log.md`
+  - Deleted: `Half-Life/Domain/UseCases/LogCaffeineIntakeUseCase.swift`, `Half-LifeTests/Domain/LogCaffeineIntakeUseCaseTests.swift`
+- **Verification:**
+  - Full unit + UI run on the live tree, after the fix (iPhone 17 simulator, iOS 26.5, derived data `build/DerivedData-decay`):
+    - Every unit test passed, with no crash and no warnings from app or test sources.
+    - Three UI accessibility audits failed on other sessions' screens: contrast on the composer, and Dynamic Type on the root and Today screens.
+    - Coverage: `Half-Life.app` is at 95.95% (1352/1409). `SwiftDataDrinkLogDataSource` is at 81.40%, `LiveCaffeineDecayRepository` at 96.47%, and the other new files at 100%.
+  - `swift-format lint --strict` and `swiftlint lint --strict` are clean on the new files. `swift-format format` changed only line wraps. SwiftLint across the whole project found 0 violations in 106 files.
+  - `xcodebuild docbuild`: succeeded, with no warnings from the Half-Life catalog.
+- **Notes:**
+  - CloudKit sync is configured but untested. It needs the container in the developer account, a device signed in to iCloud, and the CloudKit schema deployed to Production before TestFlight. The 23:39 entry defers the rest of the CloudKit work to roadmap rank 23.
+  - The drink store's protection class is undecided: iOS's default, complete until first unlock, lets CloudKit import in the background, while `NSFileProtectionComplete` (V.4) would hold imports until unlock. Resolved in the 23:39 entry: iOS's default.
+  - Untested: SRC-2, and SwiftData's save and fetch failure paths. An in-memory store can't be made to fail.
+  - Not done: the dependency registration (Article I.15) for the repository, `ObserveCaffeineCurveUseCase`, and the single data-source instance both repositories must share.
+  - To confirm against Apple's guidance: whether syncing to the user's private CloudKit database counts as "collected" for the App Store privacy label.
+  - The brief says "no sync". The owner will defend the change in the write-up. CloudKit backup was roadmap rank 23, and the roadmap wasn't re-ranked.
+
+### 2026-09-11 23:01 -0400 — Implement the drink composer's Presentation layer and the app root
+
+- **Started:** 2026-09-11 23:01 -0400
+- **Ended:** 2026-09-11 23:37 -0400
+- **Human:** Adam Ure
+- **AI tool / model:** Claude Code / Claude Opus 5
+- **Transcript:** `ai_transcripts/2026-09-11-2152-a445bdd1.md`
+- **Type:** change, planning, debugging
+- **Request:** Implement the drink composer's Presentation layer while another session builds the drink log's Data layer.
+- **Interactions:**
+  - `23:01` Asked for the composer's Presentation layer.
+  - `23:04` Answered four questions, choosing the AI's recommendation each time:
+    - One screen: the drink list, with a pinned panel for the quantity, "When", and Add.
+    - A root `AppFeature` whose + button presents the composer as a sheet.
+    - The composer dismisses after a successful Add, and shows an inline error if storing fails.
+    - This session builds `LiveDrinkLogRepository` once the decay session's data source lands.
+- **AI contribution:**
+  - Checked the rules changed by other sessions before designing: the IV.1 isolation rules, their SwiftLint enforcement, the dependency-registration pattern, and the V.1 CloudKit amendment. Found that the app's root was still the template `ContentView`, and that `Logger(for:)` wasn't built.
+  - Coordinated with peer sessions:
+    - Claimed the root and `Logger(for:)` with the Today session (`half-life-2a`) and the decay session (`half-life-fd`).
+    - Adopted the decay session's red test for `Logger(for:)` instead of writing a second one.
+    - Sequenced the UI-test membership exceptions with the Today session.
+    - Put `TodayView` into the root's Today slot, and told the other sessions when the tree compiled.
+    - Told `half-life-fd` and `half-life-94` that Xcode's 23:10 rewrite of `project.pbxproj` had been repaired.
+  - Test-first:
+    - Red: the test build failed on the missing `Logger(for:)`, then on the missing presentation helpers. The other new test files referenced types that didn't exist yet.
+    - Green: `Logger(for:)`, `DrinkComposerFeature`, `DrinkComposerView`, the `DrinkType`/`ServingUnit` presentation helpers and `CaffeineFormat`, `AppFeature`, `AppView`, both identifier files, and the `logDrink` registration. The registration has only a test value, built from the Today session's internal `CurrentTimeRepositoryKey`, because no live `DrinkLogRepository` exists yet.
+    - New tests: `DrinkComposerFeatureTests` (COMP-1–9), `AppFeatureTests` (ROOT-1–3), `DrinkPresentationTests` (SHOW-1–5), and `LogDrinkDependencyTests`.
+    - UI tests: `AppRobot`, `DrinkComposerRobot`, and `DrinkComposerUITests`. Moved the existing UI tests from `ContentRobot` to `AppRobot`.
+  - Replaced the template root: `Half_LifeApp` now hosts `AppView`. Deleted `ContentView`, its identifier file, and `ContentRobot`, and moved the UI-test membership exception to the two new identifier files.
+  - Added 34 String Catalog keys, with plural variants for "%lld shots/cups/cans", and removed "Hello, world!". "1h ago" is built from a locale-formatted `Duration`.
+  - Docs:
+    - `Drink Composer` article: built status, a "The composer screen" section, and the COMP, ROOT, and SHOW requirements.
+    - `Architecture` article: the Features rows, Robots rows, resolution example, and Navigation.
+    - `Logging` article: `Logger(for:)` is built.
+  - Fixed a swift-format indentation finding in `AppView`, and two SwiftLint findings: an unlabeled icon, and a 3-member tuple in a test.
+  - Accessibility audits. Of the audits in the full run, only the composer's fails in this session's code. It reports "Contrast failed".
+    - A token check found every text and icon pair in the composer at or above its threshold. The lowest was 5.05:1.
+    - The AI guessed that half-covered rows under the pinned panel were the cause, and changed the layout so the list scrolls above the panel. The audit still failed, so the guess was wrong or incomplete. The layout change was kept, because no row is left half covered.
+    - Four attempts to print the failing element failed on simulator contention: one "signal term" and three "Busy" launch refusals. The AI stopped there and reported to the owner.
+- **Human changes:** Chose the layout, the root and sheet, the dismissal behavior, and who builds `LiveDrinkLogRepository`.
+- **Files:**
+  - Added: `Half-Life/Logging/Logger+HalfLife.swift`, `Half-Life/App/AppFeature.swift`, `AppView.swift`, `AppViewAccessibilityID.swift`, `Half-Life/App/Dependencies/DrinkLogDependencies.swift`, `Half-Life/Features/DrinkComposer/DrinkComposerFeature.swift`, `DrinkComposerView.swift`, `DrinkComposerViewAccessibilityID.swift`, `DrinkPresentation.swift`, `Half-LifeTests/Presentation/DrinkComposerFeatureTests.swift`, `AppFeatureTests.swift`, `DrinkPresentationTests.swift`, `Half-LifeTests/App/LogDrinkDependencyTests.swift`, `Half-LifeUITests/Robots/AppRobot.swift`, `DrinkComposerRobot.swift`, `Half-LifeUITests/DrinkComposerUITests.swift`
+  - Modified: `Half-Life/Half_LifeApp.swift`, `Half-Life/Localizable.xcstrings`, `Half-Life.xcodeproj/project.pbxproj`, `Half-LifeUITests/Half_LifeUITests.swift`, `Half_LifeUITestsLaunchTests.swift`, `RobotResolutionUITests.swift`, `Robots/Robot.swift`, `Half-Life/Documentation.docc/DrinkComposer.md`, `Architecture.md`, `Logging.md`, `ai_log.md`
+  - Deleted: `Half-Life/ContentView.swift`, `Half-Life/ContentViewAccessibilityID.swift`, `Half-LifeUITests/Robots/ContentRobot.swift`
+- **Verification:**
+  - Red, then green. In a scratch copy (with the Today exceptions added there), the composer suite passed 16 results, the root suite 3, the presentation suite 28, and the Logger test 1, with 0 failures.
+  - Full unit and UI run on the live tree: 142 tests (323 Swift Testing results), 6 failures, and 4 expected failures (known issues).
+    - `DrinkComposerUITests.testComposerPassesAccessibilityAudit`: "Contrast failed". Still open.
+    - `Half_LifeUITests.testRootScreenPassesAccessibilityAudit` and `TodayUITests.testTodayScreenPassesAccessibilityAudit`: "Dynamic Type font sizes are partially unsupported", on the Today session's "GOOD EVENING" eyebrow. That session is fixing it.
+    - `PurposeStringTests` (3): `half-life-94`'s tests for work in progress.
+  - After the layout change, the composer UI tests on the live tree: 4 of 5 pass. The audit still fails on contrast.
+  - Coverage: `Half-Life.app` is at 95.10% (1,340/1,409). `DrinkComposerFeature`, `AppFeature`, `AppView`, `DrinkPresentation`, and `Logger+HalfLife` are at 100%, `DrinkComposerView` at 93.89%, and `DrinkLogDependencies` at 53.85%, because the stand-in's `loggedDrinks()` is never called.
+  - swift-format and SwiftLint `--strict`: 0 violations across the new and changed files. `xcodebuild docbuild`: 0 warnings from the Half-Life catalog.
+- **Notes:**
+  - Not done: the composer's accessibility audit fails (constitution VI.4, and CLAUDE.md's definition of done). The flagged element is unknown.
+  - Until `LiveDrinkLogRepository` exists, `\.logDrink` has only a test value, so Add can't store a drink in the running app.
+  - Choices made without asking:
+    - No drink is chosen when the composer opens, so the panel appears only after one is.
+    - The quantity has no upper limit, which is still open in the article.
+    - A Close button, with a 44 pt minimum on every control.
+    - The panel moves inline at accessibility text sizes.
+  - Re-export this session's transcript before committing (Rule 9.1).
+
+### 2026-09-11 23:07 -0400 — Localize purpose strings in a String Catalog
+
+- **Started:** 2026-09-11 23:07 -0400
+- **Ended:** 2026-09-11 23:28 -0400
+- **Human:** Adam Ure
+- **AI tool / model:** Claude Code / Claude Opus 5
+- **Transcript:** `ai_transcripts/2026-09-11-2307-fac56b6b.md`
+- **Type:** change, question
+- **Request:** Put the Health Records, Health Share, and Health Update usage descriptions in a localizable file instead of the Xcode project, where Xcode's capability editor puts them. Siri and Face ID were added mid-task.
+- **Interactions:** (times from the session transcript)
+  - `23:07` Asked to localize the Health Records, Health Share, and Health Update usage descriptions.
+  - `23:09` Mid-turn: asked for a Siri usage description too.
+  - `23:09` Answered the AI's question: add the Health Records string, against the AI's recommendation.
+  - `23:10` Mid-turn: asked for a Face ID usage description too.
+- **AI contribution:**
+  - Raised a conflict before building. The app has no Clinical Health Records entitlement, and nothing on the roadmap reads clinical records, so the string is speculative (Articles III.1, V.2). The owner chose to add it anyway.
+  - Tested in scratch copies of the project how Xcode 26 handles purpose strings:
+    - A key that exists only in `InfoPlist.xcstrings` compiles into `en.lproj/InfoPlist.strings` but is missing from the built Info.plist, where App Store validation and the frameworks look for it.
+    - With the key in the Info.plist too, the catalog's text wins at runtime, and `xcodebuild -exportLocalizations` (Xcode's localization sync) leaves a manual entry untouched.
+    - A language that doesn't translate a key leaves it out of that language's table, so the user sees the Info.plist value, not the English text.
+  - Design that follows from those results:
+    - `Half-Life/Info.plist` declares the five keys with the placeholder `Localized in InfoPlist.xcstrings`.
+    - The text lives only in `InfoPlist.xcstrings`, as manual entries with translator comments. The catalog also keeps the `CFBundleName` entry that Xcode's sync adds.
+    - A test requires every shipped localization to translate every key, so the placeholder can't reach users.
+    - The two empty `INFOPLIST_KEY_NSFaceIDUsageDescription` build settings the capability editor left in `project.pbxproj` were removed.
+  - Test-first. `PurposeStringTests` (PURPOSE-1 to PURPOSE-3, parameterized over the five keys):
+    - Red: the keys were missing from the Info.plist, and there was no `en` `InfoPlist` table.
+    - Green: 15 of 15 cases pass.
+  - Drafted the English wording for all five strings. The Face ID string assumes an app lock.
+  - Documented the approach in the Architecture article's new "Purpose strings" section.
+  - The live tree didn't compile because peer sessions were mid-change. Xcode's 23:10 rewrite of `project.pbxproj` had dropped the UI test target's identifier exceptions, and `DrinkComposerFeature` was briefly broken. The AI messaged the three peer sessions about this. `half-life-6f` confirmed that both problems were handled. The AI changed none of the peers' files.
+- **Human changes:** Chose to include Health Records against the recommendation, and added Siri and Face ID. During the task, the owner configured capabilities in Xcode. That added the Siri entitlement, background modes, the new `Half-Life/Info.plist`, and the empty Face ID build setting that the AI removed.
+- **Files:**
+  - Added: `Half-Life/InfoPlist.xcstrings`, `Half-LifeTests/App/PurposeStringTests.swift`
+  - Modified: `Half-Life/Info.plist` (keys added to the owner's new file), `Half-Life.xcodeproj/project.pbxproj` (two empty build settings removed), `Half-Life/Documentation.docc/Architecture.md`, `ai_log.md`
+- **Verification:**
+  - Red, then green, for `PurposeStringTests`. The red step ran in a scratch snapshot with the peers' non-compiling test files removed, because the live tree didn't compile.
+  - Full unit and UI run in a snapshot of the live tree taken at 23:22 (after the peer fix): 142 tests, 135 passed, 3 failed. The failures are UI accessibility audits on the peers' screens: "Contrast failed" (composer), and "Dynamic Type font sizes are partially unsupported" (root and Today). None of them involves purpose strings.
+  - Coverage: `Half-Life.app` 95.10% (1340/1409). This change adds no Swift code to the app target.
+  - swift-format `lint --strict` and SwiftLint `--strict` on the new test: 0 violations.
+  - `xcodebuild docbuild`: `BUILD DOCUMENTATION SUCCEEDED`, with 0 warnings from Half-Life.
+  - The built app's Info.plist has the five placeholders, and `en.lproj/InfoPlist.strings` has the five texts.
+- **Notes:**
+  - Constitution Article VII.1 (and CLAUDE.md) name only `Localizable.xcstrings` as the String Catalog. Purpose strings can only be localized through the `InfoPlist` table (Article V.3.2), so VII.1 needs a deliberate amendment to name `InfoPlist.xcstrings`. It wasn't changed here.
+  - Reading clinical records also needs the HealthKit capability's Clinical Health Records option (`com.apple.developer.healthkit.access`), which the app doesn't have yet.
+  - The owner should review the drafted wording, especially Face ID and Health Records, which describe features not yet designed.
+  - The three accessibility-audit failures belong to the peer sessions' screens.
+
+### 2026-09-11 23:30 -0400 — Amend constitution VII.1 for the Info.plist String Catalog
+
+- **Started:** 2026-09-11 23:30 -0400
+- **Ended:** 2026-09-11 23:31 -0400
+- **Human:** Adam Ure
+- **AI tool / model:** Claude Code / Claude Opus 5
+- **Transcript:** `ai_transcripts/2026-09-11-2307-fac56b6b.md`
+- **Type:** change
+- **Request:** Amend the constitution to allow the Info.plist String Catalog. This resolves the conflict raised in the 23:07 entry: Article VII.1 named only `Localizable.xcstrings`, but Article V.3.2's localized purpose strings can only live in `InfoPlist.xcstrings`.
+- **Interactions:**
+  - `23:30` Asked to amend the constitution for the Info.plist String Catalog.
+- **AI contribution:**
+  - Rewrote Article VII.1. Text in code lives in `Localizable.xcstrings`. Text that iOS reads from the Info.plist, such as purpose strings and the app's name, lives in `InfoPlist.xcstrings`.
+  - Added two sub-rules. VII.1.1: the Info.plist declares each localized key with only a placeholder value, and the text is never written into `Info.plist` or the build settings. VII.1.2: every shipped localization translates every key, because a missing translation shows the placeholder.
+  - Added the amendment to the table.
+  - Updated the "Be localization-ready" line in `CLAUDE.md` to match.
+  - Pointed the Architecture article's "Purpose strings" citation at VII.1.
+- **Human changes:** None
+- **Files:** `constitution.md`, `CLAUDE.md`, `Half-Life/Documentation.docc/Architecture.md`, `ai_log.md` (all modified)
+- **Verification:** N/A (docs only). `PurposeStringTests` already enforces VII.1.1 and VII.1.2 (PURPOSE-1 to PURPOSE-3).
+- **Notes:** The constitution's status is still DRAFT.
+
+### 2026-09-11 23:32 -0400 — Find a source for the user's name that needs no typing
+
+- **Started:** 2026-09-11 23:32 -0400
+- **Ended:** 2026-09-11 23:34 -0400
+- **Human:** Adam Ure
+- **AI tool / model:** Claude Code / Claude Opus 5
+- **Transcript:** `ai_transcripts/2026-09-11-2332-4488ec89.md`
+- **Type:** question
+- **Request:** `UserProfileDataSource`'s only implementation is `EmptyUserProfileDataSource`. Where can the app get the user's name without the user typing it in an onboarding step?
+- **Interactions:**
+  - `23:32` Asked where the user's name could come from without manual entry.
+- **AI contribution:**
+  - Read the profile's Domain and Data types and the Today Screen article.
+  - Answered from memory of Apple's APIs. Nothing was checked against current documentation or on a device. iOS gives an app no silent way to read the user's name:
+    - The Contacts "Me" card API is macOS only.
+    - `UIDevice.name` has returned a generic name since iOS 16, unless Apple grants a special entitlement.
+    - CloudKit's user discoverability was deprecated in iOS 17.
+    - HealthKit has no name characteristic, and reading clinical records for a name would break Article V.2.
+  - Gave two options that each take one tap:
+    - Sign in with Apple with the `.fullName` scope. It returns the name only on the first authorization, needs a new entitlement, and gives the app an Apple ID credential it doesn't need. It also sits awkwardly with the brief's "no accounts infrastructure." By Article I.6, its data source would present the sheet.
+    - A name field with `.textContentType(.givenName)`. AutoFill offers the name from the Me card, with no permission or entitlement.
+  - Recommended the AutoFill field. Sign in with Apple needs it as a fallback anyway.
+- **Human changes:** None
+- **Files:** `ai_log.md` (modified)
+- **Verification:** N/A (question)
+- **Notes:** The owner decides at onboarding (roadmap rank 6) whether to ask for the name at all. The greeting already works without one.
+
+### 2026-09-11 23:36 -0400 — Move the user's name to the roadmap's backlog
+
+- **Started:** 2026-09-11 23:36 -0400
+- **Ended:** 2026-09-11 23:37 -0400
+- **Human:** Adam Ure
+- **AI tool / model:** Claude Code / Claude Opus 5
+- **Transcript:** `ai_transcripts/2026-09-11-2332-4488ec89.md`
+- **Type:** change, planning
+- **Request:** Follows the 23:32 entry. The owner agreed with the assessment and asked to add the user's name as a low-priority feature at the end of the timeline.
+- **Interactions:**
+  - `23:36` Agreed with the assessment and asked to add the name as a low-priority feature at the end of the timeline.
+- **AI contribution:**
+  - Added "User's name" to the roadmap's Backlog, after rank 27, rather than as a scored rank 28. The owner sets effort and value scores, and none were given, so the ranks, totals, and "Where to stop" figures didn't change. The row records:
+    - the recommended AutoFill name field;
+    - why Sign in with Apple was rejected;
+    - that where the field appears is still open.
+  - Updated the Today Screen article. It had said the onboarding survey (rank 6) asks for the name, and now says the name is in the backlog.
+  - Left the doc comments on `UserProfile` and `EmptyUserProfileDataSource` unchanged, because they're still accurate. Onboarding still replaces the empty data source, because it stores the bedtime.
+- **Human changes:** None
+- **Files:** `roadmap.md`, `Half-Life/Documentation.docc/TodayScreen.md`, `ai_log.md` (all modified)
+- **Verification:** N/A (docs only). `docbuild` wasn't run: the article change is plain prose, with no new symbol links.
+- **Notes:** The owner still decides where the name field appears: in a later onboarding step, in Settings, or both.
+
+### 2026-09-11 23:39 -0400 — Defer the rest of CloudKit; keep iOS's default file protection
+
+- **Started:** 2026-09-11 23:39 -0400
+- **Ended:** 2026-09-11 23:40 -0400
+- **Human:** Adam Ure
+- **AI tool / model:** Claude Code / Claude Opus 5
+- **Transcript:** `ai_transcripts/2026-09-11-2047-3ff5a5ee.md`
+- **Type:** planning, change
+- **Request:** Keep the rest of the CloudKit work for roadmap rank 23, and keep iOS's default file protection for the drink store.
+- **Interactions:**
+  - `23:39` Deferred the rest of the CloudKit work to rank 23. Chose iOS's default protection class for the drink store.
+- **AI contribution:**
+  - Recorded the protection class as decided, as Article V.4 requires for a weaker class: `NSFileProtectionCompleteUntilFirstUserAuthentication`, because CloudKit imports and Siri need the store while the device is locked after its first unlock. This went into the `Architecture` article's "Data and privacy" row and the `Drink Composer` article's privacy section.
+  - Updated the `Drink Composer` article's Siri note: with the default class, an intent can use the store once the device has been unlocked since start-up. Whether an intent should also require an unlocked device is still decided with App Intents (rank 14).
+  - Recorded that CloudKit sync is configured, and that the rest of the work is rank 23: confirming the container, deploying the schema to Production, push-driven sync, testing on a device, and the privacy label. Kept the existing `.automatic` configuration.
+  - Marked both notes in the 22:52 entry as resolved.
+- **Human changes:** Both decisions above.
+- **Files:** `Half-Life/Documentation.docc/DrinkComposer.md`, `Half-Life/Documentation.docc/Architecture.md`, `ai_log.md` (modified)
+- **Verification:**
+  - `xcodebuild docbuild`: succeeded, with no warnings from the Half-Life catalog.
+  - No code changed.
+- **Notes:** The protection class isn't set in code. The store inherits iOS's default, and the simulator doesn't enforce Data Protection, so no test checks it.
+
+### 2026-09-11 23:40 -0400 — Wire the decay curve's data sources
+
+- **Started:** 2026-09-11 23:40 -0400
+- **Ended:** 2026-09-11 23:57 -0400
+- **Human:** Adam Ure
+- **AI tool / model:** Claude Code / Claude Opus 5
+- **Transcript:** `ai_transcripts/2026-09-11-2047-3ff5a5ee.md`
+- **Type:** change, debugging
+- **Request:** Wire up the data sources for the exponential decay function. The request arrived during the 23:39 task.
+- **Interactions:**
+  - `23:40` Asked to wire the data sources for the decay function.
+- **AI contribution:**
+  - Coordinated with the drink-composer session (half-life-6f), whose messages crossed with the AI's. They agreed on one shared, internal `DrinkLogDataSourceKey` in its own file, owned by this session. That session's `DrinkLogRepositoryKey` and `LogDrinkUseCaseKey` will build from it.
+  - Tried to add a lock around SwiftData container creation, meant to prevent the 23:29 test-host crash. The red test didn't reproduce the crash: 16, then 64, stores opening concurrently, over 5 and 10 iterations, with no failures and no crash reports. So the lock wasn't added, the race test was removed, and the AI told the other session so. Instead, every test that opens a store now runs under a serialized parent suite, `SwiftDataStoreTests`, and the existing data-source suite moved under it. The crash's cause is still not pinned down.
+  - Test-first:
+    - Red: `cannot find 'DrinkLogDataSourceKey'`, and key paths that couldn't be inferred for `\.caffeineDecayRepository` and `\.observeCaffeineCurve`.
+    - Green, `DrinkLogDataSourceKey`:
+      - Live: the on-disk SwiftData store with CloudKit `.automatic`, falling back to an in-memory store with an `error` log if the store won't open.
+      - Preview: an empty in-memory store.
+      - Test: an unimplemented source that reports an issue on every operation.
+      - `makeDataSource(opening:)` is the testable factory both use.
+    - Green, `CaffeineDecayDependencies.swift`: a private `CaffeineDecayRepositoryKey` (live and preview are `LiveCaffeineDecayRepository` over the shared source, the standard half-life, and the system clock), `ObserveCaffeineCurveUseCaseKey` built from it, and an unimplemented test repository.
+    - The tests check the test values, the preview repository's identity and its end-to-end curve (1,440 levels from SwiftData), the factory's own store, and its fallback. No test reads a live value.
+  - Docs: in the `Architecture` article, shared data-source keys and the rule that store-opening tests stay serialized. In the `Caffeine Decay Model` article, a wiring bullet.
+  - Told the Today session (half-life-2a) that this session isn't editing the decay repository, so it can own the new `status()` stream. Pointed it at the wiring, fakes, and test rules, and asked it to record the REPO-2 exception in the article.
+- **Human changes:** None
+- **Files:**
+  - Added: `Half-Life/App/Dependencies/DrinkLogDataSourceDependencies.swift`, `Half-Life/App/Dependencies/CaffeineDecayDependencies.swift`, `Half-LifeTests/App/CaffeineDecayDependencyTests.swift`, `Half-LifeTests/Data/SwiftDataStoreTests.swift`
+  - Modified: `Half-LifeTests/Data/SwiftDataDrinkLogDataSourceTests.swift` (nested under `SwiftDataStoreTests`), `Half-Life/Documentation.docc/Architecture.md`, `Half-Life/Documentation.docc/CaffeineDecayModel.md`, `ai_log.md`
+- **Verification:**
+  - Full unit + UI run on the live tree (iPhone 17 simulator, iOS 26.5):
+    - 360 passed and 7 expected failures (`withKnownIssue`), with no crash and no warnings from app or test sources.
+    - 1 real failure: the composer screen's contrast audit, which belongs to another session.
+    - Coverage: `Half-Life.app` is at 95.41% (1477/1548). `LiveCaffeineDecayRepository` is at 100%. `CaffeineDecayDependencies.swift` is at 80.00% and `DrinkLogDataSourceDependencies.swift` at 77.36%: the live values and the in-memory fault path aren't read in tests.
+  - `swift-format lint --strict` and `swiftlint lint --strict` are clean on the 5 files, after fixing a line-length violation and a nesting violation.
+  - `xcodebuild docbuild`: succeeded, with no warnings from the Half-Life catalog.
+- **Notes:**
+  - If the device's store won't open, the app falls back to an in-memory store: drinks logged that launch aren't kept, and an `error` is logged. The AI chose this without asking.
+  - No feature observes the curve yet, so the app never opens the live store until a feature uses `\.observeCaffeineCurve`.
+  - The live wiring isn't exercised by any test, by design, because it would open the device's store and CloudKit in the test host.
+
+### 2026-09-11 23:40 -0400 — Build LiveDrinkLogRepository and fix the composer's accessibility audit
+
+- **Started:** 2026-09-11 23:40 -0400
+- **Ended:** 2026-09-12 00:18 -0400
+- **Human:** Adam Ure
+- **AI tool / model:** Claude Code / Claude Opus 5
+- **Transcript:** `ai_transcripts/2026-09-11-2152-a445bdd1.md`
+- **Type:** change, debugging
+- **Request:** Build `LiveDrinkLogRepository` next, so the composer's Add stores drinks.
+- **Interactions:**
+  - `23:40` Asked for `LiveDrinkLogRepository`.
+  - `23:40–23:45` Chose `ClockDataSource` as the repository's source of the current time, the AI's recommendation, over depending on `CurrentTimeRepository`. The exact minute wasn't recorded.
+- **AI contribution:**
+  - Read the decay session's `DrinkLogDataSource`, its fake, and `LiveCaffeineDecayRepository`, and followed the same subscribe-once, re-read-on-signal pattern.
+  - Test-first:
+    - `LiveDrinkLogRepository`: red on the missing type, then green. It streams every drink oldest first, including marked ones, and republishes after each change signal. `log(_:)` runs `DrinkLogRule` with the clock's time before storing. A failed read or store publishes nothing.
+    - The registration: the AI staged it in the scratchpad until the decay session's `DrinkLogDataSourceKey` landed, so the shared test build never broke on it. Red on the missing `\.drinkLogRepository`, then green. `DrinkLogRepositoryKey` is internal, its live and preview values come from `DrinkLogDataSourceKey`, and `\.logDrink` is now a `DependencyKey` built from the current time and drink log keys. Following the decay session's caveat, the tests check only the test values, because live and preview values open SwiftData stores.
+  - Coordinated with the decay session. Its messages and the AI's claim on the data-source key crossed, so they agreed the decay session owns `DrinkLogDataSourceKey` in its own file, and the AI builds on it.
+  - Resolved the composer audit failure left open in the 23:01 entry:
+    - Created a dedicated simulator, "HalfLife-Composer", after seeing the Today session do the same. Shared simulators had blocked four earlier diagnostic runs.
+    - Audited scratch-only variants with a diagnostic that prints each issue's element. The shared `Robot.swift` was never changed.
+    - Found three causes. A lazy stack kept rows scrolled out of view behind the pinned panel. The panel's `.shadow` shadowed every glyph. The selected row's color change animated, so its light text briefly sat on a light background.
+    - Ruled out the colors themselves: chip border, chip background, and label color variants all left the issues in place.
+    - Fixed all three in the live view: a `List` for the non-accessibility layout, a shadow on the card shape only, and no animation on the row's selection. This supersedes the 23:01 entry's `VStack` layout change, which didn't fix the audit.
+  - Docs:
+    - `Drink Composer` article: the repository is built, the ClockDataSource decision, the tests that cover DLOG-1 to DLOG-4, and the three audit fixes. Removed the time-source question from "Still to decide".
+    - `Architecture` article: the drink log repository's row and `DrinkLogRule`'s executor.
+- **Human changes:** Chose `ClockDataSource` for the repository's time.
+- **Files:**
+  - Added: `Half-Life/Data/Repositories/LiveDrinkLogRepository.swift`, `Half-LifeTests/Data/LiveDrinkLogRepositoryTests.swift`
+  - Modified: `Half-Life/App/Dependencies/DrinkLogDependencies.swift`, `Half-LifeTests/App/LogDrinkDependencyTests.swift`, `Half-Life/Features/DrinkComposer/DrinkComposerView.swift`, `Half-Life/Documentation.docc/DrinkComposer.md`, `Architecture.md`, `ai_log.md`
+- **Verification:**
+  - `LiveDrinkLogRepositoryTests`: red, then green on the live tree, with all 22 results passing and 0 failures.
+  - In a scratch copy without other sessions' unfinished tests:
+    - The registration's three tests pass, each recording its expected issue.
+    - `DrinkComposerFeatureTests`, `AppFeatureTests`, and `LiveDrinkLogRepositoryTests` all pass.
+  - Composer audit, in scratch on the dedicated simulator:
+    - Before the fixes: 10 contrast issues immediately after choosing a drink, and 8 after a 2-second wait.
+    - With all three fixes: 0, both immediately (twice) and after the wait.
+    - The root screen's audit passes after the Today session's eyebrow fix.
+  - swift-format and SwiftLint `--strict`: clean on every changed file.
+  - At 00:10, the full run and docbuild failed to compile on another session's in-progress `CaffeineDecayView.swift`, which used `Sizing` and `Typography` members that didn't exist yet. The AI waited for that session to add them.
+  - `xcodebuild docbuild` at 00:12: `BUILD DOCUMENTATION SUCCEEDED`, with 0 warnings from the Half-Life catalog.
+  - Final full unit and UI run at about 00:12, in a scratch copy on the dedicated simulator, without other sessions' unfinished HealthKit and caffeine-status tests. 192 tests (382 Swift Testing results) ran, with 3 failures and 11 expected failures.
+    - All five `DrinkComposerUITests` pass, including `testComposerPassesAccessibilityAudit`. The launch, root-launch, and robot-resolution UI tests pass too. This session's unit suites have 0 failures.
+    - Failed: `Half_LifeUITests.testRootScreenPassesAccessibilityAudit` and `TodayUITests.testTodayScreenPassesAccessibilityAudit`, both with "Potentially inaccessible text". The Today session attributes this to its decay card's hidden header, and its fix postdates this run's copy.
+    - Failed: `CaffeineDecayFeatureTests/taskReducesEachTimeOfDayIntoState`, the Today session's in-progress test.
+  - Coverage: `Half-Life.app` is at 89.28% (1,949/2,183). `DrinkComposerFeature`, `AppFeature`, `AppView`, `DrinkPresentation`, and `Logger+HalfLife` are at 100%, `LiveDrinkLogRepository` at 95.77%, `DrinkComposerView` at 94.72%, and `DrinkLogDependencies` at 93.33%.
+  - A re-run of the three audits on a newer copy at 00:17 didn't start, because the simulator failed to launch the test runner. The AI didn't retry, so the root audit's pass with the Today session's fix is unconfirmed here.
+  - Confirmed later by the Today session: after its fixes (the decay card's heading made readable, and the eyebrow's tracking removed at 00:42), its final live-tree run passed, with 438 unit and 17 UI tests and 0 failures, including `testRootScreenPassesAccessibilityAudit`. `Half-Life.app` coverage was 95.06%, and no project source had compiler warnings.
+- **Notes:**
+  - `HalfLife-Composer` (0D9F297A-A3F2-42EB-8248-C98E0CCFB0D4) is a simulator the AI created. Delete it with `xcrun simctl delete` when it's no longer useful.
+  - With a `List`, rows scrolled out of view aren't in the accessibility tree, so a UI test that selects a drink far down the list will need the robot to scroll. Today's tests pick drinks that are visible without scrolling.
+  - Re-export this session's transcript before committing (Rule 9.1).
+
+### 2026-09-11 23:47 -0400 — Build the HealthKit step count data source
+
+- **Started:** 2026-09-11 23:47 -0400
+- **Ended:** 2026-09-12 00:12 -0400
+- **Human:** Adam Ure
+- **AI tool / model:** Claude Code / Claude Opus 5
+- **Transcript:** `ai_transcripts/2026-09-11-2347-b6b3c8bc.md`
+- **Type:** change, planning
+- **Request:** Build a HealthKit data source for step count that returns one day's total and that any repository can use. Plan it before implementing, and change the constitution so that each HealthKit data type can have its own data source.
+- **Interactions:** (times from the session transcript)
+  - `23:47` Asked for a steps quantity data source that returns one day's total. The prompt also said "sleep value".
+  - `23:51` Interrupted the AI's exploration. Asked for a plan before implementation, and for a constitution change allowing one data source per HealthKit data type.
+  - `23:55` Answered three questions, choosing the AI's recommendation each time:
+    - steps, not sleep;
+    - a separate HealthKit authorization data source presents the authorization sheet;
+    - `nil`, not 0, for a day with no samples.
+  - `23:57` Resolved a conflict with the sleep session's design: every type gets its authorization from the separate data source.
+  - `23:58` Approved the plan.
+- **AI contribution:**
+  - Found that constitution V.3.5 required a single HealthKit data source. The sleep session (half-life-ca) had already amended it at 23:53, at the owner's request, so this task didn't amend V.3.5 again.
+  - Found a conflict between the owner's two sessions:
+    - The sleep session's `SleepDataSource` had its own `requestAuthorization()`, chosen at 23:53.
+    - This session had chosen a separate authorization data source.
+    - The AI asked the owner, who chose the separate source for every type. half-life-ca was told and dropped its method.
+  - Amended constitution V.3.1: a single HealthKit authorization data source requests access, in one sheet. The data sources that read or write a type never request it themselves. Added an Amendments row, and added the rule to `CLAUDE.md`'s privacy bullet.
+  - Coordinated with the resting heart rate session (half-life-aa):
+    - Each kind of Health data gets its own data source and its own article, and each data source is self-contained.
+    - half-life-aa will raise deduplicating the day-statistics code with the owner once resting heart rate, sleep, and steps have all landed.
+    - Used half-life-ca's shared `HKHealthStore.halfLife` once it landed, instead of the private store the plan named.
+  - Test-first:
+    - Red 1: the tests failed to compile on the missing `HealthKitStepCountDataSource`.
+    - Red 2: against a stub that returns `nil` without querying, 8 of 10 tests failed for the expected reasons. No query was made, the sum came back `nil`, or no error was thrown.
+    - Two tests passed against the stub, `returnsNilWhenTheDayHasNoSteps` and `usesTheUsersCurrentCalendarByDefault`, because the stub already returned `nil` and used the default calendar. Those two never showed a red.
+    - Green: 10 of 10 pass.
+  - Added `StepCountDataSource` and `HealthKitStepCountDataSource`:
+    - It sums one calendar day's `stepCount` samples with a `.cumulativeSum` statistics query.
+    - It counts each sample on the day it starts (`.strictStartDate`).
+    - It rounds to the nearest whole step, and returns `nil` when Health has no steps for the day.
+    - It logs failures with only the error's domain and code.
+  - Docs:
+    - The new `Step Count` article, with STEPS-1 to STEPS-5, listed under Apple Health on the catalog's landing page.
+    - `Architecture`: the step count data-source row, a "_None yet_" row for the authorization data source, and a "Data and privacy" row.
+- **Human changes:** Chose steps, `nil` for missing days, and a separate authorization data source for every type. Approved the plan.
+- **Files:**
+  - Added: `Half-Life/Data/DataSources/StepCountDataSource.swift`, `Half-Life/Data/DataSources/HealthKitStepCountDataSource.swift`, `Half-LifeTests/Data/HealthKitStepCountDataSourceTests.swift`, `Half-Life/Documentation.docc/StepCount.md`
+  - Modified: `constitution.md`, `CLAUDE.md`, `Half-Life/Documentation.docc/Documentation.md`, `Half-Life/Documentation.docc/Architecture.md`, `ai_log.md`
+- **Verification:**
+  - Red and green ran in a scratch copy, because the live tree didn't compile on other sessions' in-progress work (`FakeBedtimeDataSource`, then `ObserveCaffeineStatusUseCase`). The scratch test target held only this task's test file.
+  - Coverage of `HealthKitStepCountDataSource.swift` in the scratch run: 83.33% (25/30). Five lines aren't covered:
+    - the default closure's live HealthKit call (3 lines), which no test may run (Article V.3.5);
+    - the `fault` branch for a calendar with no day containing the date (2 lines).
+  - swift-format `lint --strict` and SwiftLint `--strict`: clean on the three Swift files.
+  - `xcodebuild docbuild` in the scratch copy: `BUILD DOCUMENTATION SUCCEEDED`, with no warnings from the Half-Life catalog.
+  - **Not done:** the full unit and UI run on the live tree, and the app-target coverage check (≥ 80%). This task's full run, which finished by 00:12, failed to compile on another session's in-progress `CaffeineDecayView.swift`, which uses `Sizing` and `Typography` members that don't exist yet.
+- **Notes:**
+  - Not built here: the HealthKit authorization data source (with onboarding, roadmap rank 6), a change stream, a repository that reads steps, and a fake `StepCountDataSource`.
+  - A manual check is owed once authorization exists: compare `stepCount(on:)` with the Health app's total for a day that has both iPhone and Apple Watch steps.
+  - The claim that HealthKit's statistics query de-duplicates overlapping sources comes from the AI's memory of Apple's documentation. It wasn't checked on a device.
+  - Re-export this session's transcript before committing (Rule 9.1).
+
+### 2026-09-11 23:48 -0400 — Build the HealthKit resting heart rate data source
+
+- **Started:** 2026-09-11 23:48 -0400
+- **Ended:** 2026-09-12 00:12 -0400
+- **Human:** Adam Ure
+- **AI tool / model:** Claude Code / Claude Opus 5
+- **Transcript:** `ai_transcripts/2026-09-11-2348-7ad1e693.md`
+- **Type:** change
+- **Request:** Create a data source for resting heart rate fetched from HealthKit, returning the average for a specific day.
+- **Interactions:**
+  - `23:48` Asked for a HealthKit resting heart rate data source that returns one day's average.
+  - `23:55` Interrupted the task. The sleep session (half-life-ca) reported that the owner had amended constitution V.3.5.
+  - `~23:55` Said the constitution now allows HealthKit data sources for a single type, so this session should focus on resting heart rate. The time is reconstructed from the `date` call just before the message, and the transcript has the exact time.
+- **AI contribution:**
+  - First named the type `HealthKitDataSource`, to be the single HealthKit data source that V.3.5 then required, and wrote its tests against that name. After the amendment, renamed it to the `<Framework><Noun>DataSource` pattern, matching the sleep and steps sessions.
+  - `RestingHeartRateDataSource` has one method, `averageRestingHeartRate(on:) async throws -> Double?`, in beats per minute. `HealthKitRestingHeartRateDataSource` implements it:
+    - It runs one `HKStatisticsQueryDescriptor` per day: the `.discreteAverage` of `restingHeartRate`.
+    - The day is `calendar.dateInterval(of: .day, for:)` in `Calendar.autoupdatingCurrent`, with `.strictStartDate`, so a sample that spans midnight counts only on the day it starts.
+    - The query runs through an injected closure, so no test reads Health data. By default it runs on the shared `HKHealthStore.halfLife`.
+    - It returns `nil` when a day has no data, which includes denied access. A failed query is logged at `error` with its domain and code only, then rethrown.
+  - Test-first:
+    - Red: `cannot find type 'HealthKitDataSource' in scope`.
+    - Green: 10 tests for RHR-1 to RHR-5. They cover the day's bounds, the 25-hour day when clocks go back, a sample spanning midnight, the default calendar, the discrete average of `restingHeartRate`, the conversion to beats per minute, `nil` for no data, and a rethrown error.
+  - Coordinated with the sleep (half-life-ca) and steps (half-life-da) sessions:
+    - Each kind of Health data gets its own data source and article, grouped under "Apple Health" on the catalog's landing page.
+    - Switched to half-life-ca's shared `HKHealthStore.halfLife` once it landed.
+    - Followed the owner's decision, relayed by both peers, that no per-type data source requests authorization.
+  - Ran a throwaway probe of the live query in a scratch copy. It passed, but took 149 s and 112 s on two simulator clones, and its outcome wasn't captured. The probe wasn't kept.
+  - Docs:
+    - New `Resting Heart Rate` article: RHR-1 to RHR-5, the day, access and missing data, and privacy.
+    - `Architecture`: a Data sources row, replacing the "None yet" HealthKit row, and a Data and privacy row (read from Health, never stored).
+    - `Documentation.md`: the "Apple Health" topic group.
+- **Human changes:** The owner amended V.3.5 through the sleep session, and narrowed the task to resting heart rate only. The owner decided, according to the peer sessions, that a shared authorization data source built with onboarding requests HealthKit access, not each per-type data source.
+- **Files:**
+  - Added: `Half-Life/Data/DataSources/RestingHeartRateDataSource.swift`, `Half-Life/Data/DataSources/HealthKitRestingHeartRateDataSource.swift`, `Half-LifeTests/Data/HealthKitRestingHeartRateDataSourceTests.swift`, `Half-Life/Documentation.docc/RestingHeartRate.md`
+  - Modified: `Half-Life/Documentation.docc/Architecture.md`, `Half-Life/Documentation.docc/Documentation.md`, `ai_log.md`
+  - `Half-LifeTests/Data/HealthKitDataSourceTests.swift` was created and deleted within this task.
+- **Verification:**
+  - Other sessions' in-progress work kept the shared tree from building for tests. So tests ran in a scratch copy taken at about 00:07, with three non-compiling test files from other sessions set aside: `CaffeineDecayFeatureTests`, `TodayFeatureTests`, and `HealthKitStepCountDataSourceTests`. The UI test sources were removed from the copy, because `TodayRobot` didn't compile.
+  - Unit tests: 392 passed and 0 failed, including this suite's 10.
+  - Coverage: **not measured as the rules require**, because a full unit + UI run wasn't possible. The unit-only run on the snapshot put `Half-Life.app` at 66.82% (1198/1793). That isn't comparable with the 80% threshold, because no UI tests ran and three test files were missing. `HealthKitRestingHeartRateDataSource.swift` is at 83.33% (25/30). Its uncovered lines are the live query closure (3) and the fault branch for a calendar with no day (2).
+  - `swift-format lint --strict` and `swiftlint lint --strict` are clean on the 3 Swift files.
+  - `xcodebuild docbuild` succeeded on the snapshot, with no warnings from this change. It warns about other sessions' docs: `HealthKitStepCountDataSource` doesn't exist, and `<doc:SleepData>` isn't written yet. On the live tree, `docbuild` now fails in another session's `CaffeineDecayView.swift`.
+- **Notes:**
+  - Before committing, run the full unit + UI suite with coverage on the live tree, once the other sessions' work is green.
+  - The live query isn't unit-tested, because a test can't grant the test host access to Health. The probe's 2.5-minute duration is unexplained. Check it when a repository first reads this data source.
+  - Follow-up for the owner: the resting heart rate and step count sources would each build the same day-statistics query (the day's interval, a `.strictStartDate` predicate, and one statistics query). Dedupe it once both exist.
+  - Correction: this session told half-life-ca that the owner's direct instruction came after the owner's 23:57 message to that session. It actually arrived at about 23:55. The AI sent a correction. Both instructions fit the outcome, which is no `HealthKitDataSource` and a resting-heart-rate-only source in this session, but the owner should confirm.
+  - Nothing is committed.
+
+### 2026-09-11 23:46 -0400 — Build the HealthKit sleep data source
+
+- **Started:** 2026-09-11 23:46 -0400
+- **Ended:** 2026-09-12 00:14 -0400
+- **Human:** Adam Ure
+- **AI tool / model:** Claude Code / Claude Opus 5
+- **Transcript:** `ai_transcripts/2026-09-11-2346-3fe66b50.md`
+- **Type:** change, planning
+- **Request:** Implement a sleep quality data source that fetches from HealthKit, implementing a protocol that fetches a sleep entity. Sleep analysis is recorded as `HKCategorySample`s, and the goal is to track health trends over time.
+- **Interactions:** (times from the session transcript)
+  - `23:46` Asked for the HealthKit sleep quality data source.
+  - `23:51` Answered three questions:
+    - The data source returns stage intervals, and a later business rule summarizes each night. This was the AI's recommendation.
+    - Asked to amend the constitution so that HealthKit no longer needs a single data source, rather than choosing either offered option. The amendment is logged in the 23:51 entry.
+    - The protocol fetches, requests authorization, and signals changes. This was the AI's recommendation.
+  - `23:54` Mid-task: said they had stopped another session's data source, and that the AI should overwrite `HealthKitDataSource`, because that session didn't know the new constitution.
+  - `23:55` Mid-task: "Note the need for the shared HealthKitAuthorization data source."
+- **AI contribution:**
+  - Before writing code:
+    - Found that no sleep protocol, entity, or HealthKit code existed yet.
+    - Checked the iOS 26.5 SDK headers. HealthKit has no sleep-score or sleep-quality type, only `sleepAnalysis` stages.
+    - Asked the three design questions above instead of choosing.
+  - Probed HealthKit with a scratchpad script:
+    - HealthKit's date predicate can be evaluated against a sample in a test, and it matches overlapping samples.
+    - Creating an `HKCategorySample` with an unknown sleep value throws `_HKObjectValidationFailureException`. So the unknown-value case is tested on the value mapping, not on a sample.
+  - Coordinated with peer sessions:
+    - half-life-aa was writing `HealthKitDataSource`, for resting heart rate, under the old single-source rule. After the amendment, it renamed its work `HealthKitRestingHeartRateDataSource` before the AI acted on the owner's overwrite instruction. No `HealthKitDataSource` remained, so the AI left that session's files alone.
+    - The AI tried to move that session's original test file to the scratchpad, but the move failed because the file had already been renamed. Nothing was deleted.
+    - half-life-da, building a steps data source, relayed the owner's decision: one HealthKit authorization data source, built with onboarding, requests all Health access. That session amended V.3.1. Together with the owner's 23:55 note, this led the AI to drop `requestAuthorization()` from the design before writing any code.
+    - Adopted half-life-da's proposal of one shared health store, `HKHealthStore.halfLife`. Both peers' data sources now use it.
+  - Test-first:
+    - The live test target didn't compile, because other sessions' bedtime, caffeine-status, and step-count tests were mid-change. So the AI ran its tests in a scratch snapshot of the live tree without those files.
+    - Red: `type 'HKHealthStore' has no member 'halfLife'`, then `cannot find 'SleepStageInterval' in scope` and `cannot find 'HealthKitSleepDataSource' in scope`.
+    - Green:
+      - `SleepStageInterval`: a stage, start, and end, with six stages.
+      - The `SleepDataSource` protocol: `sleepIntervals(in:)` and `changes()`.
+      - `HealthKitSleepDataSource`: a sample query, and one observer query per subscriber, both behind injected closures.
+      - `HKHealthStore.halfLife`.
+    - Tests: `HealthKitSleepDataSourceTests` (SLEEP-1 to SLEEP-8) and `HKHealthStoreHalfLifeTests` (STORE-1).
+  - Docs:
+    - Added the `Sleep Data` article and linked it under the landing page's Apple Health group.
+    - Added a data-source row and a "Data and privacy" row to the `Architecture` article.
+  - Made these choices without asking:
+    - The stage names follow the preview the owner approved: `core`, `deep`, `rem`.
+    - Intervals are sorted by start in code, not by the query.
+    - A skipped unknown sample logs a fixed message at `error`.
+    - An observer error signals nothing and doesn't end the stream.
+    - Background delivery isn't enabled.
+- **Human changes:** Chose the entity split and the scope. Amended V.3.5. Moved authorization to a shared data source. Stopped the other session's single HealthKit data source.
+- **Files:**
+  - Added: `Half-Life/Domain/Entities/SleepStageInterval.swift`; `Half-Life/Data/DataSources/SleepDataSource.swift`, `HealthKitSleepDataSource.swift`, `HKHealthStore+HalfLife.swift`; `Half-LifeTests/Data/HealthKitSleepDataSourceTests.swift`, `HKHealthStoreHalfLifeTests.swift`; `Half-Life/Documentation.docc/SleepData.md`
+  - Modified: `Half-Life/Documentation.docc/Documentation.md`, `Architecture.md`, `ai_log.md`
+- **Verification:**
+  - Red, then green, for both suites. All runs used the scratch snapshot, from which 8 of the other sessions' non-compiling test files were removed.
+  - Full unit and UI run in that snapshot (iPhone 17 Pro, iOS 26.5): 386 passed, 9 expected failures, and 1 failure. The failure is `DrinkComposerUITests.testComposerPassesAccessibilityAudit` ("Contrast failed"), a known open issue owned by another session.
+  - Coverage in that snapshot: `Half-Life.app` is at 92.62% (1582/1708), and `HealthKitSleepDataSource.swift` is at 77.66% (73/94). The uncovered lines are the default closures that run the real HealthKit queries (lines 42–47 and 123–130) and the skipped-sample log (lines 77–78).
+  - `swift-format lint --strict` and `swiftlint lint --strict` on the six Swift files: 0 violations.
+  - `xcodebuild docbuild`, in a second snapshot with the live catalog: succeeded, with no warnings from the new article, the new rows, or the new doc comments.
+    - The remaining warnings come from other sessions' docs, which reference `HealthKitStepCountDataSource`, `StepCountDataSource`, and `StandardBedtimeDataSource`, types that don't exist yet.
+    - `docbuild` on the live tree fails, because another session's in-progress `CaffeineDecayView.swift` doesn't compile.
+- **Notes:**
+  - The test and coverage figures come from the snapshot, not the live tree. Re-run on the live tree once the other sessions' code compiles.
+  - HealthKit read is roadmap rank 7, and ranks 5 and 6 aren't built yet. This was built ahead of its rank at the owner's request.
+  - Not built yet: a sleep repository, the business rule that summarizes each night, the shared HealthKit authorization data source (onboarding, rank 6), and background delivery.
+
+### 2026-09-11 23:51 -0400 — Amend constitution V.3.5 to allow more than one HealthKit data source
+
+- **Started:** 2026-09-11 23:51 -0400
+- **Ended:** 2026-09-11 23:54 -0400 (from the session transcript: the last edit at 23:54:59)
+- **Human:** Adam Ure
+- **AI tool / model:** Claude Code / Claude Opus 5
+- **Transcript:** `ai_transcripts/2026-09-11-2346-3fe66b50.md`
+- **Type:** change
+- **Request:** During the 23:46 task, the AI asked how to shape the HealthKit type under V.3.5, which required all HealthKit access to go through a single data source. The owner asked to update the constitution instead, because there's no reason all HealthKit access needs a single data source.
+- **Interactions:** (times from the session transcript)
+  - `23:51` Asked to amend the constitution, rather than choosing either option offered.
+- **AI contribution:**
+  - Rewrote Article V.3.5. Only data sources access HealthKit, and each is reached only through repositories, so tests and previews never touch real Health data. More than one data source may wrap HealthKit, for example one per kind of Health data.
+  - Added a row to the Amendments table.
+  - Updated the privacy bullet in `CLAUDE.md` to "HealthKit only through data sources, each reached through a repository".
+  - Searched the repository for anything else that relied on the single-source rule. Only the `Architecture` article's "_None yet_" HealthKit row did, and the peer sessions' new rows have since replaced it.
+  - Told the two peer sessions building HealthKit data sources.
+  - Made the amendment as its own edit, not as a side effect of the data-source work, as the constitution's Amendments section requires.
+- **Human changes:** None
+- **Files:** `constitution.md`, `CLAUDE.md`, `ai_log.md` (all modified)
+- **Verification:** N/A (docs only)
+- **Notes:** Another session later amended V.3.1 (dated 2026-09-12) to require a single HealthKit authorization data source, and extended the same `CLAUDE.md` bullet.
+
+### 2026-09-11 23:53 -0400 — Build the Today screen's decay card
+
+- **Started:** 2026-09-11 23:53 -0400
+- **Ended:** 2026-09-12 00:51 -0400
+- **Human:** Adam Ure
+- **AI tool / model:** Claude Code / Claude Opus 5
+- **Transcript:** `ai_transcripts/2026-09-11-2226-df99ce49.md`
+- **Type:** change
+- **Request:** "Go for the decay card": build the Today screen's decay card, as designed in the Today Screen article.
+- **Interactions:**
+  - `23:53` Asked for the decay card.
+  - `00:42` Chose to remove the eyebrow's +2 pt tracking everywhere (the AI's recommendation), after the AI showed that the tracking fails the accessibility audit's "Text clipped" check once the card's heading wraps. The other options were dropping it from the card's heading only, or shortening the heading.
+- **AI contribution:**
+  - Coordination:
+    - Asked the decay session before touching its files. It confirmed it wasn't editing `CaffeineDecayRepository` or `LiveCaffeineDecayRepository`, and handed over the repository side.
+    - It asked for the REPO-2 exception to be recorded, and pointed out two team rules: tests that open a SwiftData store nest under `SwiftDataStoreTests`, and tests never read the `.live` context.
+    - Told the composer session when its build broke on this task's in-progress token tests, and when the app target compiled again.
+  - Built test-first, layer by layer:
+    - Domain:
+      - `Bedtime`: 10:30pm by default, and only real times of day.
+      - `CaffeineStatus`.
+      - `CaffeineStatusRule`. It gives the level now, the intakes still counting, when the last one is half gone, and the level at the next bedtime at or after now, in the calendar's time zone. It sums levels with `CaffeineDecayRule`, so the two rules can't disagree.
+      - `ObserveCaffeineStatusUseCase`, which takes the calendar as input.
+    - Data:
+      - `BedtimeDataSource` and `StandardBedtimeDataSource`.
+      - `CaffeineDecayRepository.status(in:)`.
+      - `LiveCaffeineDecayRepository` publishes a status on subscribe, at every clock minute once anyone observes the status, and on each drink-log change. It reuses the existing change listener, and reads the data once per update for every subscriber's calendar.
+      - The curve is unchanged, and never follows the clock.
+    - Registration: `\.observeCaffeineStatus`, and the repository's bedtime source. The test double gained `status(in:)`, and the preview identity test is nested under `SwiftDataStoreTests`.
+    - Presentation:
+      - `CaffeineDecayFeature` observes the curve, the status, and the time of day. Its `summary` picks the card's sentence.
+      - `CaffeineDecayView` shows three things. The figure is in `metricHero`, as a locale-aware `Measurement` that stays in milligrams, with a smaller unit. Then the tip sentence, and a Swift Charts curve with a "now" marker.
+      - The card is composed into `TodayFeature` and `TodayView`.
+      - New tokens: `Typography.metricHeroSize` (80, scaled with `@ScaledMetric` relative to `largeTitle`), `Typography.metricUnitScale` (0.45), and `Sizing.curveHeight` (160).
+      - Eight new strings in the catalog.
+    - UI: `TodayRobot.verifyCaffeineInYourSystem()` and UI-3. The audit test now waits for the card before auditing.
+  - Moved the greeting's four registration tests from `.live` to `.preview`, which holds the same objects, to follow the team rule.
+  - Changed the AI's own design: the bedtime comes from its own data source, following the half-life's pattern, not from the profile data source. The Today Screen article records the change.
+  - Updated the docs:
+    - The Today Screen article: the card is built. It names `CaffeineStatusRule` and `status(in:)`, and gains a section on the card, with the AI's choices flagged. Also the requirements BED, STATUS, BEDSRC, DECAY, TODAY-2, DEP-4, and UI-3.
+    - The Caffeine Decay Model article: the REPO-2 exception, REPO-7 to REPO-10, VIEW-3, and the registration.
+    - The Architecture article's tables.
+    - The Design System article: the metric tokens, the curve height, and how metric sizes scale.
+  - Fixed on the way to green:
+    - SwiftLint's nesting rule: `Summary` moved from `State` to the feature.
+    - A bug in the new DECAY-3 test: its calendar used the simulator's time zone, so 16:00 UTC wasn't "afternoon". It now pins UTC. The test had never passed, so it wasn't weakened.
+    - The accessibility audit's "Potentially inaccessible text": the first build hid the card's heading from VoiceOver. The heading is now read as one element, and the figure speaks just its amount. That cleared the issue.
+    - The next audit run flagged "Text clipped" on the "IN YOUR SYSTEM NOW" heading. Letting it wrap (`.fixedSize(horizontal: false, vertical: true)` with a layout priority) didn't clear it. The composer session's root audit failed on it too, because the root shows the Today screen. The AI then tested header layouts in a scratch copy: stacked, not combined, and without the time.
+    - None of those three cleared it. A dump of element frames at the largest text size showed nothing wider than the screen, but the heading wrapped onto two lines. The only failing text was both tracked and wrapped.
+    - A second round of variants settled it. Removing the tracking passed. Stacking the time under the heading with `ViewThatFits` failed the Dynamic Type check on the time. Tracking only at non-accessibility sizes failed the Dynamic Type check on the heading.
+    - The owner removed the eyebrow's tracking everywhere at 00:42, and the Design System article records the rule. In the final run, the Today screen's audit and the root screen's audit both pass.
+    - Three compiler warnings in the new `CaffeineDecayFeatureTests`: its default arguments read `@MainActor` static constants. Swift 6 would reject that. The constants are now `nonisolated`, because they're immutable `Sendable` values. The next live-tree `build-for-testing`, which already included the Bateman session's edits, showed no warnings from that file.
+- **Human changes:** Removed the eyebrow's +2 pt tracking everywhere.
+- **Files:**
+  - Added:
+    - `Half-Life/Domain/Entities/Bedtime.swift`, `CaffeineStatus.swift`; `Half-Life/Domain/BusinessRules/CaffeineStatusRule.swift`; `Half-Life/Domain/UseCases/ObserveCaffeineStatusUseCase.swift`
+    - `Half-Life/Data/DataSources/BedtimeDataSource.swift`, `StandardBedtimeDataSource.swift`
+    - `Half-Life/Features/CaffeineDecay/CaffeineDecayFeature.swift`, `CaffeineDecayView.swift`, `CaffeineDecayViewAccessibilityID.swift`
+    - `Half-LifeTests/Domain/BedtimeTests.swift`, `CaffeineStatusRuleTests.swift`, `ObserveCaffeineStatusUseCaseTests.swift`; `Half-LifeTests/Data/StandardBedtimeDataSourceTests.swift`, `LiveCaffeineDecayRepositoryStatusTests.swift`; `Half-LifeTests/App/CaffeineStatusDependencyTests.swift`; `Half-LifeTests/Presentation/CaffeineDecayFeatureTests.swift`; `Half-LifeTests/Fakes/FakeBedtimeDataSource.swift`
+  - Modified:
+    - `Half-Life/Domain/Repositories/CaffeineDecayRepository.swift`, `Half-Life/Data/Repositories/LiveCaffeineDecayRepository.swift`, `Half-Life/App/Dependencies/CaffeineDecayDependencies.swift`
+    - `Half-Life/Features/Today/TodayFeature.swift`, `TodayView.swift`; `Half-Life/Features/DailyGreeting/DailyGreetingView.swift` (the eyebrow's tracking removed); `Half-Life/DesignSystem/Typography.swift` (`eyebrowTracking` removed, two metric tokens added), `Sizing.swift`; `Half-Life/Localizable.xcstrings`; `Half-Life.xcodeproj/project.pbxproj` (one UI-test membership line)
+    - `Half-LifeTests/Fakes/FakeCaffeineDecayRepository.swift`, `Half-LifeTests/Data/LiveCaffeineDecayRepositoryTests.swift` (the repository helper's new argument), `Half-LifeTests/App/DependencyRegistrationTests.swift`, `Half-LifeTests/Presentation/TodayFeatureTests.swift`, `Half-LifeTests/DesignSystem/TypographyTests.swift`, `LayoutTokenTests.swift`
+    - `Half-LifeUITests/Robots/TodayRobot.swift`, `Half-LifeUITests/TodayUITests.swift`
+    - `Half-Life/Documentation.docc/TodayScreen.md`, `CaffeineDecayModel.md`, `Architecture.md`, `DesignSystem.md`; `ai_log.md`
+- **Verification:**
+  - Red and green steps ran in a pruned scratch snapshot on the AI's `HalfLife-Today-df99` simulator, so other sessions' in-progress work couldn't block them.
+  - Red steps, each a compile failure:
+    - Domain: `cannot find 'Bedtime'` and `'CaffeineStatusRule'`.
+    - Repository cycle: only `cannot find type 'BedtimeDataSource'` in the fake showed. The other suites' errors were masked, because the compiler stopped there.
+    - Presentation: `TodayRobot` couldn't find `CaffeineDecayViewAccessibilityID`. The unit red for `CaffeineDecayFeature` and `TodayFeature` was masked, because the UI target failed first.
+    - Tokens: `Typography` has no member `metricHeroSize` or `metricUnitScale`, and `Sizing` has no member `curveHeight`. These errors came from the view that uses them.
+    - Eyebrow tracking: no new red step. UI-2's audit failure ("Text clipped") was the red step for the view, and removing the tracking fixed it in a scratch variant first. `TypographyTests.eyebrowTrackingIsTwoPoints` was deleted together with the token, because the owner removed the requirement it checked. It wasn't weakened to make a change pass.
+  - Green:
+    - Domain: 15 test cases.
+    - Repository cycle: 42 test cases across 17 suites, including the decay session's unchanged curve tests.
+    - The whole card: see the final full live-tree run below. Before the audit fix, the last scratch run had 92 unit test cases passing, with UI-1 and UI-3 passing and UI-2's audit failing.
+  - swift-format (`format` and `lint --strict`) and `swiftlint lint --strict` exit 0 on this task's 32 Swift files, after the nesting fix. The files changed after that were formatted and linted again, and all three tools exit 0: the view, the feature test, `Typography.swift`, `DailyGreetingView.swift`, and `TypographyTests.swift`.
+  - An interim full live-tree run at about 00:20 had 413 unit and 16 UI tests passing. It found the root screen's audit failing ("Text clipped", from the card's heading) and three compiler warnings in `CaffeineDecayFeatureTests`, which were fixed as described above.
+  - Final full live-tree run (unit + UI) on the `HalfLife-Today-df99-b` simulator (iPhone 17 Pro, iOS 26.5), which already included half-life-35's Bateman changes:
+    - `TEST SUCCEEDED`: 438 unit "passed" lines, 17 UI tests passing, 0 failures, and no compiler warnings from project sources.
+    - `TodayUITests` (UI-1 to UI-3) and the root screen's audit pass.
+  - Coverage: `Half-Life.app` is at 95.06% (2138/2249 lines), from `build/TestResults-Final.xcresult`. This task's app files range from 93.79% (`LiveCaffeineDecayRepository.swift`) to 100%.
+  - `xcodebuild docbuild` in the live tree: `BUILD DOCUMENTATION SUCCEEDED`, with 0 diagnostics from the Half-Life catalog, both times.
+    - After this task's article edits (derived data in `build/DocBuild-decay`).
+    - Again after the eyebrow-tracking rule was added to the Design System article (derived data in `build/DocBuild-decay2`).
+- **Notes:**
+  - The AI's choices, still to be confirmed and flagged in the Today Screen article:
+    - the wording "Nothing in your system right now."
+    - showing the curve's whole 24-hour window
+    - rounding every amount to whole milligrams, with "about" in the sentence
+    - after bedtime, the next bedtime is tomorrow's
+  - Nothing can change the bedtime yet, so the repository doesn't listen for bedtime changes. The data source that stores one will add a signal.
+  - A layout follow-up: at the largest accessibility text sizes, the time beside the card's heading squeezes into a narrow column, because the heading takes its width first. The audit doesn't flag it. Stacking the time under the heading with `ViewThatFits` failed the Dynamic Type check, so it needs another approach.
+  - This entry describes the instant-absorption version.
+    - At the end of the task, half-life-35 said it was switching `CaffeineDecayRule` and `CaffeineStatusRule` to Bateman absorption, with a 13-minute absorption half-life chosen by the owner.
+    - That changes `activeIntakes` to "counts now", `lastIntakeHalfGoneAt` to the first moment after the last cup's peak when it's down to half its dose, and the repository's initializer and tests.
+    - This session wasn't editing those files, and told it to go ahead. It also asked for STATUS-2's wording to be updated, and for the change to be logged in that session's own entry.
+  - Re-export this session's transcript before committing (Rule 9.1).
+
+### 2026-09-12 00:05 -0400 — Close out the decay feature's Domain and Data layers
+
+- **Started:** 2026-09-12 00:05 -0400
+- **Ended:** 2026-09-12 00:05 -0400
+- **Human:** Adam Ure
+- **AI tool / model:** Claude Code / Claude Opus 5
+- **Transcript:** `ai_transcripts/2026-09-11-2047-3ff5a5ee.md`
+- **Type:** planning
+- **Request:** The owner said the Domain and Data layers are done, and that the work is probably complete at this point.
+- **Interactions:**
+  - `00:05` Said the Domain and Data layers are implemented, so the decay work is probably done for now.
+- **AI contribution:** Summarized where the decay feature stands and what's still open. Noted that the Today session (half-life-2a) has since extended `CaffeineDecayRepository` and `LiveCaffeineDecayRepository` with `status(in:)`, as agreed, and that its changes are that session's to verify.
+- **Human changes:** None
+- **Files:** `ai_log.md` (modified)
+- **Verification:** N/A (no code changed)
+- **Notes:** Nothing from this session is committed. Before a commit, re-export the transcripts (Rule 9.1) and review their diff. Other sessions' uncommitted work shares the working tree, so each commit needs scoping to its own files.
+
+### 2026-09-12 00:11 -0400 — Replace instant absorption with Bateman absorption
+
+- **Started:** 2026-09-12 00:11 -0400
+- **Ended:** 2026-09-12 00:53 -0400
+- **Human:** Adam Ure
+- **AI tool / model:** Claude Code / Claude Opus 5
+- **Transcript:** `ai_transcripts/2026-09-12-0011-2e7726f7.md`
+- **Type:** change, planning
+- **Request:** Replace the decay function's instant absorption with the Bateman function. Caffeine reaches the body from the stomach at a first-order rate, and elimination acts only on the caffeine already in the body. Choose an absorption rate that research can support.
+- **Interactions:**
+  - `00:11` Asked for Bateman absorption, with an absorption rate chosen from research.
+  - `00:19` Chose a 13-minute absorption half-life over the AI's recommended 10 minutes and the 7.5-minute option. Chose a data source for the rate, like the half-life's, over the AI's recommended constant in the rule.
+  - `00:39` Chose to bundle the half-life and the absorption rate into a `CaffeineKinetics` entity, the AI's recommendation, over an inline SwiftLint suppression or a higher project-wide limit.
+- **AI contribution:**
+  - **Research.**
+    - Read the abstracts of Blanchard & Sawers (1983), Bonati et al. (1982), Liguori et al. (1997), Kamimori et al. (2002), and Seng et al. (2009), White et al.'s (2016) full text, and the Institute of Medicine's (2001) pharmacology chapter. PubMed refused automated reads, so the abstracts came from Europe PMC.
+    - Converted each study's time to peak into an implied absorption rate, by script.
+    - Presented three options with evidence.
+    - The question to the owner called White et al.'s data "plasma" without checking the sample type. The article doesn't repeat the claim.
+  - **Code, test-first.**
+    - New entities: `CaffeineAbsorptionRate` (an absorption half-life, standard 780 s) and `CaffeineKinetics` (the half-life and the absorption rate together).
+    - New data sources: `AbsorptionRateDataSource` and `StandardAbsorptionRateDataSource`, with a fake for tests.
+    - `CaffeineDecayRule` now computes the Bateman function in half-life form, and uses the function's limit when the two half-lives are equal.
+      - An intake counts from its `consumedAt` until it's past its peak and below 0.5 mg.
+      - New operations: `isCounting`, and `halfGoneDate`, found by bisection to within 1 ms.
+    - `CaffeineStatusRule`:
+      - The active intakes are the ones that count, including one consumed this minute at 0 mg.
+      - The half-gone time comes from the decay rule. It's now 5 h 49 min after a drink, not 5 h 30 min.
+    - `LiveCaffeineDecayRepository` reads the absorption rate from its new data source and combines it with the half-life. The dependency wiring passes `StandardAbsorptionRateDataSource`.
+  - **TDD cycles.**
+    - Red 1: the build failed with `cannot find type 'CaffeineAbsorptionRate' in scope` and `cannot find type 'AbsorptionRateDataSource' in scope`.
+    - Scaffolding: added the new types and threaded the absorption argument through, with the instant math unchanged, so the tests could fail on values.
+    - Red 2: 19 tests failed on instant values (13 decay rule, 4 status rule, 2 repository), and 37 passed.
+    - Green 1: Bateman in the decay rule and the status rule. 153 test cases in the 6 suites passed.
+    - SwiftLint then flagged `CaffeineStatusRule.status` at 6 parameters (`function_parameter_count`), and 5 lines over 120 characters. The AI asked the owner.
+    - Red 3: the build failed with `cannot find 'CaffeineKinetics' in scope`.
+    - Green 2: `CaffeineKinetics` and the new signatures. 158 test cases in the 7 suites passed, with 0 failures.
+  - **Coordination.** The Today session (half-life-2a) owns the status rule, its tests, and the status docs.
+    - It confirmed it wasn't editing them.
+    - At its request, the AI updated STATUS-2's wording, and recorded this change here, not in that session's 23:53 entry.
+    - The AI's first heads-up said the half-gone time moves "about 11 min" later, a figure computed for a 10-minute absorption half-life. The AI sent the correct figure, 19 minutes, afterwards.
+  - **Docs.**
+    - Rewrote the Caffeine Decay Model article:
+      - the Bateman derivation, the peak, the 19-minute absorption delay, and superposition
+      - "when will I be below X", and the negligible rule under a peak
+      - the constants, and the absorption-rate research, with sensitivity tables and sources
+      - the new entities and the rule's five operations
+      - RULE-1 to RULE-8, REPO-6, and ABSORB-1
+      - the limitations, and the worked examples, recomputed by script
+    - Today Screen: the `activeIntakes` and `lastIntakeHalfGoneAt` rows, a Bateman bullet, and STATUS-1 to STATUS-3.
+    - Architecture: the business-rule, repository, and data-source rows.
+- **Human changes:** Chose the 13-minute absorption half-life, a data source for it, and the `CaffeineKinetics` bundle.
+- **Files:**
+  - Added: `Half-Life/Domain/Entities/CaffeineAbsorptionRate.swift`, `Half-Life/Domain/Entities/CaffeineKinetics.swift`, `Half-Life/Data/DataSources/AbsorptionRateDataSource.swift`, `Half-Life/Data/DataSources/StandardAbsorptionRateDataSource.swift`, `Half-LifeTests/Domain/CaffeineAbsorptionRateTests.swift`, `Half-LifeTests/Domain/CaffeineKineticsTests.swift`, `Half-LifeTests/Data/StandardAbsorptionRateDataSourceTests.swift`, `Half-LifeTests/Fakes/FakeAbsorptionRateDataSource.swift`
+  - Modified:
+    - Code: `Half-Life/Domain/BusinessRules/CaffeineDecayRule.swift`, `Half-Life/Domain/BusinessRules/CaffeineStatusRule.swift`, `Half-Life/Domain/Entities/CaffeineStatus.swift` (doc comments), `Half-Life/Domain/Repositories/CaffeineDecayRepository.swift` (doc comment), `Half-Life/Data/Repositories/LiveCaffeineDecayRepository.swift`, `Half-Life/App/Dependencies/CaffeineDecayDependencies.swift`
+    - Tests: `Half-LifeTests/Domain/CaffeineDecayRuleTests.swift`, `Half-LifeTests/Domain/CaffeineStatusRuleTests.swift`, `Half-LifeTests/Data/LiveCaffeineDecayRepositoryTests.swift`, `Half-LifeTests/Data/LiveCaffeineDecayRepositoryStatusTests.swift`
+    - Docs: `Half-Life/Documentation.docc/CaffeineDecayModel.md`, `Half-Life/Documentation.docc/TodayScreen.md`, `Half-Life/Documentation.docc/Architecture.md`, `ai_log.md`
+- **Verification:**
+  - Full unit + UI run on the dedicated `HalfLife-Bateman` simulator (iPhone 17 Pro, iOS 26.5): 455 test cases passed and 0 failed, with no compiler warnings from project sources. A baseline unit run before the change also passed.
+  - Coverage of `Half-Life.app`: **95.06%** (2138/2249).
+    - `CaffeineDecayRule`, `CaffeineStatusRule`, `CaffeineAbsorptionRate`, and `StandardAbsorptionRateDataSource` are at 100%.
+    - `LiveCaffeineDecayRepository` is at 93.79% (151/161), and `CaffeineDecayDependencies.swift` at 94.44% (17/18).
+  - `swift-format lint --strict` and `swiftlint lint --strict` are clean on the 18 changed Swift files. `swift-format format` rewrapped four lines in two test files.
+  - `xcodebuild docbuild` succeeded, with no warnings from the Half-Life catalog.
+  - The worked examples and test values were computed by a Python script in the session scratchpad. As a cross-check, the Bateman total at 11:00pm equals the instant model's with each drink moved 19.13 minutes later: 112.2164 mg both ways.
+- **Notes:**
+  - The decay card's figure now rises over the hour after a drink, instead of jumping when it's logged. A drink logged this minute shows 0 mg, with the tips rather than "Nothing in your system right now." Whether the card should say the caffeine is still arriving is undecided. `CaffeineDecayView` didn't change.
+  - One absorption rate applies to every drink. The studies found capsules and energy drinks slower than coffee, and gum faster. The model ignores this.
+  - The AI created the simulator `HalfLife-Bateman` (574E3552-FED4-4B67-95C7-AABCA2676830). Delete it with `xcrun simctl delete` when it's no longer useful.
+  - Nothing is committed.
+
+### 2026-09-12 00:36 -0400 — Address errors in the HealthKit data sources
+
+- **Started:** 2026-09-12 00:36 -0400
+- **Ended:** 2026-09-12 00:56 -0400
+- **Human:** Adam Ure
+- **AI tool / model:** Claude Code / Claude Opus 5
+- **Transcript:** `ai_transcripts/2026-09-12-0036-df79f62d.md`
+- **Type:** debugging, change
+- **Request:** The owner asked the AI to address the errors in the HealthKit data sources.
+- **Interactions:**
+  - `00:36` Asked the AI to address the errors in the HealthKit data sources.
+- **AI contribution:**
+  - Checked the three HealthKit data sources (sleep, step count, resting heart rate) and `HKHealthStore+HalfLife`:
+    - `xcodebuild build` of the live tree succeeded with no errors or warnings.
+    - SwiftLint and swift-format report nothing in these files. Their six current violations are in the caffeine decay and status files, which other sessions own.
+    - All 78 test cases in `HealthKitSleepDataSourceTests`, `HealthKitStepCountDataSourceTests`, `HealthKitRestingHeartRateDataSourceTests`, and `HKHealthStoreHalfLifeTests` passed.
+  - Found the errors in an Xcode build log from 00:24:
+    - `cannot find type 'SleepStageInterval' in scope`, at four places in `HealthKitSleepDataSource.swift` and one in `SleepDataSource.swift`, plus one knock-on `generic parameter 'ElementOfResult' could not be inferred`.
+    - That build compiled 51 Swift files, and `SleepStageInterval.swift` wasn't among them, though the file had existed since 00:05. The AI's command-line build at 00:36 compiled it and succeeded.
+    - So the source is correct. The AI's diagnosis is that Xcode's in-memory copy of the project hadn't picked up a file another session created. The errors stay in Xcode until it rebuilds with the file included. This is an inference from the logs. The AI can't inspect the running Xcode.
+  - Fixed five compiler warnings in `HealthKitSleepDataSourceTests.swift` (lines 202, 203, 212, 226, 239): `no 'async' operations occur within 'await' expression`. The tests awaited `changes()` on the concrete `HealthKitSleepDataSource`, whose method is synchronous. Only the protocol requirement is `async`. The fix removes the five `await`s. No test was weakened, and no production code changed.
+- **Human changes:** None
+- **Files:** Modified: `Half-LifeTests/Data/HealthKitSleepDataSourceTests.swift`, `ai_log.md`
+- **Verification:**
+  - Red: the five warnings above, from `build-for-testing` on the live tree at 00:37.
+  - Green:
+    - The live tree's test target stopped compiling mid-task. Another session's in-progress change to caffeine kinetics has updated tests that pass `kinetics:` before production code accepts it.
+    - So the AI ran the sleep suite in a scratch snapshot taken at about 00:42, with the five test files that use `kinetics` set aside: `CaffeineStatusRuleTests`, `CaffeineDecayRuleTests`, `CaffeineKineticsTests`, `LiveCaffeineDecayRepositoryTests`, and `LiveCaffeineDecayRepositoryStatusTests` (the first was removed in an earlier attempt).
+    - Result: `TEST SUCCEEDED`, with no errors, and no warnings from `HealthKitSleepDataSourceTests.swift`, in a fresh derived-data build of the test target.
+    - Live tree:
+      - At about 00:53, half-life-35 reported that the kinetics change had landed, and that a full unit and UI run on the live tree had passed.
+      - The AI read that run's result bundle itself, `build/bateman/TestResults.xcresult`. The run started at 00:48:57, after this edit (the file was last modified at 00:40:48), and it ran `HealthKitSleepDataSourceTests`. Result `Passed`: 247 tests, 236 passed, 0 failed, 0 skipped. The summary doesn't classify the other 11. The bundle's build results show 0 warnings and 0 errors.
+    - The AI's own full runs didn't finish, because other sessions' red steps kept the test targets from compiling. The live tree at 00:54 failed on `ObserveLoggedDrinksUseCaseTests`. A snapshot at 00:55 failed on `DrinkComposerFeatureTests`. A snapshot at 00:56, with both set aside, failed on `DrinkComposerRobot` (`espressoTile` and `drinkTiles`). None of those files is this task's.
+  - `swift-format lint --strict` and `swiftlint lint --strict` are clean on the edited file.
+  - Coverage, from the 00:53 bundle: `Half-Life.app` at **95.06%** (2138/2249). `HealthKitSleepDataSource.swift` is at 77.66%, and `HealthKitStepCountDataSource.swift` and `HealthKitRestingHeartRateDataSource.swift` are at 83.33% each. Only test code changed in this task.
+  - `docbuild` wasn't re-run after the change, because no documentation or app code changed. The 00:36 run succeeded, and every warning came from the swift-composable-architecture package.
+- **Notes:**
+  - If Xcode still shows the `SleepStageInterval` errors, build again in Xcode (⌘B). If they persist, check that `Domain/Entities/SleepStageInterval.swift` appears in the project navigator, and close and reopen the project if it doesn't.
+  - Re-export the transcripts before committing (Rule 9.1).
+
+### 2026-09-12 00:51 -0400 — Scroll the composer's drinks sideways, keep its panel showing, and fit its sheet
+
+- **Started:** 2026-09-12 00:51 -0400
+- **Ended:** 2026-09-12 02:00 -0400
+- **Human:** Adam Ure
+- **AI tool / model:** Claude Code / Claude Opus 5
+- **Transcript:** `ai_transcripts/2026-09-11-2152-a445bdd1.md`
+- **Type:** change, debugging
+- **Request:** Scroll the drink types sideways instead of down, and always show the quantity panel. Then limit the sheet to a small detent. Then, once every check passes, commit the current state and push it to the remote.
+- **Interactions:**
+  - `00:51` Asked for a sideways row of drinks and an always-visible quantity panel.
+  - `00:52` Chose the last drink logged as the drink the composer opens on, and prototype-style tiles for the row (the AI's recommendation).
+  - `01:05` Asked to limit the sheet's detent to a small one.
+  - `01:08` Chose a sheet that fits its content (the AI's recommendation), with the composer's own compact header in place of the system toolbar.
+  - `01:17` Asked for a commit and a push once all of the checks pass.
+  - `01:25` Approved skipping only the accessibility audit's text-clipping check, replaced by a UI test that checks every control stays on screen at the largest text size (the AI's recommendation).
+  - `01:52` The AI asked how to resolve the audit's last failure, "Potentially inaccessible text".
+  - `01:55` Chose skipping the audit's element-detection check for the composer (the AI's recommendation), over letting the Today screen stay interactive behind the sheet, or a full-height sheet.
+- **AI contribution:**
+  - Test-first:
+    - `ObserveLoggedDrinksUseCase`, a new use case that streams the drink log. It's registered as `\.observeLoggedDrinks` and built from `DrinkLogRepositoryKey`, with an unimplemented test value.
+    - `DrinkComposerFeature`: the composer opens on one espresso shot, and its `.task` observes the drink log. The last drink logged becomes the chosen drink unless the user has already chosen one, and espresso stays when nothing is logged.
+    - `DrinkPresentation`: each drink tile has its own accessibility identifier.
+  - `DrinkComposerView`:
+    - The drinks are a sideways row of tiles, each with its SF Symbol above its name. The chosen tile is dark, with a checkmark and the selected trait. The panel for the chosen drink always shows below the row.
+    - Three tiles fill the row, two from the xLarge text size, and one at accessibility sizes. The row snaps to tile edges.
+    - The sheet fits its content: its detent is the measured height of the content plus the bottom safe area. The composer has its own header, "Log a drink", with a Close button.
+  - Accessibility audit fixes, found with a scratch-only diagnostic audit on the dedicated simulator:
+    - The system toolbar's Close button failed the Dynamic Type check, so the composer draws its own header. The Close text's hit area was 41 × 19 pt, so the button is at least 44 × 44 pt.
+    - `ViewThatFits` made the "When" choices fail the Dynamic Type check. They're now an `AnyLayout` that stacks from the xxLarge text size.
+    - The fitted sheet fails the text-clipping check. At xxxLarge and AccessibilityXL, screenshots show no clipped text, because the sheet grows with the text. With the owner's approval, the audit skips only that check, with a comment at the call site, and `testLargestTextKeepsEveryControlOnScreen` checks the real behavior instead.
+    - A tile's name at the screen's edge failed the contrast check. The audit checks text whose frame touches the screen, even when it's clipped. Two earlier attempts didn't fix it: clipping the row, then making it span the screen with content margins. The diagnostic then showed the next tile's name starting at x = 401.68 on a 402 pt screen. The item gap (12 pt), the tile's padding, and the sheet's side inset added up to a name that touched the screen's last point. Tiles are now a card gap (16 pt) apart, which puts that name about 4 pt beyond the screen at any width.
+    - With the contrast issue fixed, the audit failed on "Potentially inaccessible text" (`elementDetection`), with no element. The contrast failure had masked it. A scratch diagnostic found it with the composer just opened, after choosing a latte, and after a 3-second wait, and found 0 issues with a full-height sheet. So the flagged text is the Today screen's, showing dimmed above the small sheet. iOS hides that screen from VoiceOver while the sheet is open. With the owner's approval, the audit also skips `elementDetection`, with the reason in the call-site comment.
+    - After the owner chose, the AI's scratch test of the option it had described as unconfirmed finished. With `.presentationBackgroundInteraction(.enabled)`, the audit also found 0 issues. The AI reported this to the owner and didn't change the choice.
+  - `DrinkComposerRobot`: `selectDrink(_:)` drags the row a short way until the tile is fully inside the window. It checks the tile's frame, because XCUITest can't judge hittability off screen. The robot also gained `verifyADrinkIsChosen`, `verifyIsCompact`, `verifyEveryControlIsOnScreen`, and `auditAccessibility(except:)`.
+  - `DrinkComposerUITests`: opens with a drink chosen, opens as a compact sheet, the largest text keeps every control on screen, and the existing scenarios select drinks through the scrolling robot.
+  - Docs: the `Drink Composer` article covers the tiles, the always-visible panel, the default drink, the fitted sheet and its header, and each audit fix and its cause. The `Architecture` article lists `ObserveLoggedDrinksUseCase`.
+  - Mistake: while the edge fix was unconfirmed, the AI wrote in the `Drink Composer` article that no tile's name touched the screen's edge. The article was corrected, and the claim confirmed, before this commit.
+- **Human changes:** Chose the default drink, the tile style, the fitted sheet, and its header. Approved skipping the text-clipping and element-detection checks.
+- **Files:**
+  - Added: `Half-Life/Domain/UseCases/ObserveLoggedDrinksUseCase.swift`, `Half-LifeTests/Domain/ObserveLoggedDrinksUseCaseTests.swift`
+  - Modified: `Half-Life/App/Dependencies/DrinkLogDependencies.swift`, `Half-Life/Features/DrinkComposer/DrinkComposerFeature.swift`, `DrinkComposerView.swift`, `DrinkComposerViewAccessibilityID.swift`, `DrinkPresentation.swift`, `Half-LifeTests/App/LogDrinkDependencyTests.swift`, `Half-LifeTests/Presentation/DrinkComposerFeatureTests.swift`, `DrinkPresentationTests.swift`, `Half-LifeUITests/DrinkComposerUITests.swift`, `Half-LifeUITests/Robots/DrinkComposerRobot.swift`, `Half-Life/Documentation.docc/DrinkComposer.md`, `Architecture.md`, `ai_log.md`, `ai_transcripts/`
+- **Verification:**
+  - swift-format and SwiftLint `--strict` on the whole project at 01:45: clean.
+  - Full live-tree unit and UI run that ended at 01:31, on the dedicated simulator, before the gap fix: 462 Swift Testing results and 242 other tests passed, with 12 expected failures. The one failure was `testComposerPassesAccessibilityAudit`, on the edge tile's contrast. `Half-Life.app` coverage was 95.07% (2140/2251).
+  - Full live-tree run that ended at 01:50, with the card gap: the contrast issue was gone. The audit then failed on "Potentially inaccessible text", a second issue the contrast failure had masked. Everything else passed: 462 Swift Testing results and 242 other tests, with 12 expected failures. Coverage was 95.13% (2147/2257).
+  - `xcodebuild docbuild` at 01:50: `BUILD DOCUMENTATION SUCCEEDED`, with 0 warnings from Half-Life's sources or catalog.
+  - Scratch diagnostic at 01:51–01:52 on the dedicated simulator: 1 `elementDetection` issue, with no element, in each of the three small-sheet cases, and 0 issues with a full-height sheet. A later scratch run with `.presentationBackgroundInteraction(.enabled)` also found 0 issues.
+  - swift-format and SwiftLint `--strict` on the whole project after the skip: clean.
+  - Final full live-tree unit and UI run, ended 02:00, on the dedicated simulator: `** TEST SUCCEEDED **`, with 463 Swift Testing results and 243 XCTest cases passing, 0 failures, and 12 expected failures. All eight `DrinkComposerUITests` pass, including `testComposerPassesAccessibilityAudit`. No compiler warnings came from Half-Life's sources.
+  - Coverage: `Half-Life.app` at **95.13%** (2147/2257).
+  - `xcodebuild docbuild` at 02:00, after the article's last change: `BUILD DOCUMENTATION SUCCEEDED`, with 0 warnings from Half-Life's sources or catalog.
+- **Notes:**
+  - `HalfLife-Composer` (0D9F297A-A3F2-42EB-8248-C98E0CCFB0D4) is still a simulator the AI created. Delete it with `xcrun simctl delete` when it's no longer useful.
+  - The commit contains the whole working tree, including other sessions' work, as the owner asked ("commit the current state").

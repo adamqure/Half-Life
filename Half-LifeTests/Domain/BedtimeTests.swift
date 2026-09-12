@@ -1,0 +1,38 @@
+//  _______  __   __  ___   ___      ___      _______  __    _  _______
+// |       ||  | |  ||   | |   |    |   |    |   _   ||  |  | ||       |
+// |   _   ||  | |  ||   | |   |    |   |    |  |_|  ||   |_| ||   _   |
+// |  | |  ||  |_|  ||   | |   |    |   |    |       ||       ||  | |  |
+// |  |_|  ||       ||   | |   |___ |   |___ |       ||  _    ||  |_|  |
+// |      | |       ||   | |       ||       ||   _   || | |   ||      |
+// |____||_||_______||___| |_______||_______||__| |__||_|  |__||____||_|
+//
+// Half-LifeTests BedtimeTests
+//
+
+import Testing
+
+@testable import Half_Life
+
+/// Checks the bedtime entity (BED-1 and BED-2 in the Today Screen article).
+struct BedtimeTests {
+
+    /// BED-1: until the user sets one, the bedtime is 10:30pm, the prototype's example.
+    @Test func standardBedtimeIsTenThirtyPM() {
+        #expect(Bedtime.standard.hour == 22)
+        #expect(Bedtime.standard.minute == 30)
+    }
+
+    /// BED-2: a bedtime is a real time of day, from 0:00 to 23:59.
+    @Test(arguments: [(0, 0), (23, 59), (22, 30)])
+    func acceptsATimeOfDay(hour: Int, minute: Int) throws {
+        let bedtime = try #require(Bedtime(hour: hour, minute: minute))
+        #expect(bedtime.hour == hour)
+        #expect(bedtime.minute == minute)
+    }
+
+    /// BED-2: anything else isn't a bedtime.
+    @Test(arguments: [(24, 0), (-1, 0), (22, 60), (22, -1)])
+    func rejectsAnythingThatIsNotATimeOfDay(hour: Int, minute: Int) {
+        #expect(Bedtime(hour: hour, minute: minute) == nil)
+    }
+}
