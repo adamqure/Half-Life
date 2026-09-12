@@ -12,7 +12,8 @@
 import ComposableArchitecture
 import SwiftUI
 
-/// The Today screen: the greeting and the decay card now, and the drink-log cards as they're built.
+/// The Today screen: the greeting, the decay card, the "Today" and "Last cup" tiles, the one-tap row, and the history
+/// card at the bottom now, and the other drink-log cards as they're built.
 ///
 /// Its cards stack in a scroll view over the page gradient. See the Today Screen article.
 @MainActor
@@ -20,12 +21,19 @@ struct TodayView: View {
     /// The screen's store.
     let store: StoreOf<TodayFeature>
 
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
+
     /// The screen's cards.
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: Spacing.sectionGap) {
                 DailyGreetingView(store: store.scope(state: \.greeting, action: \.greeting))
-                CaffeineDecayView(store: store.scope(state: \.caffeineDecay, action: \.caffeineDecay))
+                VStack(spacing: Spacing.cardGap) {
+                    CaffeineDecayView(store: store.scope(state: \.caffeineDecay, action: \.caffeineDecay))
+                    tiles
+                }
+                OneTapLogView(store: store.scope(state: \.oneTapLog, action: \.oneTapLog))
+                DrinkLogHistoryView(store: store.scope(state: \.history, action: \.history))
             }
             .padding(.horizontal, Spacing.screenMargin)
             .padding(.vertical, Spacing.sectionGap)
@@ -40,6 +48,21 @@ struct TodayView: View {
         }
         .accessibilityElement(children: .contain)
         .accessibilityIdentifier(TodayViewAccessibilityID.screen)
+    }
+
+    /// The row of tiles under the decay card: the "Today" tile in the leading half and the "Last cup" tile in the
+    /// trailing half, at the same height. At accessibility text sizes the tiles stack, each at full width.
+    private var tiles: some View {
+        let layout =
+            dynamicTypeSize.isAccessibilitySize
+            ? AnyLayout(VStackLayout(spacing: Spacing.cardGap))
+            : AnyLayout(HStackLayout(alignment: .top, spacing: Spacing.cardGap))
+        return layout {
+            CaffeineIntakeTodayView(store: store.scope(state: \.caffeineIntakeToday, action: \.caffeineIntakeToday))
+            LastCupView(store: store.scope(state: \.lastCup, action: \.lastCup))
+        }
+        // Each tile fills the row's height, which is its taller tile's.
+        .fixedSize(horizontal: false, vertical: true)
     }
 }
 

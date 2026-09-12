@@ -16,8 +16,8 @@ extension DependencyValues {
     /// The app's caffeine decay repository (constitution Article I.15).
     ///
     /// Live and in previews, it's one app-scoped ``LiveCaffeineDecayRepository``. It reads drinks from the shared
-    /// ``DrinkLogDataSourceKey`` data source, the half-life from ``StandardHalfLifeDataSource``, the absorption rate
-    /// from ``StandardAbsorptionRateDataSource``, the bedtime from ``StandardBedtimeDataSource``, and the time from
+    /// ``DrinkLogDataSourceKey`` data source, the half-life and the bedtime from the shared ``ProfileDataSourceKey``
+    /// data source, the absorption rate from ``StandardAbsorptionRateDataSource``, and the time from
     /// ``SystemClockDataSource``. In tests, using it without overriding it reports an issue.
     var caffeineDecayRepository: any CaffeineDecayRepository {
         get { self[CaffeineDecayRepositoryKey.self] }
@@ -39,18 +39,26 @@ extension DependencyValues {
         get { self[ObserveCaffeineStatusUseCaseKey.self] }
         set { self[ObserveCaffeineStatusUseCaseKey.self] = newValue }
     }
+
+    /// Observes the caffeine cutoff through the app-scoped ``caffeineDecayRepository``.
+    ///
+    /// In tests, using it without overriding it reports an issue.
+    var observeCaffeineCutoff: ObserveCaffeineCutoffUseCase {
+        get { self[ObserveCaffeineCutoffUseCaseKey.self] }
+        set { self[ObserveCaffeineCutoffUseCaseKey.self] = newValue }
+    }
 }
 
 /// Registers the app-scoped caffeine decay repository. It's private, because only the use cases in this file are
 /// built from it.
 private enum CaffeineDecayRepositoryKey: DependencyKey {
     static let liveValue: any CaffeineDecayRepository = LiveCaffeineDecayRepository(
-        drinkLog: DrinkLogDataSourceKey.liveValue, halfLife: StandardHalfLifeDataSource(),
-        absorption: StandardAbsorptionRateDataSource(), bedtime: StandardBedtimeDataSource(),
+        drinkLog: DrinkLogDataSourceKey.liveValue, halfLife: ProfileDataSourceKey.liveValue,
+        absorption: StandardAbsorptionRateDataSource(), bedtime: ProfileDataSourceKey.liveValue,
         clock: SystemClockDataSource())
     static let previewValue: any CaffeineDecayRepository = LiveCaffeineDecayRepository(
-        drinkLog: DrinkLogDataSourceKey.previewValue, halfLife: StandardHalfLifeDataSource(),
-        absorption: StandardAbsorptionRateDataSource(), bedtime: StandardBedtimeDataSource(),
+        drinkLog: DrinkLogDataSourceKey.previewValue, halfLife: ProfileDataSourceKey.previewValue,
+        absorption: StandardAbsorptionRateDataSource(), bedtime: ProfileDataSourceKey.previewValue,
         clock: SystemClockDataSource())
     static let testValue: any CaffeineDecayRepository = UnimplementedCaffeineDecayRepository()
 }
@@ -82,4 +90,17 @@ private struct UnimplementedCaffeineDecayRepository: CaffeineDecayRepository {
         reportIssue("A test observed the caffeine status without overriding \\.caffeineDecayRepository.")
         return AsyncStream { $0.finish() }
     }
+
+    func cutoff(in calendar: Calendar) -> AsyncStream<CaffeineCutoff> {
+        reportIssue("A test observed the caffeine cutoff without overriding \\.caffeineDecayRepository.")
+        return AsyncStream { $0.finish() }
+    }
+}
+
+// Built from the repository key's values directly, not through `@Dependency`, following the Architecture article's
+// "Registering a repository and its use cases".
+private enum ObserveCaffeineCutoffUseCaseKey: DependencyKey {
+    static let liveValue = ObserveCaffeineCutoffUseCase(repository: CaffeineDecayRepositoryKey.liveValue)
+    static let previewValue = ObserveCaffeineCutoffUseCase(repository: CaffeineDecayRepositoryKey.previewValue)
+    static let testValue = ObserveCaffeineCutoffUseCase(repository: CaffeineDecayRepositoryKey.testValue)
 }

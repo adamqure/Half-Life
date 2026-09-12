@@ -142,6 +142,13 @@ struct CaffeineDecayRuleTests {
         #expect(after.milligrams < peak.milligrams)
     }
 
+    // MARK: - RULE-9: the rule reports the peak's delay
+
+    /// RULE-9: with the standard constants, an intake peaks 3,788.64 seconds (63.14 minutes) after it's consumed.
+    @Test func reportsHowLongAnIntakeTakesToPeak() {
+        #expect(abs(rule.peakDelay(for: .standard) - 3_788.64) < 0.005)
+    }
+
     // MARK: - RULE-3: an intake counts until it's past its peak and below 0.5 mg
 
     /// 128 mg falls below 0.5 mg 159,548.07 seconds (about 44 hours 19 minutes) after it's consumed.

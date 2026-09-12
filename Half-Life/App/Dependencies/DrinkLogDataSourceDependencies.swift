@@ -21,10 +21,9 @@ import SwiftData
 /// only repositories use data sources.
 enum DrinkLogDataSourceKey: DependencyKey {
     /// The app's store, on the device and synced to the user's private CloudKit database. If the store can't be
-    /// opened, this launch uses an empty in-memory store instead, and the failure is logged.
-    static let liveValue: any DrinkLogDataSource = makeDataSource {
-        try SwiftDataDrinkLogDataSource.makeModelContainer()
-    }
+    /// opened, this launch uses an empty in-memory store instead, and the failure is logged. Under a UI test, it's
+    /// always an empty in-memory store (``UITestLaunchConfiguration``).
+    static let liveValue: any DrinkLogDataSource = makeLiveValue(configuration: .current)
 
     /// An empty in-memory store, so previews never touch the device's store or iCloud.
     static let previewValue: any DrinkLogDataSource = makeDataSource {
@@ -35,6 +34,19 @@ enum DrinkLogDataSourceKey: DependencyKey {
     static let testValue: any DrinkLogDataSource = UnimplementedDrinkLogDataSource()
 
     private static let logger = Logger(for: DrinkLogDataSourceKey.self)
+
+    /// The live data source for a launch with `configuration`.
+    ///
+    /// A UI test gets an empty store that lives only in memory, so every UI test starts from the same log, and none
+    /// writes to the simulator's own drinks. A test that needs a drink logs it.
+    ///
+    /// - Parameter configuration: How a UI test asked the app to start, if one did.
+    /// - Returns: The device's store outside UI tests, or an empty in-memory store under one.
+    static func makeLiveValue(configuration: UITestLaunchConfiguration) -> SwiftDataDrinkLogDataSource {
+        makeDataSource {
+            try SwiftDataDrinkLogDataSource.makeModelContainer(isStoredInMemoryOnly: configuration.isUITest)
+        }
+    }
 
     /// Creates a data source over the store that `openStore` opens, or over an empty in-memory store if it throws.
     ///
@@ -72,6 +84,10 @@ private struct UnimplementedDataSource: Error {}
 private struct UnimplementedDrinkLogDataSource: DrinkLogDataSource {
     func store(_ drink: LoggedDrink) async throws {
         throw unimplemented("stored a drink")
+    }
+
+    func delete(_ id: LoggedDrink.ID) async throws {
+        throw unimplemented("deleted a drink")
     }
 
     func drinks() async throws -> [LoggedDrink] {

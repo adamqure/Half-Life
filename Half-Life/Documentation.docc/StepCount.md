@@ -47,7 +47,7 @@ A day with no step samples in Health returns `nil`, and a sum of zero returns `0
 
 ## Access and missing data
 
-The data source only reads, and never requests authorization. The owner decided on 2026-09-11 that no data source for one kind of Health data asks for access. A shared HealthKit authorization data source, built with onboarding, will present one sheet for every type a feature needs, when the feature needs them (constitution Articles I.6 and V.3.1). The existing `NSHealthShareUsageDescription` purpose string already mentions steps.
+The data source only reads, and never requests authorization. The owner decided on 2026-09-11 that no data source for one kind of Health data asks for access. The shared ``HealthKitAuthorizationDataSource``, built with onboarding (<doc:Onboarding>), presents one sheet for every type a feature needs, when the feature needs them (constitution Articles I.6 and V.3.1). The existing `NSHealthShareUsageDescription` purpose string already mentions steps.
 
 - **Denied access looks like no data.** HealthKit doesn't reveal whether read access was denied. The query returns no samples, so the data source returns `nil`, just as it does for a day without steps.
 - **HealthKit's other errors are thrown.** For example, HealthKit refuses to read while the device is locked, and on a device without Health. The repository that reads this data source decides how to show the missing value. The app works fully without it (Article V.3.3).
@@ -59,7 +59,7 @@ The data source only reads, and never requests authorization. The owner decided 
 
 ## Manual check
 
-Once the authorization data source exists, compare `stepCount(on:)` for a past day with that day's total in the Health app, on a device that has an iPhone's and an Apple Watch's steps. They should match. A small difference would most likely come from a sample that spans midnight, which this data source counts on the day it starts.
+With Health access allowed from onboarding's permissions step, compare `stepCount(on:)` for a past day with that day's total in the Health app, on a device that has an iPhone's and an Apple Watch's steps. They should match. A small difference would most likely come from a sample that spans midnight, which this data source counts on the day it starts.
 
 ## Topics
 

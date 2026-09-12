@@ -265,4 +265,67 @@ struct DrinkComposerFeatureTests {
 
         #expect(dismissed.value)
     }
+
+    // MARK: - COMP-12: logging a one-tap favourite closes the composer
+
+    @Test func loggingAOneTapFavouriteClosesTheComposer() async {
+        let drinkLog = FakeDrinkLogRepository()
+        let dismissed = LockIsolated(false)
+        let clock = TestClock()
+        let latte = FavouriteDrink(type: .latte, quantity: 2)
+        let store = TestStore(
+            initialState: DrinkComposerFeature.State(oneTapLog: OneTapLogFeature.State(favourites: [latte]))
+        ) {
+            DrinkComposerFeature()
+        } withDependencies: {
+            $0.logDrink = LogDrinkUseCase(currentTime: FakeCurrentTimeRepository(date: now), drinkLog: drinkLog)
+            $0.continuousClock = clock
+            $0.dismiss = DismissEffect { dismissed.setValue(true) }
+        }
+
+        await store.send(\.oneTapLog.favouriteTapped, latte) {
+            $0.oneTapLog.logging = latte
+        }
+        await store.receive(\.oneTapLog.logSucceeded) {
+            $0.oneTapLog.logging = nil
+            $0.oneTapLog.justLogged = latte
+        }
+        await store.receive(\.oneTapLog.delegate.drinkLogged)
+        // In the app, dismissing the sheet cancels the row's confirmation. Here the dismissal is overridden, so the
+        // confirmation runs to its end.
+        await clock.advance(by: OneTapLogFeature.confirmationDuration)
+        await store.receive(\.oneTapLog.confirmationEnded) {
+            $0.oneTapLog.justLogged = nil
+        }
+        await store.finish()
+
+        #expect(await drinkLog.logged.map(\.type) == [.latte])
+        #expect(dismissed.value)
+    }
+
+    @Test func aFailedOneTapLogLeavesTheComposerOpen() async {
+        let dismissed = LockIsolated(false)
+        let latte = FavouriteDrink(type: .latte, quantity: 2)
+        let store = TestStore(
+            initialState: DrinkComposerFeature.State(oneTapLog: OneTapLogFeature.State(favourites: [latte]))
+        ) {
+            DrinkComposerFeature()
+        } withDependencies: {
+            $0.logDrink = LogDrinkUseCase(
+                currentTime: FakeCurrentTimeRepository(date: now),
+                drinkLog: FakeDrinkLogRepository(logError: StoreFailed()))
+            $0.dismiss = DismissEffect { dismissed.setValue(true) }
+        }
+
+        await store.send(\.oneTapLog.favouriteTapped, latte) {
+            $0.oneTapLog.logging = latte
+        }
+        await store.receive(\.oneTapLog.logFailed) {
+            $0.oneTapLog.logging = nil
+            $0.oneTapLog.saveFailed = true
+        }
+        await store.finish()
+
+        #expect(!dismissed.value)
+    }
 }

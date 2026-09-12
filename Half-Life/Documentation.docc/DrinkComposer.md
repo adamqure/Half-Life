@@ -6,11 +6,11 @@ The Domain entities and repository behind logging a drink, shared by the compose
 
 The drink composer is how a user records the caffeine they've had (roadmap rank 2). It's the first of three entry points that record a drink. The others are one-tap favourites (rank 3) and App Intents, which include Siri (rank 14). All three produce the same entity and go through the same use case and repository. The decay curve learns about each drink from the data source it shares with that repository. This article defines those shared pieces, and extracts them from the brief and the prototype.
 
-The composer doesn't build a drink from parts, as the prototype's "Build it" grid does. The user picks a drink from a row of tiles that scrolls sideways, then adjusts its quantity with a stepper. One-tap favourites show the user's three or four most common drinks, taken from what they've logged.
+The composer doesn't build a drink from parts, as the prototype's "Build it" grid does. The user picks a drink from a row of tiles that scrolls sideways, then adjusts its quantity with a stepper. One-tap favourites show the three drinks the user logs most, on the Today screen and above the composer's tiles (<doc:OneTapLog>).
 
 This article covers the Domain layer, the repository, the data flow from the list to the decay curve, and the composer screen.
 
-> Note: The Domain layer and the current time are built: ``DrinkType``, ``ServingUnit``, ``LoggedDrink``, ``DrinkLogRule``, the ``DrinkLogRepository`` and ``CurrentTimeRepository`` protocols, ``LogDrinkUseCase``, ``ClockDataSource``, ``SystemClockDataSource``, and ``LiveCurrentTimeRepository``. The drink log data source is built too: ``DrinkLogDataSource``, implemented by ``SwiftDataDrinkLogDataSource``. So is the composer: ``DrinkComposerFeature`` and ``DrinkComposerView``, presented from the root ``AppFeature``, and the drink log repository's implementation, ``LiveDrinkLogRepository``. Add stores drinks through it.
+> Note: The Domain layer and the current time are built: ``DrinkType``, ``ServingUnit``, ``LoggedDrink``, ``DrinkLogRule``, the ``DrinkLogRepository`` and ``CurrentTimeRepository`` protocols, ``LogDrinkUseCase``, ``ClockDataSource``, ``SystemClockDataSource``, and ``LiveCurrentTimeRepository``. The drink log data source is built too: ``DrinkLogDataSource``, implemented by ``SwiftDataDrinkLogDataSource``. So is the composer: ``DrinkComposerFeature`` and ``DrinkComposerView``, presented from the root ``AppFeature``, and the drink log repository's implementation, ``LiveDrinkLogRepository``. Add stores drinks through it. One-tap favourites are built too (<doc:OneTapLog>).
 
 ## What the brief and prototype ask for
 
@@ -23,7 +23,7 @@ Each prototype element either becomes part of an entity, stays in presentation, 
 | "128 mg" and "Add 128 mg" | `LoggedDrink.milligrams`, estimated as the drink's caffeine per unit × quantity |
 | "When": Now, 1h ago, 2h ago, 4h ago | `LogDrinkUseCase.Input.secondsAgo`. The use case subtracts it from the current time to get `LoggedDrink.consumedAt`. |
 | "Logged today": time, drink, mg, and × | A list of `LoggedDrink`s, from `DrinkLogRepository` |
-| One-tap favourites: Double espresso, Oat flat white, Cold brew | The user's most common logged drinks, derived from the log. Nothing extra is stored. |
+| One-tap favourites: Double espresso, Oat flat white, Cold brew | The three drinks, each with its quantity, that the user logs most, derived from the log, with starters until there are three. Nothing extra is stored (<doc:OneTapLog>). |
 | The ring icon on each tile | Replaced by an icon for each drink (see "Iconography") |
 | "Oat" in "Oat flat white" | Cut. Milk doesn't change the caffeine, and the app answers one question: *when*. |
 | The post-cutoff warning ("about 51 mg will still be in you at bedtime") | Not part of these entities. The pre-log cutoff warning (rank 13) reads the curve and the bedtime. |
@@ -162,7 +162,7 @@ protocol DrinkLogRepository: Sendable {
 - **It publishes the whole log.** Features and use cases narrow it: Today (rank 4) shows today's drinks, one-tap favourites count the most common ones, and Patterns (rank 15) reads weeks at a time.
 - **It publishes what the data source holds.** `log(_:)` has the drink data source store the drink. The data source then signals a change, and the repository re-reads its drinks and publishes them. If storing fails, `log(_:)` throws, no change is signalled, and nothing is published. The log never shows a drink that wasn't saved.
 - **It checks every drink with ``DrinkLogRule``** before storing it, using the current time. A drink the rule rejects throws the rule's violation and is never stored. Every entry point gets the same checks, in one place.
-- **Deleting and editing come later.** Delete + undo (rank 20) and retroactive timing (rank 17) add their own methods when they're built (constitution Article III.1).
+- **Deleting is built, and editing comes later.** The Today screen's history card added `delete(_:)` and `day(containing:in:)` on 2026-09-12 (<doc:TodayScreen>). Undo (rank 20) and retroactive timing (rank 17) add their own methods when they're built (constitution Article III.1).
 
 ### DrinkLogRule
 
@@ -208,7 +208,7 @@ It doesn't check the drink itself, because the repository's rule does. It doesn'
 | Entry point | Drink type | Quantity | `secondsAgo` |
 |-------------|------------|----------|--------------|
 | Composer (rank 2) | The row picked from the list | Starts at the drink's `defaultQuantity`, and a stepper adjusts it | 0, or the "When" choice: 3,600, 7,200, or 14,400 |
-| One-tap favourite (rank 3) | One of the three or four most common drinks | The quantity it's most often logged at | 0 |
+| One-tap favourite (rank 3) | One of the three favourites | The favourite's own: a favourite is a drink and a quantity together | 0 |
 | App Intent or Siri (rank 14) | An `AppEnum` parameter that mirrors `DrinkType` | Optional, defaulting to the drink's `defaultQuantity` | 0 |
 
 An App Intent calls the use case directly, without a reducer. How its `@Dependency` reaches the same app-scoped repository is designed with App Intents.
@@ -241,7 +241,7 @@ A drink is stored once, written in one place, and read by two repositories.
 - **The data source informs.** The drink data source is the only code that stores drinks, so it knows when they change. After every successful store, it signals a change to every repository subscribed to it. Each repository re-reads what it needs through its own query. `DrinkLogRepository` reads every drink. `CaffeineDecayRepository` reads the intakes of drinks that aren't marked negligible (REPO-1 in <doc:CaffeineDecayModel>).
 - **Repositories subscribe for their lifetime.** Each app-scoped repository subscribes when it's created, and keeps the subscription for the life of the app. Features still observe repositories only through `Observe…` use cases (constitution Article I.4).
 - **Marks don't signal.** When the decay repository has the data source mark negligible intakes, no change is signalled. A mark changes nothing that any repository publishes (REPO-4), so a signal would only make the decay repository recalculate for nothing.
-- **Later writers are covered.** Delete + undo (rank 20), retroactive timing (rank 17), and the demo seed (rank 8) write through the same data source, so the log and the curve follow them with no extra wiring.
+- **Later writers are covered.** Delete + undo (rank 20), retroactive timing (rank 17), and the demo seed (rank 8) write through the same data source, so the log and the curve follow them with no extra wiring. Deleting proved it: the history card's `delete(_:)` needed no change to either repository's listening (DELETE-3 in <doc:TodayScreen>).
 - **A failure has one place to happen.** If storing fails, `log(_:)` throws, no change is signalled, and neither repository publishes. The reducer logs the error's domain and code (constitution Article XI.6.4).
 
 ### DrinkLogDataSource
@@ -251,6 +251,7 @@ A Data-layer protocol, ``DrinkLogDataSource``. Its implementation, ``SwiftDataDr
 | Operation | What it does |
 |-----------|--------------|
 | `store(_:)` | Stores a `LoggedDrink`, unmarked, then signals a change. |
+| `delete(_:)` | Deletes the drink with the given identifier, marked or not, then signals a change. When no stored drink has the identifier, it changes nothing and signals nothing. |
 | `drinks()` | Returns every stored drink, oldest first. |
 | `nonNegligibleDrinks()` | Returns every drink that isn't marked negligible, oldest first. The decay repository maps each one to its `intake`. |
 | `markNegligible(_:)` | Marks the given intakes negligible. It never clears a mark, deletes a drink, or signals a change. |
@@ -262,8 +263,11 @@ A Data-layer protocol, ``DrinkLogDataSource``. Its implementation, ``SwiftDataDr
 | SRC-2 | A failed `store(_:)` throws and signals nothing. |
 | SRC-3 | `markNegligible(_:)` signals nothing. |
 | SRC-4 | `nonNegligibleDrinks()` returns each unmarked drink, with its `id`, and nothing for marked drinks. |
+| SRC-5 | `delete(_:)` removes the drink with the given identifier from the store, marked or not, and keeps the others. The deletion persists. |
+| SRC-6 | Every subscriber to `changes()` gets one signal after each successful `delete(_:)`. |
+| SRC-7 | Deleting a drink that isn't stored changes nothing and signals nothing. |
 
-`SwiftDataDrinkLogDataSourceTests` covers SRC-1, SRC-3, and SRC-4 against an in-memory store with CloudKit off. SRC-2 has no test, because an in-memory SwiftData store can't be made to fail a save.
+`SwiftDataDrinkLogDataSourceTests` covers SRC-1, SRC-3, and SRC-4 against an in-memory store with CloudKit off, and `SwiftDataDrinkLogDataSourceDeleteTests` covers SRC-5 to SRC-7. SRC-2 has no test, because an in-memory SwiftData store can't be made to fail a save. For the same reason, no test makes a deletion fail in the store. The repository's DELETE-2 covers a failed deletion with the fake data source.
 
 ## Presentation
 
@@ -303,6 +307,10 @@ On 2026-09-12 the owner changed the layout: the drinks scroll sideways as tiles,
 - "Add 125 mg", which logs the drink through ``LogDrinkUseCase`` and closes the composer. If the drink can't be saved, the composer stays open and shows a short message, and the reducer logs the error's domain and code (Article XI.6.4). Close leaves without logging.
 
 A drink is always chosen. The composer opens on the last drink logged, meaning the most recently consumed one, with its quantity. It reads the log through `ObserveLoggedDrinksUseCase`. Until the log arrives, or when nothing has been logged, the composer shows one espresso shot. The log never replaces a drink or quantity the user has already chosen. The owner chose this on 2026-09-12.
+
+The one-tap row joined the composer on 2026-09-12 (<doc:OneTapLog>). It sits under the header in its slim style: each favourite's name, quantity, and caffeine, with no heading or icon, so the sheet stays under three quarters of the screen. A tap logs the favourite as consumed now and closes the composer, as Add does. At accessibility text sizes, the row moves under the panel, so the panel's controls stay on screen.
+
+A separator divides the one-tap row from the drink tiles, so the favourites read as their own group, apart from the drink being built. It's a hairline in `separatorOnCard`, inset to the screen margins, with a card gap (16 pt) above and below. It replaces the section gap (28 pt) that separated the row from the tiles. With a section gap on each side, the sheet was 669 pt tall on iPhone 17 Pro, more than three quarters of the screen (655.5 pt). At accessibility text sizes it moves with the row and stays between the row and the panel. It's decorative, so it's hidden from VoiceOver. The owner added it on 2026-09-12.
 
 The sheet's detent is measured from its content, plus the bottom safe area, so it follows the text size. When the content is taller than the screen, at the largest text sizes, the sheet reaches full height and scrolls. The tiles widen with the text size, and from xxLarge up the "When" choices stack, so none of it is cut off (Article VI.2). Every control is at least 44 pt. The chosen drink and "When" choice have the selected trait as well as a different color (Article VI.3).
 
@@ -383,6 +391,8 @@ Tested against a fake data source.
 
 `LiveDrinkLogRepositoryTests` covers DLOG-1 to DLOG-4 against `FakeDrinkLogDataSource` and a stopped clock, plus a failed read that publishes nothing and recovers on the next change. ``LiveDrinkLogRepository`` reads the current time from ``ClockDataSource``, which it shares with ``LiveCurrentTimeRepository`` and ``LiveCaffeineDecayRepository``, rather than depending on ``CurrentTimeRepository``. The owner chose this on 2026-09-11, so no repository depends on another.
 
+The repository also publishes the caffeine logged today, for the Today screen's "Today" tile. Its requirements, DLOG-5 to DLOG-9, are in <doc:TodayScreen>.
+
 ### Current time
 
 | ID | Requirement |
@@ -410,6 +420,7 @@ Tested with an exhaustive `TestStore`, with `\.logDrink` and `\.observeLoggedDri
 | COMP-9 | Close dismisses the composer without logging. |
 | COMP-10 | The composer opens on one espresso shot. On `task`, it takes the last drink logged, with its quantity, or keeps espresso when nothing has been logged. |
 | COMP-11 | Once the user has chosen a drink or changed its quantity, the drink log no longer replaces the choice. |
+| COMP-12 | When the composer's one-tap row logs a favourite, the composer closes. If the save fails, it stays open, and the row shows the error. |
 
 COMP-8 used to say Add does nothing before a drink is chosen. Now a drink is always chosen, so that case no longer exists.
 
@@ -437,12 +448,11 @@ COMP-8 used to say Add does nothing before a drink is chosen. Now a drink is alw
 | SHOW-4 | Quantities and caffeine per unit name the unit, singular for one: "1 shot", "2 shots". |
 | SHOW-5 | Caffeine is shown in whole milligrams, formatted for the locale, such as "125 mg". |
 
-`DrinkComposerUITests` drives the composer through `DrinkComposerRobot`, which swipes the tiles to reach drinks off screen. The composer opens with exactly one drink chosen and its panel showing, in a sheet shorter than three quarters of the screen. A latte starts at 2 shots and 125 mg, the buttons change the estimate, "When" changes its choice, Close returns to the root screen, and the composer passes the accessibility audit (Article VI.4), except for the two approved checks above.
+`DrinkComposerUITests` drives the composer through `DrinkComposerRobot`, which swipes the tiles to reach drinks off screen. The composer opens with exactly one drink chosen and its panel showing, in a sheet shorter than three quarters of the screen. A latte starts at 2 shots and 125 mg, the buttons change the estimate, "When" changes its choice, Close returns to the root screen, one tap on a favourite logs it and closes the composer (ONETAP-UI-2 in <doc:OneTapLog>), and the composer passes the accessibility audit (Article VI.4), except for the two approved checks above.
 
 ## Still to decide
 
 - **Whether the change signal carries the data.** This design signals only that something changed, and each repository re-reads through its own query. The alternative sends the changed drinks. That saves a read, but hands the decay repository marked drinks that it would have to filter out itself.
-- **How "most common" is counted** for one-tap favourites: by drink and quantity together, or by drink alone. Also over what period, how ties break, and what shows before anything has been logged. Decided with one-tap favourites (rank 3).
 - **The quantity's upper limit**, and whether half units are allowed. The quantity is a whole number of at least 1 for now.
 - **The last two catalog slots**, and a sourced value for any drink added.
 

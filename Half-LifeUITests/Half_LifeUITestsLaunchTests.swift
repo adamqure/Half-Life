@@ -23,8 +23,13 @@ final class Half_LifeUITestsLaunchTests: XCTestCase {
 
     @MainActor
     func testLaunch() throws {
+        // Each UI configuration can rotate the device, and the test classes that run after this one would inherit the
+        // last orientation. Put the device back in portrait, even when the test fails.
+        addTeardownBlock {
+            await MainActor.run { XCUIDevice.shared.orientation = .portrait }
+        }
         let app = XCUIApplication()
-        app.launch()
+        app.launchPastOnboarding()
 
         let root = try app.resolve(AppRobot.self)
 

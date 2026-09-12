@@ -45,9 +45,20 @@
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
 				App/AppViewAccessibilityID.swift,
+				App/UITesting/LaunchEnvironmentKey.swift,
 				Features/CaffeineDecay/CaffeineDecayViewAccessibilityID.swift,
+				Features/CaffeineIntakeToday/CaffeineIntakeTodayViewAccessibilityID.swift,
 				Features/DailyGreeting/DailyGreetingViewAccessibilityID.swift,
 				Features/DrinkComposer/DrinkComposerViewAccessibilityID.swift,
+				Features/DrinkLogHistory/DrinkLogHistoryViewAccessibilityID.swift,
+				Features/LastCup/LastCupViewAccessibilityID.swift,
+				Features/Onboarding/AboutYouViewAccessibilityID.swift,
+				Features/Onboarding/BedtimeViewAccessibilityID.swift,
+				Features/Onboarding/HalfLifeFactorsViewAccessibilityID.swift,
+				Features/Onboarding/OnboardingSummaryViewAccessibilityID.swift,
+				Features/Onboarding/PermissionsViewAccessibilityID.swift,
+				Features/Onboarding/WelcomeViewAccessibilityID.swift,
+				Features/OneTapLog/OneTapLogViewAccessibilityID.swift,
 				Features/Today/TodayViewAccessibilityID.swift,
 			);
 			target = 041019553054BF3500025BC2 /* Half-LifeUITests */;

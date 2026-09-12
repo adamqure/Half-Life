@@ -2050,3 +2050,576 @@ This file is the timestamped record of every interaction with AI on the Half-Lif
 - **Notes:**
   - `HalfLife-Composer` (0D9F297A-A3F2-42EB-8248-C98E0CCFB0D4) is still a simulator the AI created. Delete it with `xcrun simctl delete` when it's no longer useful.
   - The commit contains the whole working tree, including other sessions' work, as the owner asked ("commit the current state").
+
+### 2026-09-12 11:40 -0400 — Open a remote-control session
+
+- **Started:** 2026-09-12 11:40 -0400
+- **Ended:** 2026-09-12 11:41 -0400 (from the session transcript: reply at 11:41:02)
+- **Human:** Adam Ure
+- **AI tool / model:** Claude Code / Claude Opus 5
+- **Transcript:** `ai_transcripts/2026-09-12-1140-d338821c.md`
+- **Type:** planning
+- **Request:** Opened a remote-control session while away from the desk, to give the AI specific tasks during the day. The owner said this time doesn't count toward their implementation time, because they aren't focused on the work.
+- **Interactions:**
+  - `11:40` Opened the session and set the terms above.
+- **AI contribution:** Read the AI log's rules and the roadmap. Said it would work test-first, log each task, stop for decisions that are the owner's, and leave changes uncommitted unless asked. It wrongly said the next roadmap item was rank 5, Bateman absorption. Rank 5 was already built (the 2026-09-12 00:11 entry), so the next item was rank 6, the onboarding survey.
+- **Human changes:** None
+- **Files:** None
+- **Verification:** N/A
+- **Notes:** Time in this session doesn't count toward the owner's implementation time.
+
+### 2026-09-12 11:42 -0400 — Build one-tap favourites, and move the log button above a system tab bar
+
+- **Started:** 2026-09-12 11:42 -0400
+- **Ended:** 2026-09-12 17:12 -0400
+- **Human:** Adam Ure
+- **AI tool / model:** Claude Code / Claude Opus 5
+- **Transcript:** `ai_transcripts/2026-09-12-1140-a8b30ce2.md`
+- **Type:** change, planning, debugging
+- **Request:** Build the One-Tap Log feature: the three drinks logged most, each a one-tap button on the Today screen and in the drink composer. A new repository derives the most frequent logs from the drink log data source, and a feature subscribes to them and runs the log drink use case on each tap.
+- **Interactions:**
+  - `11:40` Started this as a remote-control session while out of the house. The owner doesn't count its AI time toward their implementation time.
+  - `11:42` Asked for the One-Tap Log feature, as above.
+  - `11:47` Chose how "most common" works: a drink and its quantity together, counted over all time, with the prototype's three drinks as starters for empty slots, and a tie going to the one consumed most recently. All four were the AI's recommendations.
+  - `12:12` Chose a brief "Logged" confirmation after a tap, with a haptic and a VoiceOver announcement, and for a tap in the composer to log the drink and close it. Both were the AI's recommendations. The answer's time is from the session transcript.
+  - `13:18` The AI sent screenshots: the floating + covered the Today row, which failed the audit's contrast check, and the row made the composer 713 pt, over its 655 pt compact limit. Asked for the + to move into a formal tab bar, instead of either of the AI's two options. Chose the slim composer row that moves under the panel at accessibility sizes (the AI's recommendation). The answer's time is from the session transcript.
+  - `13:20` Chose the system TabView over the AI's recommended custom bar, and no Patterns placeholder (the AI's recommendation).
+  - `13:55` The AI reported that the system tab bar drops accessibility identifiers, so a log tab conflicts with constitution II.6, and that any text under the bar fails the contrast check. Chose to put the + in the tab bar's bottom accessory, not the AI's recommended custom bar. Approved ignoring contrast only for elements under the bar (the AI's recommendation).
+  - `14:53` The AI reported that, after the onboarding and history merges, the audits failed every time on one contrast issue with no element, which appeared only while cards sat under the bar (a settled scroll to the end found none). Chose the two-pass audit (the AI's recommendation): at launch, also ignore contrast issues with no element, then scroll to the end and audit again with no exceptions. The question was asked at 14:36, and the answer's time is from the session transcript.
+  - `16:13` The AI reported that the owner's empty drink log for UI tests (chosen at 16:04 in the history session) moved Today up 20 pt, so the "ONE TAP" heading sat in the tab bar's fade at launch, above the log button's top edge, and both audits failed every time. Chose to excuse the fade too, 44 pt above the log button (the AI's recommendation), over moving content out of the band or leaving it to the history session. The answer's time is from the session transcript.
+  - `17:08` After the still-screen wait was in (the owner chose it at about 16:31 in the history session), the AI reported that one rare failure remained. About once in 25 runs, "Dynamic Type font sizes are partially unsupported" was flagged on nearly every text on screen at once. Chose to record it as a known issue and change nothing (the AI's recommendation), over retrying such audits or investigating further. The question was asked at 16:59, and the answer's time is from the session transcript.
+- **AI contribution:**
+  - Test-first, in red → green cycles. Each red was confirmed before the code: stubs that compiled and failed their assertions, or a compile failure where a symbol didn't exist yet.
+    - Domain: `FavouriteDrink` (a drink and a quantity). `FavouriteDrinksRule` counts every drink ever logged by drink and quantity, ranks the most logged first, and breaks ties by the most recent, then catalog order, then the smaller quantity. It keeps three, and fills the rest from the starters (2 espresso shots, 2 flat white shots, 2 cups of cold brew). Also `FavouriteDrinksRepository` and `ObserveFavouriteDrinksUseCase`.
+    - Data: `LiveFavouriteDrinksRepository`, an actor over the shared `DrinkLogDataSource`. It publishes on subscription and after each change, and a failed read publishes nothing.
+    - App: `FavouriteDrinksDependencies`, registering `\.favouriteDrinksRepository` and `\.observeFavouriteDrinks`.
+    - Presentation: `OneTapLogFeature`. It observes the favourites, logs a tapped one as consumed now through `LogDrinkUseCase`, shows a 2-second confirmation on the continuous clock that another log moves and restarts, and sends `delegate(.drinkLogged)`. `TodayFeature` composes it. `DrinkComposerFeature` composes it too, and closes on the delegate.
+    - UI: `OneTapLogView`, in `cards` and `slim` styles. The buttons sit in a row, and stack from xxLarge. VoiceOver gets a label, a value, and a hint, and the view posts an announcement and plays a haptic. Also `OneTapLogViewAccessibilityID` (added to the UI test target in the project file), the `OneTapFavourite` enum for robots, one-tap commands in `TodayRobot` and `DrinkComposerRobot`, and ONETAP-UI-1 and ONETAP-UI-2.
+    - Root: `AppView` became a system `TabView` with a Today tab. The log button is the bar's bottom accessory, drawn as an opaque `actionPrimary` capsule, and the bar is tinted `textAccent`. `Robot.auditAccessibilityAboveTheTabBar()`, called at the two audit call sites with comments, runs two audits. At launch, it ignores contrast issues for elements under the bar and for issues with no element, but never for the log button. Then it swipes up until the screen's first text stops moving, and audits again with no exceptions. The first pass's cutoff sits 44 pt above the log button (`tabBarFadeHeight`), to cover the bar's fade.
+  - Withdrawn or reworked:
+    - The full row in the composer made the sheet 713 pt, over the 655 pt limit, and at AccessibilityXL it pushed the panel off screen. It was replaced by the slim row, which moves under the panel at accessibility sizes.
+    - Adding the favourites to the composer's "every control is on screen" check was withdrawn once the row moved under the panel. The check is back to its committed list.
+    - A "Log a drink" action tab (`AppFeature.Tab`, `selectedTab`, `tabSelected`, and a changed ROOT-1 test) worked in the reducer, but the system tab bar ignored its accessibility identifier. It was replaced by the accessory. `AppFeature.swift`, `AppFeatureTests.swift`, `AppRobot.swift`, and `AppViewAccessibilityID.swift` were restored to their committed versions with `git checkout`, after checking that the diff held only this session's changes.
+    - `.scrollEdgeEffectStyle(.hard, for: .bottom)` on Today didn't fix the contrast failure under the bar, and was removed.
+    - The first version of the audit exception let through an issue with no element. A diagnostic that printed each issue's element and frame traced it to the log button's label on bare glass, and to the selected tab's label in the bright AccentColor. The fixes were the opaque button, the text-safe tint, and an exception that never excused the log button or an issue without an element. After the onboarding and history merges, the audits failed every time on a new issue with no element. A scroll that settled at the end found no issues, so the issue came from content under the bar. The owner chose the two-pass audit at 14:53.
+  - After the owner gave UI tests an empty drink log: rewrote ONETAP-UI-1's comment, which said the test used the simulator's own log, and updated the two audit call-site comments for the two passes and the fade.
+  - Documented the rare Dynamic Type flake as a known issue in the One-Tap Log article, after the history session's sentence on the still-screen wait.
+  - Mistake: the AI told the history session that another session's new divider under the composer's one-tap row had probably broken its compact-sheet test (668.94 pt against 655.5 in a run that overlapped this session's). The AI's own reproduction then passed, and it withdrew the claim.
+  - Fixes to the AI's own new tests: `ImmediateClock` in the composer's one-tap test raced (`confirmationEnded` arrived after `receive` gave up), so it now uses `TestClock`. Wrapped long lines for SwiftLint. The row's `Delegate` enum needed `@CasePathable`, then moved up a level for SwiftLint's nesting rule.
+  - Scratch diagnostics, never committed and deleted: two temporary UI tests, one that dumped the accessibility tree (it showed the tab bar's buttons carry labels only) and one that printed each audit issue. The session created the simulator `HalfLife-OneTap` (15721C32-8096-4CA3-ABD0-47B778B2B07C), and built in `build/OneTapDerivedData` and `build/OneTapDocBuild`.
+  - Coordination: three other sessions (onboarding, the history card, and the Last Cup tile) worked in the same tree at the same time. The AI messaged them about shared files: which files each of them touched, the final shape of `AppView`, the audit helper, and the fake signatures its tests depend on. The Last Cup session's `LiveCaffeineDecayRepository` also runs `FavouriteDrinksRule`, to find the usual drink.
+  - Docs: a new `One-Tap Log` article. Updated `Architecture` (robots, the audit helper, features, use cases, business rules, repositories, and navigation), `Today Screen` (the feature row and UI-2's exception, with the resolved question removed), `Drink Composer` (the one-tap row in the composer, COMP-12, entry points, and the resolved question removed), `Design System` (the floating-button tokens that are now unused), and the `Documentation` topics. Also the String Catalog's new keys and updated comments, and a memory note about parallel sessions.
+- **Human changes:** The decisions above. The owner edited no files.
+- **Files:**
+  - Added: `Half-Life/Domain/Entities/FavouriteDrink.swift`, `Half-Life/Domain/BusinessRules/FavouriteDrinksRule.swift`, `Half-Life/Domain/Repositories/FavouriteDrinksRepository.swift`, `Half-Life/Domain/UseCases/ObserveFavouriteDrinksUseCase.swift`, `Half-Life/Data/Repositories/LiveFavouriteDrinksRepository.swift`, `Half-Life/App/Dependencies/FavouriteDrinksDependencies.swift`, `Half-Life/Features/OneTapLog/OneTapLogFeature.swift`, `OneTapLogView.swift`, `OneTapLogViewAccessibilityID.swift`, `Half-Life/Documentation.docc/OneTapLog.md`, `Half-LifeTests/Domain/FavouriteDrinksRuleTests.swift`, `ObserveFavouriteDrinksUseCaseTests.swift`, `Half-LifeTests/Data/LiveFavouriteDrinksRepositoryTests.swift`, `Half-LifeTests/Fakes/FakeFavouriteDrinksRepository.swift`, `Half-LifeTests/App/FavouriteDrinksDependencyTests.swift`, `Half-LifeTests/Presentation/OneTapLogFeatureTests.swift`, `Half-LifeUITests/Robots/OneTapFavourite.swift`, `Robot+TabBarAudit.swift`
+  - Modified: `Half-Life/App/AppView.swift`, `Half-Life/Features/Today/TodayFeature.swift`, `TodayView.swift`, `Half-Life/Features/DrinkComposer/DrinkComposerFeature.swift`, `DrinkComposerView.swift`, `Half-Life/Localizable.xcstrings`, `Half-Life.xcodeproj/project.pbxproj`, `Half-Life/Documentation.docc/Architecture.md`, `Documentation.md`, `TodayScreen.md`, `DrinkComposer.md`, `DesignSystem.md`, `Half-LifeTests/Presentation/TodayFeatureTests.swift`, `DrinkComposerFeatureTests.swift`, `Half-LifeUITests/Robots/TodayRobot.swift`, `DrinkComposerRobot.swift`, `Half-LifeUITests/TodayUITests.swift`, `DrinkComposerUITests.swift`, `Half_LifeUITests.swift`, `ai_log.md`, `ai_transcripts/`
+  - Changed, then restored to the committed version: `Half-Life/App/AppFeature.swift`, `AppViewAccessibilityID.swift`, `Half-LifeTests/Presentation/AppFeatureTests.swift`, `Half-LifeUITests/Robots/AppRobot.swift`
+  - Other sessions changed several of these same files in the same working tree.
+- **Verification:**
+  - Each TDD cycle's red was confirmed before the code was written: the rule, use case, and repository tests failed against the stubs, the registrations and the tab tests failed to compile, the reducer tests failed against a stub reducer, and the one-tap UI tests failed with "The first one-tap drink isn't showing."
+  - Targeted green runs on the session's own simulator (HalfLife-OneTap):
+    - The rule, use case, and repository: 17 tests in 3 suites passed.
+    - `OneTapLogFeatureTests`, the registrations, and `SwiftDataStoreTests`: passed.
+    - The Today, composer, app, and one-tap reducer tests: 32 tests passed.
+  - UI tests:
+    - Every `DrinkComposerUITests` test passed at 14:06, including the audit, the compact sheet (under 75% of the screen with the slim row), and the largest text keeping every control on screen.
+    - ONETAP-UI-1 and ONETAP-UI-2 passed.
+    - The Today and root audits passed at 14:13, with the exception in place.
+  - Full unit and UI run with coverage, 14:20–14:28, on a tree still taking other sessions' merges: every unit test passed, and 32 UI tests ran with 2 failures, both "Contrast failed" in the tab bar audits (`testRootScreenPassesAccessibilityAudit` and `testTodayScreenPassesAccessibilityAudit`) on an issue the audit couldn't tie to an element. `Half-Life.app` coverage was **89.67%** (6561/7317).
+  - Diagnostics: at 14:31, the diagnostic and both audits, run 3 times each, failed every time on the element-less issue. A settled scroll to the end found 0 issues.
+  - After the two-pass helper, on the freshly erased simulator with the starters as favourites: every `DrinkComposerUITests` test passed, the audit included, along with every `TodayUITests` test and `testRootScreenPassesAccessibilityAudit`.
+  - Final full unit and UI run with coverage, 15:00–15:11, on the merged main tree (onboarding and the history card both in), on the same simulator: `** TEST SUCCEEDED **`. 584 results: 557 passed, 0 failed, and 27 expected failures, which are the known-issue tests. All 36 UI tests passed, the two tab bar audits and the composer audit included. No compiler warnings came from Half-Life's sources. `Half-Life.app` coverage was **95.26%** (6980/7327).
+  - With the empty drink log for UI tests, 16:09–16:11: ONETAP-UI-1, ONETAP-UI-2, and the composer audit passed, and both tab bar audits failed on contrast for "ONE TAP" in the fade. With the fade rule, 16:14–16:18: all 17 `TodayUITests`, `DrinkComposerUITests`, and `testRootScreenPassesAccessibilityAudit` tests passed, the three audits included. swift-format and SwiftLint were clean on every file changed.
+  - Not reproduced: the history session saw "Dynamic Type font sizes are partially unsupported", with no element, twice. It came once in the composer audit (14:30–14:41), and once in the first pass of the Today tab bar audit, in UI-9 of its final run (15:00–15:12). Its simulator showed Espresso ×1, Espresso ×2, and Flat white ×2 as favourites, the same set this session's simulator showed before it was erased. The AI had first assumed the favourites differed. This session's runs passed every time, and three diagnostic reruns in that session (15:13–15:16) didn't reproduce it either.
+  - Intermittent audit failures, 16:29–16:33: 5 iterations each of the Today and root audits, with the fade rule. 9 passed. The Today audit failed once in the second pass (scrolled to the end), with "Dynamic Type font sizes are partially unsupported". The history session saw "Contrast nearly passed" in the second pass (16:18–16:22), yet a plain audit 1–2 s after the scroll settled found no issues, and a 2 s wait made its runs pass. So the audits run before the screen has visually settled. The owner chose "wait for a still screen" at about 16:31, in the history session: before each pass, the helper takes screenshots until two in a row match. The history session is making that change to `Robot+TabBarAudit.swift`.
+  - The still-screen wait, which the history session applied to `Robot+TabBarAudit.swift` at 16:46: a printing diagnostic, 5 iterations from 16:46 to 16:54, caught the Dynamic Type issue twice. Each time it flagged nearly every text on screen at once: the greeting, the decay card, both tiles, the one-tap row, and the history card. So the screen as a whole didn't answer the audit's text-size probe, rather than one view failing. With the wait confirmed in the file, 5 iterations each of the Today and root audits, 16:54–16:58, passed 10 of 10. The history session's validation had 14 of 15, with one Today Dynamic Type failure.
+  - The composer with the empty drink log and the new divider, 17:08–17:10: 2 iterations each of `testOpensAsACompactSheet`, `testComposerPassesAccessibilityAudit`, and `testLargestTextKeepsEveryControlOnScreen`, all 6 passed.
+  - `xcodebuild docbuild` at 14:05, at 15:02, at 16:19 after the fade changes, and at 17:12 after the known-issue note: `BUILD DOCUMENTATION SUCCEEDED`, with 0 warnings from Half-Life's sources or catalog.
+  - swift-format and SwiftLint `--strict` on the whole project at 14:20, and again at 15:02 after the audit helper changed: clean.
+- **Notes:**
+  - Not committed, because the owner didn't ask. The working tree also holds three other sessions' uncommitted work (onboarding, the history card, and the Last Cup tile).
+  - This was a remote-control session. Its AI time doesn't count toward the owner's implementation time.
+  - The contrast exception for elements under the tab bar is a new audit exception, approved at 13:55. It covers every card that reaches under the bar at launch, including the history card and any later Today card. It never covers the log button, or an issue the audit can't tie to an element.
+  - The AI's choices that are still to be confirmed are listed in the One-Tap Log article: the 2-second confirmation, the tie-break at the same moment, the `sun.max` tab symbol, and the dark log button capsule.
+  - `Sizing.fabDiameter` and `Elevation.floating` are no longer used by any view, but `LayoutTokenTests` still pins them. Whether to remove them is the owner's call.
+  - Known issue, recorded at the owner's choice: about once in 25 runs, an audit reports "Dynamic Type font sizes are partially unsupported" across the whole screen. If it appears, rerun the suite.
+  - Not reproduced: in the history session's final run, which overlapped this session's, `testOpensAsACompactSheet` measured 668.94 pt against the 655.5 limit. It passed 2 of 2 here. If it shows up again in a run with nothing else going on, measure the sheet's actual margin.
+  - One-tap logging has no undo until Delete + undo (roadmap rank 20).
+  - `LiveCaffeineDecayRepository`, from the Last Cup session, also runs `FavouriteDrinksRule` to find the usual drink, so a change to the rule changes the cutoff too.
+  - The UI tests first logged real drinks to the simulator's store, as UI-5 already did. Since the owner's 16:04 decision in the history session, every UI test starts with an empty in-memory drink log. So the one-tap row always starts on the starters, and no test writes to the simulator's log.
+  - The simulator `HalfLife-OneTap` (15721C32-8096-4CA3-ABD0-47B778B2B07C) can be deleted with `xcrun simctl delete` once it's no longer needed.
+
+### 2026-09-12 11:43 -0400 — Show today's caffeine intake on the Today screen
+
+- **Started:** 2026-09-12 11:43 -0400 (the AI's first clock reading after the prompt)
+- **Ended:** 2026-09-12 12:54 -0400 (the last clock reading, at the final lint. The transcript export and the report followed.)
+- **Human:** Adam Ure
+- **AI tool / model:** Claude Code / Claude Opus 5
+- **Transcript:** `ai_transcripts/2026-09-12-1140-64c57bb0.md`
+- **Type:** change, planning
+- **Request:** Add the Today screen's "today's caffeine intake" feature. It listens to the drink log repository and totals the current calendar day.
+- **Interactions:**
+  - `11:40` Opened this remote-control session, and said its time doesn't count toward the owner's implementation time. The AI read the log's rules and the roadmap, and named rank 6, onboarding, as the next item. (Session `d338821c` logged the same opening message separately.)
+  - `11:43` Asked for the feature.
+  - `11:45` The AI asked two questions: what the tile shows while nothing stores a daily ceiling, and how it sits before the Last Cup tile exists.
+  - `11:48` Chose the total only, with no bar, over the AI's recommended bar against a standard 400 mg ceiling. Chose a half-width tile beside an empty half, which stacks at accessibility text sizes (the AI's recommendation).
+  - `12:51` Asked for a screenshot to confirm the tile. The AI's first clock reading after the prompt was 12:51. The full UI run was using the simulator, so the AI sent the two it had captured during the diagnostics: the default text size at 12:28, and AccessibilityXL at 12:32.
+  - `13:03` Called the tile complete, in the prompt that starts the next entry.
+- **AI contribution:**
+  - Test-first, in four red → green cycles. Each red step ran against a stub first, so every test failed on its assertions, not just on compilation:
+    - `DailyCaffeineIntake` and `DailyCaffeineIntakeRule`: the drinks consumed from the day's midnight to the next, in a given calendar, including a 25-hour day when the clocks go back (INTAKE-1 to INTAKE-4).
+    - `DrinkLogRepository.intakeToday(in:)`, in `LiveDrinkLogRepository`. It sends the current day's intake on subscription, then a new one when a change alters the total, and at the first minute of each new day. Each subscriber gets only changes, and the drinks are read at a minute only when a day has turned (DLOG-5 to DLOG-9). `ObserveCaffeineIntakeTodayUseCase` streams it (OBSINTAKE-1). It's registered as `\.observeCaffeineIntakeToday`, with an unimplemented test value (DEP-5).
+    - `CaffeineIntakeTodayFeature` (TILE-1), scoped into `TodayFeature` (TODAY-3).
+    - `CaffeineIntakeTodayView`: "TODAY" above the amount, such as "63 mg", in the Design System's `metric` style and `textAccent`, read by VoiceOver as "Today, 63 milligrams". `TodayView` puts it in the leading half of a tile row under the decay card. UI-4 checks the amount, and UI-5 logs an espresso and checks the total rose by about 63 mg. `TodayRobot` and `DrinkComposerRobot` gained the commands and verifications for them.
+  - The accessibility audit failed on "Text clipped". A scratch-only diagnostic test, deleted afterwards, showed it was the amount in the half-width tile, "may be clipped at larger Dynamic Type sizes". The amount now wraps rather than truncating, as the decay card's text does. The diagnostic then found no issues, at the default text size or at AccessibilityXL, where the tile spans the width.
+  - Docs: the `Today Screen` article's "Today tile" section and its requirements, and rows in the `Architecture` article. A cross-reference in the `Drink Composer` article. "Today" in `Localizable.xcstrings`.
+  - The first full run, which ended at 12:41, failed UI-5 with "The composer is still open". The launch-screenshot tests run once per UI configuration and left the simulator in Landscape Right, so every later UI test ran in landscape. A run of only the launch tests and UI-5 reproduced it at 12:44. `Half_LifeUITestsLaunchTests` now puts the device back in portrait in a teardown block, and the same pair passed at 12:47.
+  - Found while diagnosing: on an iPhone in landscape, the drink composer's sheet fills the 402 pt-tall window, and its Add button sits at y 421 to 473, below the screen, so it can't be tapped. A scratch diagnostic, deleted afterwards, found this. The AI changed nothing: whether to lock the iPhone to portrait or let the composer scroll is the owner's decision.
+  - Told the history-card and onboarding sessions, which work in snapshots of the tree, which shared files this task changed. They had written asking.
+  - Mistake: the AI's first question said the onboarding survey would store a daily ceiling. The onboarding design, written in another session the same morning, cut that question. The `Today Screen` article says so, and lists the bar under "Still to decide".
+- **Human changes:** Chose the total without a bar, and the half-width layout.
+- **Files:**
+  - Added: `Half-Life/Domain/Entities/DailyCaffeineIntake.swift`, `Half-Life/Domain/BusinessRules/DailyCaffeineIntakeRule.swift`, `Half-Life/Domain/UseCases/ObserveCaffeineIntakeTodayUseCase.swift`, `Half-Life/Features/CaffeineIntakeToday/` (`CaffeineIntakeTodayFeature.swift`, `CaffeineIntakeTodayView.swift`, `CaffeineIntakeTodayViewAccessibilityID.swift`), `Half-LifeTests/Domain/DailyCaffeineIntakeRuleTests.swift`, `ObserveCaffeineIntakeTodayUseCaseTests.swift`, `Half-LifeTests/Data/LiveDrinkLogRepositoryIntakeTodayTests.swift`, `Half-LifeTests/Presentation/CaffeineIntakeTodayFeatureTests.swift`
+  - Modified: `Half-Life/Domain/Repositories/DrinkLogRepository.swift`, `Half-Life/Data/Repositories/LiveDrinkLogRepository.swift`, `Half-Life/App/Dependencies/DrinkLogDependencies.swift`, `Half-Life/Features/Today/TodayFeature.swift`, `TodayView.swift`, `Half-Life/Localizable.xcstrings`, `Half-Life.xcodeproj/project.pbxproj` (the identifier file's UI test membership), `Half-LifeTests/App/LogDrinkDependencyTests.swift`, `Half-LifeTests/Fakes/FakeDrinkLogRepository.swift`, `Half-LifeTests/Presentation/TodayFeatureTests.swift`, `Half-LifeUITests/TodayUITests.swift`, `Half_LifeUITestsLaunchTests.swift`, `Half-LifeUITests/Robots/TodayRobot.swift`, `DrinkComposerRobot.swift`, `Half-Life/Documentation.docc/TodayScreen.md`, `Architecture.md`, `DrinkComposer.md`, `ai_log.md`, `ai_transcripts/`
+- **Verification:**
+  - Red → green runs on a dedicated simulator: the rule at 11:51 (red) and 11:54 (green); the repository, use case, and registrations at 11:58 (red) and 12:09 (green); the feature at 12:11 (red) and 12:14 (green). At 12:14 the new UI tests failed because the tile didn't exist yet.
+  - 12:18: UI-4 and UI-5 passed, and so did every `DrinkComposerUITests` test. The Today audit failed on "Text clipped", fixed by 12:28.
+  - swift-format and SwiftLint `--strict` on this task's files: clean. The whole-project lint fails only in `Half-LifeTests/Domain/FavouriteDrinksRuleTests.swift`, another session's uncommitted file.
+  - First full unit and UI run, which ended at 12:41: UI-5 failed, as described above, and so did 15 tests from another session's uncommitted favourites work. Coverage was 95.60%.
+  - Final full unit and UI run, 12:48 to 12:53, on the dedicated simulator: `** TEST SUCCEEDED **`, with 304 tests: 288 passed, 16 expected failures, and 0 failures. The tree included other sessions' uncommitted work. No compiler warnings came from Half-Life's sources.
+  - Coverage: `Half-Life.app` at **95.89%** (2612/2724).
+  - `xcodebuild docbuild`, 12:53 to 12:54: `BUILD DOCUMENTATION SUCCEEDED`, with no warnings from Half-Life's sources or catalog (the App Intents metadata tool's output is excluded).
+  - Whole-project swift-format and SwiftLint `--strict` at 12:54: the one violation is line 311 of `Half-LifeTests/Presentation/DrinkComposerFeatureTests.swift`, a file this task didn't change.
+- **Notes:**
+  - Time in this session doesn't count toward the owner's implementation time (a remote-control session).
+  - Not committed. The working tree also holds other sessions' uncommitted work: favourites, onboarding's design, and a constitution amendment.
+  - UI-5 logs a real drink to the simulator's store, and would fail if midnight passed during the test.
+  - For the owner: the composer's Add button can't be reached on an iPhone in landscape (see above). The iPhone target supports both landscape orientations.
+  - `HalfLife-IntakeToday` (28649D5F-B691-4914-8736-A7025DE1AA31) is a simulator the AI created for this task.
+
+### 2026-09-12 11:45 -0400 — Design onboarding
+
+- **Started:** 2026-09-12 11:45 -0400 (from the session transcript: prompt at 11:45:32. The AI's first clock reading was 11:46.)
+- **Ended:** 2026-09-12 12:05 -0400
+- **Human:** Adam Ure
+- **AI tool / model:** Claude Code / Claude Opus 5
+- **Transcript:** `ai_transcripts/2026-09-12-1140-d338821c.md`
+- **Type:** planning, change
+- **Request:** Design the onboarding feature in an architecture document before building anything. Onboarding asks for the user's name and age to create a profile, their bedtime, and the medical conditions that change how fast caffeine decays. It also shows a permissions indicator for notifications, HealthKit, and Face ID.
+- **Interactions:**
+  - `11:45` Asked for the design.
+  - `~11:50` Answered four questions. The transcript records no time for the answers, and the AI's next tool call is at 11:50:56.
+    - Apple Health: ask when the user taps, and amend constitution V.3.1 (the AI's recommendation).
+    - Notifications and Face ID: request both in onboarding now, although no feature uses either yet. The AI had recommended adding each row with its feature.
+    - Age: it sets the recommended sleep range (the AI's recommendation).
+    - Medical conditions: they set the starting half-life, and the answers are kept on the device (the AI's recommendation).
+- **AI contribution:**
+  - Read the Architecture, Today Screen, Caffeine Decay Model, Sleep Data, and Design System articles, the existing profile, bedtime, and half-life code, and prototype screenshots 03–06.
+  - Before writing, raised four conflicts or open decisions: V.3.1's "never at launch", notification and Face ID requests with no feature behind them, age under V.2's minimum-data rule, and how the medical answers are used and stored.
+  - Ran a background research agent on what changes caffeine's half-life (pregnancy by trimester, estrogen, smoking and nicotine, liver disease, CYP1A2 inhibitors, age, alcohol, obesity), on sleep need by age, and on daily caffeine limits. It read abstracts on Europe PMC and a few full texts.
+  - Wrote the `Onboarding` DocC article:
+    - The scope and the owner's decisions.
+    - Every prototype element in screenshots 01–06, kept, changed, or cut, with the reason. The sign-in buttons, goals, daily ceiling, "Roughly how much a day?", and the Health toggles are cut.
+    - A six-step flow that saves as the user goes, under the one-way data flow.
+    - Domain entities, and three business rules: `HalfLifePriorRule`, with a multiplier and its evidence for each factor, `SleepNeedRule`, and `CaffeineCutoffRule`.
+    - Use cases, repositories, and data sources: one protected JSON file for the profile, bedtime, and starting half-life, and one data source each for HealthKit authorization, UserNotifications, and LocalAuthentication.
+    - The features, the root's navigation, and the permissions step.
+    - Privacy and logging, the risks the owner accepted, the UI tests' launch environment, testable requirements, open questions, and sources.
+  - Amended constitution V.3.1, and added its row to the amendments table.
+  - Added designed-but-not-built rows to the `Architecture` article, linked the new article from the catalog's landing page, and corrected the `Today Screen` article's line about the name.
+  - Mistakes, corrected before the end:
+    - The first Sources section gave full titles and author initials that the AI wrote from memory, not from the research. It replaced them with surnames, journals, years, and links.
+    - One of the four questions cited App Review guideline 5.1.1 from memory, unchecked. The article cites only Apple's general guidance to request permission when a feature needs it.
+- **Human changes:** Made the four decisions above. The owner hasn't yet reviewed the multipliers, the 3 to 40 hour range, or the other items under the article's "Still to decide".
+- **Files:**
+  - Added: `Half-Life/Documentation.docc/Onboarding.md`
+  - Modified: `constitution.md`, `Half-Life/Documentation.docc/Architecture.md`, `Documentation.md`, `TodayScreen.md`, `ai_log.md`, `ai_transcripts/` (re-exported)
+- **Verification:** `xcodebuild docbuild` at 12:04: `BUILD DOCUMENTATION SUCCEEDED`, with 0 warnings from the catalog. The only warning came from the App Intents metadata tool. Tests, coverage, and lint: N/A (docs only, no code changed).
+- **Notes:**
+  - Time in this session doesn't count toward the owner's implementation time (a remote-control session).
+  - Not committed. The working tree also holds another session's uncommitted work on today's caffeine intake, which isn't part of this task.
+  - `roadmap.md`'s backlog still lists the user's name. The owner hasn't said whether to mark it as moved into onboarding.
+  - `UserProfile.swift`'s doc comment still says onboarding adds "the bedtime and goals". It gets corrected when onboarding is built.
+  - The owner's Notifications and Face ID decision also brushes against Article III.1 (no speculative features). The article records it as an accepted risk.
+
+### 2026-09-12 11:47 -0400 — Build the drink log history card, with delete
+
+- **Started:** 2026-09-12 11:47 -0400 (the AI's clock reading when it read the prompt)
+- **Ended:** 2026-09-12 17:04 -0400. Everything the request asked for is built and merged. One intermittent UI test failure, in UI-9's audit, stays open with the owner through the one-tap session (see Notes).
+- **Human:** Adam Ure
+- **AI tool / model:** Claude Code / Claude Opus 5
+- **Transcript:** `ai_transcripts/2026-09-12-1140-8e4f7531.md`
+- **Type:** change, planning
+- **Request:** Build the drink log history feature at the bottom of the Today screen. It shows one day's drinks at a time, with buttons to switch days, and lets the user delete a drink. A deletion must make `CaffeineDecayRepository` recalculate the decay curve, and `DrinkLogRepository` recalculate the total caffeine intake.
+- **Interactions:**
+  - `11:40` Opened this session over Remote Control while out. The owner said this time doesn't count toward their implementation time.
+  - `11:47` Asked for the history feature.
+  - `11:49` The AI asked two design questions (times from the session transcript). The first wrongly said `DrinkLogRepository` had no total yet. A parallel session was building `intakeToday(in:)` in the same working tree, and the AI found it at 12:21.
+  - `12:19` Chose a repository stream of one day, computed by a Domain rule, over a use case or the reducer filtering the log. Chose a × that asks before deleting, over deleting at once or swiping. Both were the AI's recommendations.
+  - `15:18` The AI asked how to settle UI-9's intermittent audit failure, offering four options: an empty drink log for UI tests, bottom padding on the Today screen, a wider audit exemption, or leaving it.
+  - `16:04` Chose the empty drink log for UI tests, the AI's recommendation (the AI's clock reading when it received the answer).
+  - `16:29` The AI reported that the tab bar audits failed because of timing, not layout, and asked how the audit helper should wait: for a still screen, a fixed 2 s (against constitution Article II.9), extra bottom padding, or not at all.
+  - `16:30` Chose waiting for a still screen, the AI's recommendation (the AI's clock reading when it received the answer).
+  - Messages from three parallel sessions, which the owner was running at the same time, were handled in this session. They covered file ownership, requirement IDs, merge order, the tab bar, onboarding's launch helper, and compiler warnings. None of them changed the owner's decisions. The tab bar audit exception that UI-9 uses is recorded in the `Architecture` article as the owner's approval, and reached this session through the one-tap session.
+- **AI contribution:**
+  - **Isolation.** Worked test-first in a scratch git worktree holding a snapshot of the tree taken at 12:21, so red-phase compile errors never reached the other sessions. Merged the drink log layer into the main tree at 13:08, once it was identical to the snapshot there, and the Today files, catalog, and project at 14:26, after the one-tap and onboarding sessions said they were done with them. Reused the today's-intake session's `DailyCaffeineIntakeRule` for the day's total, used the requirement IDs it asked for (TODAY-4, DEP-6, and UI-6 on), and pulled its later audit fix into the snapshot.
+  - **Domain, test-first:**
+    - `DrinkLogDay` and `DrinkLogDayRule`: one calendar day of the log. Its intake comes from `DailyCaffeineIntakeRule`, so the card's total and the "Today" tile agree (HISTRULE-1 to HISTRULE-4).
+    - `ObserveDrinkLogDayUseCase` and `DeleteDrinkUseCase`, registered as `\.observeDrinkLogDay` and `\.deleteDrink` (HISTUSE-1 to HISTUSE-3, DEP-6).
+  - **Data, test-first:**
+    - `DrinkLogDataSource.delete(_:)`, in `SwiftDataDrinkLogDataSource`, its fake, and the unimplemented test value. It deletes a drink, marked or not, and signals a change. Deleting a drink that isn't stored signals nothing (SRC-5 to SRC-7).
+    - `DrinkLogRepository.day(containing:in:)` and `delete(_:)`, in `LiveDrinkLogRepository`. Each day subscriber gets its day again only when a change alters it (DAYLOG-1 to DAYLOG-3, DELETE-1, DELETE-2).
+    - `DrinkDeletionTests` (DELETE-3): with both live repositories over one data source, deleting a drink recalculates the decay curve, the status, and today's intake without it. No code was needed for that. It follows from the shared data source's change signal.
+  - **Presentation, test-first:**
+    - `DrinkLogHistoryFeature` (HIST-1 to HIST-8): it opens on today and follows it at midnight, moves a day at a time without passing today, asks before deleting, logs a failed deletion's domain and code, and waits for the repository to publish the day without the drink.
+    - `TodayFeature` composes it as `history` (TODAY-4), and `TodayView` shows it last, under the one-tap row.
+    - `DrinkLogHistoryView`: the title, the day buttons, rows with a ×, Keep and Delete in the row, the total, and the empty and error messages. `DrinkLogHistoryViewAccessibilityID` also belongs to the UI test target. 12 strings were added to the catalog, each with a comment.
+  - **UI tests:** `DrinkLogHistoryUITests` (UI-6 to UI-9), with the history commands in `TodayRobot+History.swift`. Each scenario that needs a drink logs one through the composer first.
+  - **An empty drink log for UI tests, test-first (LAUNCH-3), the owner's choice at 16:04:** `DrinkLogDataSourceKey.makeLiveValue(configuration:)` opens an empty in-memory store whenever a UI test launched the app, following the onboarding session's `ProfileDataSourceKey.makeLiveValue`. So every UI test starts from the same log, and none writes to the simulator's own drinks. `DrinkLogUITestStoreTests` checks it for both launch profiles. It never opens the device's store, so it doesn't test the configuration outside UI tests. The UI tests' clean-up deletions were removed, and the three parallel sessions were told.
+  - **Docs:** the history card section and its requirements in the `Today Screen` article, SRC-5 to SRC-7 and the delete operation in `Drink Composer`, and the new feature, use cases, rule, robot identifiers, and repository and data source duties in `Architecture`.
+  - **Deviation:** the question offered a confirmation dialog. The AI built the confirmation into the row instead, so that every control carries an identifier the robot finds it by (constitution Article II.6). Whether a system dialog's buttons would expose identifiers wasn't tested.
+  - **Accessibility audit, with scratch diagnostics that were never in the main tree:**
+    - In the snapshot, the audit failed on "Text clipped". The flagged text was the today's-intake session's tile, which that session had already fixed after the snapshot.
+    - After the tab bar landed, UI-9 failed on contrast. The flagged texts were the card's rows under the bar, and, once a row grew with Keep and Delete, rows up to about 40 pt above the log button. Scrolled to the settled end, the card had no issues. `showHistory()` now scrolls until the card stops moving, UI-9 scrolls again after asking to delete, and it audits with `auditAccessibilityAboveTheTabBar()`, as the `Architecture` article requires for screens in the tab bar.
+    - With the empty drink log, UI-9 and the one-tap session's Today and root audits still failed now and then on contrast. A diagnostic that waited 1 to 2 s after each scroll found no issues in the same states, with the card's last text above the fade band. With a 2 s sleep before each audit, in a scratch copy of the helper, all three passed 2 out of 2. So the cause was timing: the bar's glass and the scroll edge effect were still animating.
+    - **The still-screen wait, the owner's choice at 16:30:** before each pass, `auditAccessibilityAboveTheTabBar()` takes screenshots until two in a row are identical, or 20 have been taken. It waits for a condition rather than a fixed time (Article II.9). Before it was applied, 5 iterations of the three audits in the scratch worktree gave 14 of 15 passes, with no contrast failures. The one failure was a rarer "Dynamic Type font sizes are partially unsupported" in the Today audit's second pass, which the one-tap session also sees about 1 run in 10. The wait doesn't fix that one, and no element has been tied to it yet. The one-tap session agreed to the change in its file, and the `Architecture` and `One-Tap Log` articles describe the wait.
+  - **Mistakes, corrected before the end:**
+    - The first design question said no total existed. It did, in another session's uncommitted work.
+    - The 3-way merge joined two conflict halves in `TodayFeature.body` and dropped the one-tap `Scope`'s closing brace, so the main tree didn't build from about 14:26 to 14:30. swift-format's lint found it, and the brace was restored.
+    - The catalog merge overwrote another session's `"Logged %@"` comment, which belongs to one-tap's VoiceOver announcement. That entry was restored, and the history card's title became `"Logged on %@"`, so one key doesn't carry two meanings.
+    - `DrinkComposerRobot+Log.swift` duplicated the one-tap session's new `logDrink()`, so it was deleted before any commit.
+    - `ObserveDrinkLogDayUseCaseTests` had a compiler warning, a captured `var` in a `@Sendable` closure. Two parallel sessions reported it. The calendar is now a `let`.
+    - At 16:45 the AI told the one-tap session the still-screen wait was in the main tree before checking its script's output. The script's safety check had aborted, because it rebuilt the original file wrongly, and nothing had been written. A direct diff showed the only differences were the AI's additions, the file was applied at 16:46, and the one-tap session was told the correction before that.
+    - The first `DrinkLogUITestStoreTests` suite name clashed with an existing `DrinkLogDataSourceKeyTests`, and its first `#expect` didn't compile. Both were fixed in the red phase.
+- **Human changes:** Chose the day stream, the confirmation, an empty drink log for UI tests, and the still-screen wait. The other sessions' changes to shared files are theirs.
+- **Files:**
+  - Added: `Half-Life/Domain/Entities/DrinkLogDay.swift`, `Half-Life/Domain/BusinessRules/DrinkLogDayRule.swift`, `Half-Life/Domain/UseCases/ObserveDrinkLogDayUseCase.swift`, `DeleteDrinkUseCase.swift`, `Half-Life/Features/DrinkLogHistory/DrinkLogHistoryFeature.swift`, `DrinkLogHistoryView.swift`, `DrinkLogHistoryViewAccessibilityID.swift`, `Half-LifeTests/Domain/DrinkLogDayRuleTests.swift`, `ObserveDrinkLogDayUseCaseTests.swift`, `DeleteDrinkUseCaseTests.swift`, `Half-LifeTests/Data/SwiftDataDrinkLogDataSourceDeleteTests.swift`, `LiveDrinkLogRepositoryDayTests.swift`, `DrinkDeletionTests.swift`, `Half-LifeTests/App/DrinkLogHistoryDependencyTests.swift`, `DrinkLogUITestStoreTests.swift`, `Half-LifeTests/Presentation/DrinkLogHistoryFeatureTests.swift`, `TodayFeatureHistoryTests.swift`, `Half-LifeUITests/DrinkLogHistoryUITests.swift`, `Half-LifeUITests/Robots/TodayRobot+History.swift`
+  - Modified: `Half-Life/Data/DataSources/DrinkLogDataSource.swift`, `SwiftDataDrinkLogDataSource.swift`, `Half-Life/Data/Repositories/LiveDrinkLogRepository.swift`, `Half-Life/Domain/Repositories/DrinkLogRepository.swift`, `Half-Life/App/Dependencies/DrinkLogDependencies.swift`, `DrinkLogDataSourceDependencies.swift`, `Half-Life/Features/Today/TodayFeature.swift`, `TodayView.swift`, `Half-Life/Localizable.xcstrings`, `Half-Life.xcodeproj/project.pbxproj`, `Half-Life/App/UITesting/LaunchEnvironmentKey.swift` (doc comment only), `Half-LifeTests/Fakes/FakeDrinkLogDataSource.swift`, `FakeDrinkLogRepository.swift`, `Half-LifeUITests/Robots/Robot+TabBarAudit.swift` (the one-tap session's file: the still-screen wait), `Half-Life/Documentation.docc/TodayScreen.md`, `DrinkComposer.md`, `Architecture.md`, `Onboarding.md` (LAUNCH-3), `OneTapLog.md` (the wait), `ai_log.md`, `ai_transcripts/`
+- **Verification:**
+  - Red phases were confirmed at each layer: compile failures for each missing type or member, and the four history UI tests failing with "The history card isn't there" before the view existed.
+  - In the snapshot, the full unit and UI run that ended at about 13:07: every test of this task passed, all 26 UI tests passed, and the only failures were the one-tap session's favourites tests, which it was still writing. `Half-Life.app` coverage was 95.69% (3065/3203).
+  - On the merged main tree, the final full run from 15:00 to 15:12, on the dedicated simulator with parallel testing off: 551 Swift Testing tests passed, with 45 known issues (the expected unimplemented-dependency checks). 35 of 36 UI tests passed. The one failure was UI-9, `testHistoryPassesAccessibilityAudit`, with "Dynamic Type font sizes are partially unsupported" in the tab bar helper's first pass, and no element named. Three repeats of a scratch diagnostic at 15:13–15:16 didn't reproduce it. They found contrast issues instead: the card's total row, about 10 pt above the log button at the scrolled end, and, with a deletion waiting, a row up under the status bar. The simulator's log for today held about 14 drinks (878 mg), left by every session's UI tests, which made the card long. The same positions had no issues at 14:55, with fewer drinks. Coverage was 95.22% (6977/7327). That led to the owner's two decisions at 16:04 and 16:30.
+  - After the empty drink log, the run from 16:08 to 16:18 passed all 552 Swift Testing tests. UI-9, the Today audit, and the root audit failed on contrast, which led to the timing investigation. The still-screen wait's validation is under "AI contribution".
+  - The final full run on the merged main tree, from 16:47 to 17:01, with the still-screen wait in the helper: 552 Swift Testing tests passed, with 45 known issues. 36 UI tests passed and 3 failed:
+    - UI-9, with "Dynamic Type font sizes are partially unsupported" in the helper's second pass: the screen-wide flake (see Notes).
+    - The onboarding fix session's `testEveryStepScrollsOnlyVerticallyWithTheLargestText`, which that session said would fail until its fix lands.
+    - The one-tap session's `testOpensAsACompactSheet`: the composer measured 668.94 pt against a 655.5 pt limit. It passed at 16:08 with the same drink log. That session ran its own UI tests at the same time, and was told.
+  - The Today and root audits passed in the final run. All other history UI tests passed in every run on the main tree.
+  - Coverage: `Half-Life.app` at **95.16%** (7001/7357).
+  - No compiler warnings came from Half-Life's sources in the final run.
+  - swift-format lint `--strict` and SwiftLint `--strict` on the whole main tree at about 16:08: clean. The audit helper, changed after that, was linted at 16:46: clean.
+  - `xcodebuild docbuild` on the main tree at 17:02, after the last doc edits: `BUILD DOCUMENTATION SUCCEEDED`, with no warnings from Half-Life's sources or catalog. The 14:42 build's warnings were in a third-party package and in another session's `OnboardingFeature.swift`, since fixed.
+- **Notes:**
+  - Time in this session doesn't count toward the owner's implementation time (a remote-control session).
+  - Not committed. The main tree also holds the other sessions' uncommitted work.
+  - **Open:** UI-9 still fails now and then with "Dynamic Type font sizes are partially unsupported". The one-tap session's diagnostic found that each hit flags nearly every text on the screen at once, so it points to timing, not to a card. That session is taking the options to the owner, because the audit helper is its file. While the flake remains, the definition of done's "all unit and UI tests pass" isn't met.
+  - The owner asked the onboarding session for two changes to the history card: a button that returns to today, and a day change that doesn't make the Today screen jump. That session found the jump was the card hiding while `day` was `nil`, as this session suspected, and it merges its changes after this entry.
+  - The scratch worktree was removed at 17:03.
+  - Still to confirm: Previous has no limit, drinks are listed oldest first, and the wording of the empty message and the Delete button's hint.
+  - The simulator `HalfLife-History` (B11F634B-5173-44AA-83C8-74B2326F88AF) is still there. Delete it with `xcrun simctl delete` when it's no longer useful.
+
+### 2026-09-12 12:18 -0400 — Build onboarding
+
+- **Started:** 2026-09-12 12:18 -0400 (the AI's clock reading when it read the prompt)
+- **Ended:** 2026-09-12 14:51 -0400
+- **Human:** Adam Ure
+- **AI tool / model:** Claude Code / Claude Opus 5, with one forked subagent (Claude Opus 5) for the permissions stack
+- **Transcript:** `ai_transcripts/2026-09-12-1140-d338821c.md`. The subagent's work is summarized in this session's transcript. Its own session file isn't exported.
+- **Type:** change, planning
+- **Request:** Implement onboarding from the design in the `Onboarding` article.
+- **Interactions:**
+  - `12:18` Said the design was ready to implement.
+  - `~12:20` Answered four questions (the transcript records no time for the answers). The multipliers were used as proposed, the cutoff was left out of onboarding, age became a picker stored as a birth year, and bedtime a time picker only.
+  - Messages from three parallel sessions, which the owner was running at the same time, were handled in this session. They coordinated file ownership, the cutoff split (another session built the cutoff), the tab bar redesign, and the order of merging into the main tree. None of them changed the owner's decisions.
+- **AI contribution:**
+  - **Isolation.** Worked in a copy of the tree taken at 12:26, so red-phase compile errors never reached the other sessions. Merged back 3-way against that copy at 14:12, holding the files another session was still editing until it finished.
+  - **Domain, test-first:**
+    - `HalfLifeFactor` and `Trimester`.
+    - `HalfLifePriorRule`, with the multipliers, pregnancy and estrogen not stacking, and the 3 to 40 hour clamp.
+    - `SleepNeedRule` and `RecommendedSleep`.
+    - `UserProfile`, which gained the birth year, factors, bedtime, half-life, and completion, each with a default.
+    - Five use cases: `SaveAboutYouUseCase`, `SaveHalfLifeFactorsUseCase`, `SaveBedtimeUseCase`, `CompleteOnboardingUseCase`, and `ObserveRecommendedSleepUseCase`.
+  - **Data, test-first:**
+    - `FileProfileDataSource`: one protected JSON file behind the profile, bedtime, and half-life protocols, with change signals.
+    - `LiveUserProfileRepository`: its stream no longer finishes, it saves, and it executes both rules.
+    - `LiveCaffeineDecayRepository` now recalculates when the half-life or the bedtime changes.
+    - `ProfileDataSourceKey` wires the shared data source for the app, previews, and UI tests.
+    - `StandardBedtimeDataSource`, `StandardHalfLifeDataSource`, and `EmptyUserProfileDataSource` were removed with their tests. Their requirements (BEDSRC-1, HALF-1, PROF-2) moved to the new data source's and the repository's tests.
+  - **Permissions, test-first, by the forked subagent, against a contract this session set:**
+    - The permission entities, `PermissionsRepository` and `LivePermissionsRepository`, and six use cases.
+    - The HealthKit, UserNotifications, LocalAuthentication, permission history, and Settings data sources.
+    - Simulated data sources for UI tests.
+    - The Touch ID reason string, "Allow Half-Life to check that it's you.", which doesn't promise a lock.
+  - **Presentation, test-first:**
+    - `OnboardingFeature`, with a `StackState` path, and one feature, view, and identifier file per step: Welcome, About you, the factors, bedtime, permissions, and summary.
+    - `OnboardingFormat`.
+    - `AppFeature` presents onboarding full screen from the observed profile, completes it, and opens the composer after "Log my first cup".
+    - `AppView` wraps the tab bar in `if hasLoadedProfile`, and adds the cover and `.task`.
+    - 73 strings were added to the catalog, each with a comment.
+  - **UI tests:**
+    - Six robots, one file each.
+    - `OnboardingUITests`, with 7 scenarios.
+    - `launchPastOnboarding()` and `launchAtOnboarding()` in `Robot.swift`, backed by `UITestLaunchConfiguration` and `LaunchEnvironmentKey`. The key file belongs to both targets.
+    - Every existing UI test, including the other sessions' new ones, now launches past onboarding.
+  - **Accessibility audit fixes, found with a scratch diagnostic that isn't kept:**
+    - The pushed steps' text failed contrast over the page gradient, even `textPrimary`. Neither waiting 2 seconds, hiding the scroll edge effect, nor hiding the navigation bar fixed it. Onboarding's pages are now solid `backgroundCanvasTop`, and text directly on them uses `textPrimary`.
+    - `UIDatePicker`'s wheel failed the Dynamic Type check. The bedtime is now two SwiftUI wheels, for hours and minutes, with `OnboardingFormat.hour` and `minute`.
+    - The one-line name field was flagged as clippable. It now wraps.
+    - "Take me to Today" failed contrast under the primary button's shadow. The shadow was removed.
+    - The audit's Dynamic Type results on the factors step varied from run to run while the trimester chips animated in. The robot now waits for the chosen trimester before auditing.
+  - **Docs:**
+    - The `Onboarding` article was updated to the build, with a new "What changed while building" section.
+    - The `Architecture` article's onboarding rows moved from designed to built, including the robots, the folder layout, and the launch helpers.
+    - The `Caffeine Decay Model`, `Today Screen`, `Sleep Data`, `Step Count`, and `Resting Heart Rate` articles no longer mention the removed data sources or an unbuilt authorization data source.
+  - **Mistakes, corrected before the end:**
+    - A dry-run merge script named a zsh variable `path`, which clobbered `PATH`, and it reported false conflicts. It was redone in Python.
+    - Splitting the robots into files first duplicated a banner line.
+    - A parameterized `TestStore` test gave its two cases different element IDs, so it became two tests.
+    - The hour and minute formatters were written during the audit investigation, before their tests. The tests came after, and pass.
+    - The warning check filtered for "warning:" followed by a Half-Life path, but compiler warnings put the path first. So it missed two warnings of the AI's own, in `OnboardingFeature.swift`: `@Reducer(state: .equatable)` is deprecated. A parallel session reported them at 14:44. The AI moved the conformance into an extension, `extension OnboardingFeature.Path.State: Equatable {}`. There's no unit test for a compiler warning, so the build log is the check. Searching the log properly also found seven warnings in two other sessions' tests. The AI reported them to those sessions, and didn't touch their files.
+    - `LaunchEnvironmentKey.profile`'s doc comment said the UI tests' profile was "in-memory". It's a new temporary file. The AI corrected the comment after another session extended it at 16:04, to add the in-memory drink log.
+- **Human changes:** Made the four decisions above. The other sessions' changes to shared files are theirs.
+- **Files:** 97 added, 6 deleted, and 26 modified in the app, tests, UI tests, project, catalog, and docs. Listed by `git status` at commit time, together with `ai_log.md` and `ai_transcripts/`.
+- **Verification:**
+  - Red phases were confirmed at each layer: compile failures for the missing types, and all 7 onboarding UI tests failing with "Expected WelcomeRobot, but AppRobot is showing" before the views existed.
+  - In the work copy, at 14:05, every onboarding unit and UI test passed. The only failures were 15 favourites tests that another session was still writing.
+  - On the merged main tree, the full unit and UI run ended at 14:24: `** TEST SUCCEEDED **`, with 552 passed, 0 failed, and 27 expected failures, out of 579. The AI then reported that no compiler warnings came from Half-Life's sources, which was wrong (see the mistakes).
+  - Coverage: `Half-Life.app` is at **89.65%** (6560/7317).
+  - swift-format lint `--strict` on every file this task added or changed, and SwiftLint `--strict` on the whole main tree: clean.
+  - `xcodebuild docbuild` on the main tree at 14:18: `BUILD DOCUMENTATION SUCCEEDED`.
+  - After the fix to `OnboardingFeature`, the unit tests and the onboarding UI tests ended at 14:50 with `** TEST SUCCEEDED **`: 531 passed, 0 failed, and 27 expected failures. No warnings came from any file this task added or changed, and swift-format and SwiftLint were clean on the fixed file.
+  - `xcodebuild docbuild` at 14:51: `BUILD DOCUMENTATION SUCCEEDED`, with no warnings outside the third-party packages.
+- **Notes:**
+  - Time in this session doesn't count toward the owner's implementation time (a remote-control session).
+  - Not committed. The main tree also holds the other sessions' uncommitted work.
+  - The owner hasn't reviewed the copy on the notifications and Face ID rows ("So Half-Life can remind you about your caffeine.", "Lets Half-Life check that it's you.").
+  - The simulator `HalfLife-Onboarding` (EB9F87B2-CC51-4EEC-B6B4-8D24FFCAB6E0) is still there. Delete it with `xcrun simctl delete` when it's no longer useful.
+
+### 2026-09-12 13:03 -0400 — Build the Last Cup cutoff, and research the caffeine left at bedtime
+
+- **Started:** 2026-09-12 13:03 -0400 (the AI's first clock reading after the prompt)
+- **Ended:** 2026-09-12 16:09 -0400 (the clock reading at the last doc follow-up. The docbuild, the transcript export, and the report followed.)
+- **Human:** Adam Ure
+- **AI tool / model:** Claude Code / Claude Opus 5
+- **Transcript:** `ai_transcripts/2026-09-12-1140-64c57bb0.md`
+- **Type:** change, planning
+- **Request:** Work with the onboarding session on a repository that gives the last-cup time from the caffeine already in the body, sized for the user's most frequent drink. Research how much caffeine can be in the body at bedtime, and use a default for now; it'll be personalised later. Document the feature and the research in the DocC catalog.
+- **Interactions:**
+  - `13:03` Asked for the feature above.
+  - `13:07` The AI asked whether to build the Last Cup tile too. The owner chose the tile showing the cutoff ("By 2:30 PM", "No more today"). The AI had recommended building only the repository and docs, and the third option was the prototype's tile, which shows when the last drink was.
+  - `13:07` Asked that the research's sources be documented in the Xcode documentation. The message arrived during the turn that read the clock at 13:07.
+  - `13:57` Confirmed the 40 mg default and the tile's wording, and asked for the cutoff to round down to a friendlier time. The prompt said "40kg", which the AI read as milligrams. The AI asked how far to round, and the owner chose the half hour, the AI's recommendation, before the next clock reading at 14:00.
+- **AI contribution:**
+  - Coordination with the onboarding session, `half-life-1c`:
+    - It said the owner had taken the cutoff out of onboarding at 12:18, so the cutoff became this task's alone.
+    - They agreed the AI's edits to `LiveCaffeineDecayRepository` would be additive, and that its new init parameter would have a default, so onboarding's dependency wiring doesn't change.
+    - They agreed the cutoff would be documented in its own article.
+  - Research: a background research agent recommended 40 mg in the body at bedtime, within a range of 25–60 mg.
+    - Gardiner 2023's meta-analysis cutoffs leave about 37–43 mg under the app's model.
+    - Baur 2024's plasma thresholds convert to about 35–41 mg (heart rate) and 60–70 mg (deep-sleep EEG).
+    - Gardiner 2025, Drake 2013, and Landolt 1995 are also in the evidence.
+    - It found no source for the prototype's 25 mg or 55 mg.
+    - The AI checked the derived amounts against its own Python version of the model: 36.74 mg, 42.9 mg, and the brief's 86.17 mg.
+    - The citations are as the agent retrieved them. The AI didn't re-fetch each one, and the agent couldn't retrieve two of the full texts. The article says so.
+  - Test-first, in four cycles. Each red step ran against stubs first, so the tests failed on their assertions:
+    - Domain:
+      - `SleepThreshold`, with a standard 40 mg (THRESH-1 and THRESH-2).
+      - `Bedtime.next(atOrAfter:in:)` (BED-3). `CaffeineStatusRule` now uses it instead of its own private copy.
+      - `CaffeineDecayRule.peakDelay(for:)` (RULE-9).
+      - `CaffeineCutoff`.
+      - `CaffeineCutoffRule` (CUTOFF-1 to CUTOFF-8). It finds the latest whole minute when the intakes already logged, plus one usual cup, leave at most the threshold at the next bedtime. It only considers cups that peak by bedtime: under Bateman absorption, a cup drunk at bedtime adds nothing *at* bedtime. The rule finds the minute by bisection.
+    - Data:
+      - `SleepThresholdDataSource` and `StandardSleepThresholdDataSource` (THRESH-3).
+      - `CaffeineDecayRepository.cutoff(in:)`, in `LiveCaffeineDecayRepository` (CUTREPO-1 to CUTREPO-4). The usual drink is the first favourite `FavouriteDrinksRule` finds in every logged drink. The intakes are those of the drinks that aren't marked negligible. It recalculates after each change and at each minute, and sends each subscriber a cutoff only when it changes.
+      - `ObserveCaffeineCutoffUseCase` (OBSCUTOFF-1), registered as `\.observeCaffeineCutoff` (DEP-CUTOFF).
+    - Presentation:
+      - `LastCupFeature` (LASTCUP-1), scoped into `TodayFeature` (TODAY-LASTCUP).
+      - `LastCupView` fills the tile row's trailing half, and both tiles now fill the row's height.
+      - `TodayRobot.verifyLastCup()` and UI-LASTCUP. The Today screen's audit test now includes the tile.
+  - Rounding, after the owner's 13:57 decision:
+    - Tests first: the updated CUTOFF-1, CUTOFF-3, and CUTOFF-4 tests, and a new one for Nepal's +5:45 time zone, failed against the minute-rounding code at 14:00.
+    - `CaffeineCutoffRule` now rounds the exact cutoff down to :00 or :30, using the calendar's own hour boundaries, so a time zone offset by 45 minutes gets local half hours.
+    - Once the rounded half hour's minute has passed, there's no cutoff.
+    - The article's examples are now 1:00pm, 6:30pm, and 9:00pm, and its requirements, the entity's doc comment, and the Architecture row match.
+  - Refactor: SwiftLint flagged `CaffeineCutoffRule.cutoff`, which took 7 parameters, over the limit of 5. Its inputs are now one `CaffeineCutoffRule.Inputs`, which also replaced the repository's identical private struct.
+  - Docs:
+    - A new `Caffeine Cutoff` article covers:
+      - the question the cutoff answers, and why the cup must peak by bedtime
+      - the rule
+      - the threshold's research, with its evidence table, derivations, individual variation, confidence language, and caveats
+      - where the cutoff is calculated, the entities, and the tile
+      - the requirements, what's still to decide, and the sources
+    - The `Today Screen` article gains the tile's row, BED-3, and the tile row's bullet, and loses the now-decided cutoff item from "Still to decide".
+    - The `Caffeine Decay Model` article gains RULE-9 and a pointer to the cutoff's requirements.
+    - The `Architecture` article gains rows, the catalog's index links the new article, and the String Catalog gains four strings.
+  - Diagnosis:
+    - The Today screen's audit failed on "Contrast" for text in the one-tap row. That row now sits under the new tab bar, another session's uncommitted work.
+    - UI-5 and the composer's own UI tests failed with "The log tab isn't showing" after the tab bar replaced the log button.
+    - Temporary diagnostics, deleted afterwards, found both. The AI reported them to the tab bar's session, `half-life-d8`. It confirmed both are its own, and is taking the contrast question to the owner.
+  - Mistakes, corrected before the end:
+    - The article's first example cutoffs, 1:05pm and 6:25pm, were estimates. The Python check gave 1:06pm and 6:36pm.
+    - The peak delay was first written as 3,788.63 seconds. It's 3,788.64.
+    - Four of the AI's new tests first had scenarios with no cutoff at all, because a morning of two-shot lattes leaves no room before bedtime. They were fixed before their green runs: one in the rule's tests, and three in the repository's, which now use a one-shot latte.
+- **Human changes:** Chose to build the tile, with the cutoff's wording.
+- **Files:**
+  - Added: `Half-Life/Domain/Entities/SleepThreshold.swift`, `CaffeineCutoff.swift`, `Half-Life/Domain/BusinessRules/CaffeineCutoffRule.swift`, `Half-Life/Domain/UseCases/ObserveCaffeineCutoffUseCase.swift`, `Half-Life/Data/DataSources/SleepThresholdDataSource.swift`, `StandardSleepThresholdDataSource.swift`, `Half-Life/Features/LastCup/` (`LastCupFeature.swift`, `LastCupView.swift`, `LastCupViewAccessibilityID.swift`), `Half-Life/Documentation.docc/CaffeineCutoff.md`, `Half-LifeTests/Domain/SleepThresholdTests.swift`, `CaffeineCutoffRuleTests.swift`, `ObserveCaffeineCutoffUseCaseTests.swift`, `Half-LifeTests/Data/StandardSleepThresholdDataSourceTests.swift`, `LiveCaffeineDecayRepositoryCutoffTests.swift`, `Half-LifeTests/App/CaffeineCutoffDependencyTests.swift`, `Half-LifeTests/Fakes/FakeSleepThresholdDataSource.swift`, `Half-LifeTests/Presentation/LastCupFeatureTests.swift`
+  - Modified: `Half-Life/Domain/Entities/Bedtime.swift`, `Half-Life/Domain/BusinessRules/CaffeineDecayRule.swift`, `CaffeineStatusRule.swift`, `Half-Life/Domain/Repositories/CaffeineDecayRepository.swift`, `Half-Life/Data/Repositories/LiveCaffeineDecayRepository.swift`, `Half-Life/App/Dependencies/CaffeineDecayDependencies.swift`, `Half-Life/Features/Today/TodayFeature.swift`, `TodayView.swift`, `Half-Life/Features/CaffeineIntakeToday/CaffeineIntakeTodayView.swift`, `Half-Life/Localizable.xcstrings`, `Half-Life.xcodeproj/project.pbxproj` (the identifier file's UI test membership), `Half-LifeTests/Domain/BedtimeTests.swift`, `CaffeineDecayRuleTests.swift`, `Half-LifeTests/Fakes/FakeCaffeineDecayRepository.swift`, `Half-LifeTests/Presentation/TodayFeatureTests.swift`, `Half-LifeUITests/TodayUITests.swift`, `Half-LifeUITests/Robots/TodayRobot.swift`, `Half-Life/Documentation.docc/TodayScreen.md`, `Architecture.md`, `CaffeineDecayModel.md`, `Documentation.md`, `ai_log.md`, `ai_transcripts/`
+- **Verification:**
+  - Red → green on the dedicated simulator:
+    - The Domain went red at 13:12, and green at 13:15 apart from one test with an impossible scenario, which was fixed.
+    - The repository, use case, and registration went red at 13:18. Three tests with impossible scenarios failed at 13:21, and all passed at 13:26.
+    - The feature went red at 13:29 and green at 13:31. At 13:31 the new UI tests failed because the tile didn't exist yet.
+    - At 13:34 UI-LASTCUP passed. The audit and UI-5 failed, for the tab bar reasons above.
+    - The refactor's tests passed at 13:41.
+  - swift-format and SwiftLint `--strict` on this task's files at 13:41: clean.
+  - Full unit and UI run, 13:42 to 13:46, on the dedicated simulator: `** TEST FAILED **`, with 392 tests. 357 passed, 23 were expected failures, and 12 failed. None of the failures is this task's:
+    - Ten fail on "The log tab isn't showing": all nine `DrinkComposerUITests`, and UI-5.
+    - The Today screen's and the root screen's accessibility audits fail too.
+    - All twelve come from the tab bar that another session, `half-life-d8`, is building. It has confirmed they're its to fix.
+    - Every test this task added passed, including UI-LASTCUP.
+    - The AI reported no compiler warnings here, but its warning scan was wrong (see below).
+  - Coverage: `Half-Life.app` at **71.17%** (2792/3923), under the 80% minimum.
+    - The two biggest gaps aren't this task's: `DrinkComposerView.swift` at 0/572, because every composer UI test stops at the tab bar, and `DrinkLogHistoryView.swift`, another session's new card, at 0/427. With those two covered, the target would be at about 96.6%.
+    - Every file this task added or changed is at 91% or more. For example, `CaffeineCutoffRule` and `LastCupFeature` are at 100%, `LastCupView` at 98.77%, and `LiveCaffeineDecayRepository` at 91.15%.
+  - `xcodebuild docbuild` at 13:47: `BUILD DOCUMENTATION SUCCEEDED`, with no warnings from Half-Life's sources or catalog.
+  - Rounding: the updated rule tests failed at 14:00 and passed at 14:04. From then on, runs used this session's own build folder, `build/DerivedData-a1`, as the memory note on parallel sessions asks.
+  - Second full unit and UI run, 14:04 to 14:10, after the tab bar session's log-tab fix and audit helper: `** TEST FAILED **`, with 393 tests.
+    - 368 passed, 23 were expected failures, and 2 failed: the root screen's and the Today screen's accessibility audits, both on "Contrast failed".
+    - The issues printed in the run's log are the one-tap row's heading at y 733, its drinks under the tab bar, and one contrast issue the audit didn't tie to an element. The tab bar session's helper deliberately doesn't skip an issue with no element.
+    - None of them is the Last Cup tile, at y 575 to 705.
+    - UI-5 and every composer test passed.
+  - Coverage: `Half-Life.app` at **85.26%** (3349/3928). The one file under 70% is `DrinkLogHistoryView.swift` (0/427), another session's.
+  - The tab bar session then fixed the last two audit failures.
+  - The onboarding session merged its work into the main tree, including `LiveCaffeineDecayRepository`, `CaffeineDecayDependencies`, and the shared docs.
+    - The AI waited until it sent "merge done".
+    - The cutoff code, the launch test's portrait reset, and the Last Cup robot and tests all survived the merge.
+  - Full unit and UI run on the merged tree, 14:25 to 14:33, on the dedicated simulator: `** TEST SUCCEEDED **`, with 579 tests.
+    - 552 passed, 27 were expected failures, and 0 failed.
+    - The AI first reported no compiler warnings, but its scan was wrong. The onboarding session pointed out six in this task's `LiveCaffeineDecayRepositoryCutoffTests.swift` (see below).
+  - Coverage: `Half-Life.app` at **89.64%** (6559/7317). This task's files are at 91.6% to 100%.
+  - `xcodebuild docbuild` on the merged tree at 14:35: `BUILD DOCUMENTATION SUCCEEDED`, with no warnings from Half-Life's sources or catalog. In a fresh build folder, the build also prints warnings from the third-party packages' own documentation (swift-case-paths and swift-clocks).
+  - swift-format `--strict` on this task's files, and SwiftLint `--strict` on the whole project, at 14:35: clean.
+  - Mistake: after the 14:36 report, the onboarding session pointed out that the AI's warning scan could never have matched. The scan searched for "warning:" followed by a file path, but the compiler prints the path first. So every "no compiler warnings" in this entry came from a check that couldn't fail. The onboarding session's message arrived between the clock readings at 14:36 and 14:47.
+    - The merged-tree run had six warnings in `LiveCaffeineDecayRepositoryCutoffTests.swift`. `#require` was redundant, because comparing its result with the test helper's optional cutoff made it infer a double optional.
+    - The helper now unwraps the expected cutoff itself, so each of the six comparisons is between two cutoffs.
+    - With a corrected scan, those tests, and the rule, reducer, and Today tests, passed at 14:48 with no warnings from this task's files. The one warning left is in `ObserveDrinkLogDayUseCaseTests.swift`, another session's, which the AI reported to it.
+    - The corrected scan of the previous task's final run log finds no warnings, so that entry's claim holds.
+  - Follow-up at 16:09: the history-card session relayed the owner's 16:04 decision that every UI launch starts with an empty drink log (LAUNCH-3 in the `Onboarding` article). UI-LASTCUP's row in the `Caffeine Cutoff` article, and `TodayRobot.verifyLastCup()`'s doc comment, said the tile's answer depends on the simulator's drink log. Both now say it depends on the time of day, with the first starter as the usual drink at launch. The test itself accepts either answer, so it didn't change.
+- **Notes:**
+  - At 13:57 the owner confirmed the 40 mg threshold and the tile's wording, and chose rounding down to the half hour.
+  - The whole suite passes on the merged tree at 14:33, after the tab bar session's fixes and the onboarding merge.
+  - The session's transcript contains a fragment of the owner's email address. The fragment comes from the AI's own redaction-check command in the previous task. The exporter redacts only full addresses, and transcripts aren't edited by hand, so the owner should look at it before committing (Rule 9.3).
+  - Time in this session doesn't count toward the owner's implementation time (a remote-control session).
+  - Not committed. The working tree also holds other sessions' uncommitted work.
+
+### 2026-09-12 16:32 -0400 — Add Today to the history card, and keep the card in place when the day changes
+
+- **Started:** 2026-09-12 16:32 -0400
+- **Ended:** 2026-09-12 17:18 -0400
+- **Human:** Adam Ure
+- **AI tool / model:** Claude Code / Claude Opus 5
+- **Transcript:** `ai_transcripts/2026-09-12-1140-d338821c.md`
+- **Type:** change, debugging
+- **Request:** Add a button to the history card that jumps back to today, and stop a change of day from scrolling the Today screen back to the top.
+- **Interactions:**
+  - `16:32` Asked for both changes.
+- **AI contribution:**
+  - The history card belongs to another session, which the AI messaged before starting. That session wasn't editing the card, and suggested the same cause the AI had found. It asked the AI to merge only after its final full run. The AI worked in a snapshot of the main tree taken at 16:34.
+  - **Reproduced the bug first.** A new UI test, UI-11, found the card's title 102 pt lower on screen after Previous day (677.8 against 575.5). The cause: `showDay` cleared `state.day` until the new day arrived, so the card disappeared for a moment. The Today screen's content shrank, and the scroll view clamped its offset, leaving the screen scrolled away from the card. UI-10, for the Today button, also failed first.
+  - **Changed three existing tests, and said why first.** HIST-2, HIST-3, and HIST-7 had four `$0.day = nil` assertions. They required the card to clear its day on a change, which is the behavior that caused the bug. They now require the new behavior, which new requirements HIST-9 and HIST-10 cover. New tests, written first, covered Today, its guard on today, when it's offered, and keeping the last day until the next arrives.
+  - **The fix:**
+    - `DrinkLogHistoryFeature` keeps the last day in `State` until the next one arrives. It gained `todayTapped`, `canShowToday`, and `showsSelectedDay`.
+    - While the next day loads, `DrinkLogHistoryView` shows the last day's card invisible, untouchable, and hidden from VoiceOver.
+    - A Today capsule, styled like Keep, shows before the chevrons only on an earlier day, with the hint "Shows the drinks logged today." At accessibility text sizes, the buttons sit under the title.
+  - **A second cause, found with a scratch diagnostic that isn't kept:** after the fix, the title still moved 8.7 pt. The squeezed Today button was 61 pt high, because its label had wrapped onto two lines. The buttons now keep their natural size (`.fixedSize()`), and the title wraps instead.
+  - **One flaky failure, not reproduced:** "Dynamic Type font sizes are partially unsupported" in the history audit, once. A bare audit of the same card found no issues, and the next run passed. The other session is changing the tab-bar audit helper to wait for a still screen.
+  - **Docs and strings:** the Today Screen article covers the Today button and keeping the card in place, with HIST-9, HIST-10, UI-10, and UI-11. The catalog gained the hint, and the existing "Today" key's comment covers its new use.
+- **Human changes:** None
+- **Files:** `DrinkLogHistoryFeature.swift`, `DrinkLogHistoryView.swift`, `DrinkLogHistoryViewAccessibilityID.swift`, `DrinkLogHistoryFeatureTests.swift`, `TodayRobot+History.swift`, `DrinkLogHistoryUITests.swift`, `Localizable.xcstrings`, `TodayScreen.md`, `ai_log.md`, `ai_transcripts/`
+- **Verification:**
+  - Red: at 16:42, UI-10 and UI-11 failed as described above. The new unit tests then failed to compile, because `todayTapped`, `canShowToday`, and `showsSelectedDay` didn't exist yet.
+  - In the snapshot at 16:56, the history reducer's tests and every history UI test passed: 27 passed, 0 failed.
+  - Merged into the main tree at 17:04. All eight files were unchanged there since the snapshot, so each was copied.
+  - On the main tree, the full unit and UI run ended at 17:18: `** TEST SUCCEEDED **`, with 566 passed, 0 failed, and 27 expected failures, out of 593. That includes the three UI tests that had failed on the main tree at 17:01, before the merge. No compiler warnings came from Half-Life's sources, checked with a search that catches the path before "warning:".
+  - Coverage: `Half-Life.app` is at **95.26%** (7108/7462).
+  - swift-format lint `--strict` on the changed files, and SwiftLint `--strict` on the whole tree: clean.
+  - `xcodebuild docbuild` at 17:05: `BUILD DOCUMENTATION SUCCEEDED`, with no warnings outside third-party packages.
+- **Notes:**
+  - A remote-control session, so it doesn't count toward the owner's implementation time.
+  - Not committed.
+  - At 17:30, after another session pointed out the order, the AI moved its three uncommitted entries (11:45, 12:18, and this one) into start-time order (rule 4). No text in any entry changed.
+
+### 2026-09-12 16:33 -0400 — Separate the composer's one-tap row from the drink being built
+
+- **Started:** 2026-09-12 16:33 -0400
+- **Ended:** 2026-09-12 17:16 -0400
+- **Human:** Adam Ure
+- **AI tool / model:** Claude Code / Claude Opus 5
+- **Transcript:** `ai_transcripts/2026-09-12-1633-47a24c60.md`
+- **Type:** change
+- **Request:** On the drink composer, add a separator between the one-tap favourites and the rest of the screen, to make them visually distinct.
+- **Interactions:**
+  - `16:33` The owner asked for the separator.
+  - `16:45` half-life-3b, a parallel session, said it was editing the onboarding files. The only file both sessions touch is `ai_log.md`, where each appends one entry.
+  - `16:57` The full test run failed `testOpensAsACompactSheet`. The AI changed the separator's spacing (see below) without asking, because the compact sheet is the owner's existing requirement.
+  - `17:16` half-life-3b reported that the onboarding audit failure didn't reproduce with its edits in (see Verification).
+- **AI contribution:**
+  - `DrinkComposerView` draws a hairline, `Divider()` over `separatorOnCard`, between the one-tap row and the drink tiles. That's the app's existing divider idiom, from the onboarding summary. It's inset to the screen margins and hidden from VoiceOver as decorative. At accessibility text sizes it moves with the row, under the panel, and stays between the row and the panel.
+  - The first version put a section gap (28 pt) on each side. It made the sheet 668.9 pt tall on iPhone 17 Pro, past three quarters of the screen (655.5 pt), and `DrinkComposerUITests.testOpensAsACompactSheet` failed. Now the separator has a card gap (16 pt) on each side, in place of the one section gap that separated the row from the tiles. The body switches between two layouts on the text size, so the other gaps at accessibility sizes are unchanged.
+  - Docs: `DrinkComposer.md` describes the separator and why its gaps are 16 pt. `DesignSystem.md` adds this use to `separatorOnCard`, which was documented for cards only and now also sits on `backgroundCanvasTop`.
+- **Human changes:** None.
+- **Files:** `Half-Life/Features/DrinkComposer/DrinkComposerView.swift`, `Half-Life/Documentation.docc/DrinkComposer.md`, `Half-Life/Documentation.docc/DesignSystem.md`, `ai_log.md`, `ai_transcripts/`
+- **Verification:**
+  - Test-first: there's no failing test for the separator itself. It's decorative and hidden from accessibility, so neither `TestStore` nor XCUITest can observe it, and exposing it to accessibility just for a test would break Article VI.1. The existing UI tests guard its effects instead: the compact-sheet check, which caught the first version, the largest-text check, and the accessibility audit.
+  - Full unit and UI run on the first version, ended 16:57: 552 unit tests passed, with 45 known issues. The UI tests had 5 failures out of 37. One was the compact-sheet failure above, caused by this change. The other four were on screens this change doesn't touch: the Today, root, and history audits, which are the intermittent tab-bar audit failures in the one-tap and history entries (this build predates their still-screen wait, which landed at 16:46), and `OnboardingUITests.testEveryStepPassesTheAccessibilityAudit` ("Dynamic Type font sizes are partially unsupported"), reported to half-life-3b, whose onboarding edits were in progress. half-life-3b then ran `OnboardingUITests` 3 times on its own simulator with its edits in, and all 27 runs passed, so this matches the known intermittent "partially unsupported" failure rather than its change.
+  - Coverage: `Half-Life.app` is at **95.16%** (7001/7357), from that full run. The fix after it only rearranged the view's stacks.
+  - `DrinkComposerUITests` after the fix, ended 17:00: all 9 passed, including the compact sheet, the largest text size, and the accessibility audit.
+  - No compiler warnings from Half-Life's sources in either build. swift-format lint `--strict` and SwiftLint `--strict` are clean on `DrinkComposerView.swift`.
+  - `xcodebuild docbuild` on the first version: `BUILD DOCUMENTATION SUCCEEDED`, with no warnings from Half-Life's catalog or sources. The fix changed one doc comment and one paragraph, with no new symbol links.
+- **Notes:**
+  - Not committed. The main tree also holds the other sessions' uncommitted work.
+  - The owner hasn't seen the separator on screen. `separatorOnCard` (#E8E4DE) is faint on `backgroundCanvasTop` (#F8F2E9). If it needs to be stronger, the design system would need a new token for lines on the canvas.
+  - The simulator `HalfLife-Separator` (5244279E-4554-4E04-A259-45716A09D0B9) is still booted. Delete it with `xcrun simctl delete` when it's no longer useful.
+
+### 2026-09-12 16:33 -0400 — Keep onboarding's screens from scrolling sideways
+
+- **Started:** 2026-09-12 16:33 -0400
+- **Ended:** 2026-09-12 18:36 -0400
+- **Human:** Adam Ure
+- **AI tool / model:** Claude Code / Claude Opus 5
+- **Transcript:** `ai_transcripts/2026-09-12-1633-a76878d1.md`
+- **Type:** change, debugging
+- **Request:** Make sure the onboarding screens scroll only vertically, never horizontally.
+- **Interactions:**
+  - `16:33` The owner asked for onboarding's screens to scroll only vertically.
+  - `17:00` The AI reported that it couldn't find any screen that scrolls sideways. It asked whether the owner had seen iOS 26's back gesture, which slides a step sideways from anywhere on it, and what should happen.
+  - `17:08` The owner chose to keep iOS's back gesture. (The clock was read just after the answer arrived.)
+  - `18:35` The owner asked the AI to commit. The onboarding feature this change builds on was itself uncommitted, and the owner's commits take the whole working tree, so the AI committed every session's work together.
+- **AI contribution:**
+  - **Investigation.** Every onboarding screen already used a vertical `ScrollView`, and `scrollBounceBehavior(_:axes:)` defaults to the vertical axis only (the SDK's SwiftUI interface), so neither could scroll sideways by itself. The remaining causes were content wider than the screen and the back gesture, and the tests below checked both.
+  - **Tests (UI-ONB-8).** `testEveryStepScrollsOnlyVertically` and `testEveryStepScrollsOnlyVerticallyWithTheLargestText` walk from Welcome to the summary, with pregnancy chosen on the factors step so its trimester row shows. On each screen, the robot's new `verifyScrollsOnlyVertically()` drags leftward from the right margin, then waits up to 5 seconds for every labeled element in the scroll view to sit within its width. The shared helper is in `Robot.swift`, with `launchAtOnboardingWithTheLargestText()`, which sets the accessibility XXXL text size.
+  - **App.** Each onboarding screen's scroll view has a new `content` identifier, in its `…AccessibilityID` file, so the robots can find it. `OnboardingStepLayout` takes it as `contentIdentifier`. No layout changed.
+  - **Findings.** No screen's content was wider than the screen or moved after the swipe, on an iPhone 17 Pro and an iPhone SE (3rd generation), at the default and the largest text size. So there was no layout to fix. A scratch probe found that on the iPhone 17 Pro, a rightward drag from the middle of About you went back to Welcome: iOS 26's back gesture works from anywhere on a pushed screen. The same drag didn't go back on the SE, and the AI didn't find out why. The owner kept the gesture.
+  - **Docs.** The `Onboarding` article adds UI-ONB-8, says that no screen scrolls sideways and that the owner kept the back gesture, and describes the `content` identifiers and how the check swipes.
+  - **Coordination.** The AI told the parallel sessions which shared files it was editing. half-life-a1's full run failed `testEveryStepPassesTheAccessibilityAudit` once, on the bedtime step, with "Dynamic Type font sizes are partially unsupported", while these edits were in the tree. It didn't reproduce here (see Verification), which matches the intermittent audit failure in earlier entries. half-life-e2's full run caught the first version's swipe mistake (below).
+  - **Mistakes, corrected before the end:**
+    - The first check swiped the middle of the screen. At the largest text on the iPhone 17 Pro, that landed on Welcome's full-width Get started button, which moved on to About you, so the check failed with "the content couldn't be read". Its message also hid the snapshot's error. The swipe now starts in the right margin, and the message includes the error.
+    - On the SE at the largest text, the check flagged `AdditionalDimmingOverlay`, an unlabeled image iOS draws under the navigation bar, wider than the screen. The AI first guessed it was a wheel picker's overlay and wrote a fix that skipped pickers' insides, then replaced it before running once the element's position showed otherwise. Now only labeled elements count.
+    - The scratch probe, `ScratchProbeUITests.swift`, queried elements directly, outside the robot pattern (Article II.5). It was deleted after its one run.
+- **Human changes:** Chose to keep iOS 26's back gesture.
+- **Files:**
+  - Modified: `Half-Life/Features/Onboarding/OnboardingStepLayout.swift`, `OnboardingView.swift`, `AboutYouView.swift`, `HalfLifeFactorsView.swift`, `BedtimeView.swift`, `PermissionsView.swift`, `OnboardingSummaryView.swift`, and the six onboarding `…AccessibilityID.swift` files.
+  - Modified: `Half-LifeUITests/Robots/Robot.swift`, the six onboarding robots, and `Half-LifeUITests/OnboardingUITests.swift`.
+  - Modified: `Half-Life/Documentation.docc/Onboarding.md`, `ai_log.md`, `ai_transcripts/`.
+- **Verification:**
+  - **Not red first.** Both new tests passed on their first complete runs. The behavior the owner asked for already held, so the tests guard it rather than drive a fix. No run with a deliberately widened screen was made to prove the check can fail. What it did catch, real frames past the screen's edge (the dimming overlay) and content that moved (the tap on Get started), shows it reads the frames it needs.
+  - Both scroll tests, final version, on the iPhone 17 Pro and the SE, ended by 17:00: all 4 runs passed.
+  - `OnboardingUITests` 3 times on the iPhone 17 Pro, 17:00 to 17:16: 27 of 27 passed, including the accessibility audit every time.
+  - Full unit and UI run on the iPhone 17 Pro, 17:16 to 17:29: `** TEST SUCCEEDED **`. Of 593 tests, 566 passed, 0 failed, and 27 were expected failures (the known unimplemented-dependency checks). No compiler warnings came from Half-Life's sources.
+  - Coverage: `Half-Life.app` is at **95.20%** (7104/7462), from that run.
+  - swift-format lint `--strict` and SwiftLint `--strict` on the whole tree: clean.
+  - `xcodebuild docbuild`: `BUILD DOCUMENTATION SUCCEEDED`, with no warnings outside the third-party packages.
+- **Notes:**
+  - Committed at the owner's request, in one commit with every other session's work in the tree (see Interactions). The other entries in it that say "Not committed" were written before this commit.
+  - The check counts only labeled elements. An unlabeled element that overflowed wouldn't fail it by itself, though any text or button inside it would.
+  - The simulators `HalfLife-HScroll` (CE3D5DFB-B50A-428F-B3DE-D2DED1F38B13) and `HalfLife-HScroll-SE` (28344535-C19C-43E8-8271-655FCAAFEB3B) are still booted. Delete them with `xcrun simctl delete` when they're no longer useful.

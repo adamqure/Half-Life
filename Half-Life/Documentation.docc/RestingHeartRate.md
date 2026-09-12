@@ -37,7 +37,7 @@ The brief asks Half-Life to show how caffeine habits might be affecting sleep an
 
 ## Access and missing data
 
-The data source only reads, and never requests authorization. The owner decided on 2026-09-11 that no data source for one kind of Health data asks for access. A shared HealthKit authorization data source, built with onboarding, will present one sheet for every type a feature needs, when the feature needs them (constitution Articles I.6 and V.3.1). The existing `NSHealthShareUsageDescription` purpose string already mentions heart rate.
+The data source only reads, and never requests authorization. The owner decided on 2026-09-11 that no data source for one kind of Health data asks for access. The shared ``HealthKitAuthorizationDataSource``, built with onboarding (<doc:Onboarding>), presents one sheet for every type a feature needs, when the feature needs them (constitution Articles I.6 and V.3.1). The existing `NSHealthShareUsageDescription` purpose string already mentions heart rate.
 
 - **Denied access looks like no data.** HealthKit doesn't reveal whether read access was denied. The query returns no samples, so the data source returns `nil`, just as it does for a day without a reading.
 - **HealthKit's other errors are thrown.** For example, HealthKit refuses to read while the device is locked, and on a device without Health. The repository that reads this data source decides how to show the missing value. The app works fully without it (Article V.3.3).

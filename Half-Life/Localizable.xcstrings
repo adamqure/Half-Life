@@ -13,6 +13,12 @@
     "%@ per shot" : {
       "comment" : "A drink's caffeine in one espresso shot. The argument is an amount, such as \"63 mg\"."
     },
+    "%@ · %@" : {
+      "comment" : "A one-tap favourite's quantity and caffeine. The first argument is the quantity with its unit, such as \"2 shots\", and the second is the caffeine, such as \"125 mg\"."
+    },
+    "%@, %@" : {
+      "comment" : "Accessibility label of a one-tap favourite. The first argument is the drink's name, such as \"Espresso\", and the second is its quantity, such as \"2 shots\"."
+    },
     "%lld cans" : {
       "comment" : "How many cans of the chosen drink.",
       "localizations" : {
@@ -82,23 +88,80 @@
         }
       }
     },
+    "%lld–%lld hours" : {
+      "comment" : "Onboarding's summary: the range of sleep recommended for the user's age. The arguments are the least and the most, in whole hours."
+    },
+    "A starting estimate from what you chose. People vary a lot, even with none of these." : {
+      "comment" : "Onboarding: the note under the starting half-life. It must not claim more precision than the estimate has."
+    },
+    "About you" : {
+      "comment" : "Onboarding: the title of the step that asks for the name and age."
+    },
     "Add %@" : {
       "comment" : "Logs the chosen drink. The argument is its caffeine, such as \"125 mg\"."
+    },
+    "Age" : {
+      "comment" : "Onboarding's About you step: the label of the age picker."
+    },
+    "Allow" : {
+      "comment" : "Onboarding: a permission row's button that asks for the permission."
+    },
+    "Allow %@" : {
+      "comment" : "Accessibility: the Face ID or Touch ID row's Allow button, read by VoiceOver. The argument is \"Face ID\", \"Touch ID\", or \"Optic ID\"."
+    },
+    "Allow Apple Health" : {
+      "comment" : "Accessibility: the Apple Health row's Allow button, read by VoiceOver."
+    },
+    "Allow Half-Life to check that it's you." : {
+      "comment" : "Touch ID prompt's reason when Half-Life asks to use biometrics. There's no app lock yet."
+    },
+    "Allow notifications" : {
+      "comment" : "Accessibility: the notifications row's Allow button, read by VoiceOver."
     },
     "Americano" : {
       "comment" : "A drink in the drink composer's list."
     },
+    "Apple Health" : {
+      "comment" : "Onboarding: the Apple Health permission's name, on its row and in the summary."
+    },
+    "Asked" : {
+      "comment" : "Onboarding: Apple Health's status once it has been asked. iOS doesn't tell the app what the user allowed, so it can't say more."
+    },
+    "Asleep by" : {
+      "comment" : "Onboarding's summary: the label of the bedtime, such as \"10:30 PM\"."
+    },
     "Black tea" : {
       "comment" : "A drink in the drink composer's list."
     },
+    "Both are optional. Your name is for the greeting, and your age sets how much sleep Half-Life compares yours with." : {
+      "comment" : "Onboarding's About you step: why it asks for the name and age."
+    },
+    "By %@" : {
+      "comment" : "The Today screen's \"Last cup\" tile: the latest time to have the usual drink and still leave little enough caffeine at bedtime. The argument is a clock time, such as \"1:06 PM\"."
+    },
     "Caffeine" : {
       "comment" : "Accessibility: the decay curve's vertical axis, the caffeine in the body in milligrams."
+    },
+    "Caffeine and your body" : {
+      "comment" : "Onboarding: the title of the step that asks what changes how fast the user clears caffeine."
+    },
+    "Caffeine clears more slowly as a pregnancy goes on." : {
+      "comment" : "Onboarding: the detail under the pregnancy option."
     },
     "Caffeine over the day" : {
       "comment" : "Accessibility label of the Today screen's decay curve, which spans 12 hours either side of now."
     },
     "Cappuccino" : {
       "comment" : "A drink in the drink composer's list."
+    },
+    "Change %@ in Settings" : {
+      "comment" : "Accessibility: the Face ID or Touch ID row's Open Settings button. The argument is \"Face ID\", \"Touch ID\", or \"Optic ID\"."
+    },
+    "Change notifications in Settings" : {
+      "comment" : "Accessibility: the notifications row's Open Settings button, read by VoiceOver."
+    },
+    "Change what Half-Life reads in the Health app." : {
+      "comment" : "Onboarding: the note under Apple Health's status, once it has been asked."
     },
     "Close" : {
       "comment" : "Closes the drink composer without logging."
@@ -109,11 +172,20 @@
     "Cold brew" : {
       "comment" : "A drink in the drink composer's list."
     },
+    "Continue" : {
+      "comment" : "Onboarding: the button that saves a step and moves to the next one."
+    },
     "Current time" : {
       "comment" : "Accessibility: the marker on the decay curve at the current time."
     },
     "Decrease quantity" : {
       "comment" : "Accessibility label: removes one unit of the chosen drink."
+    },
+    "Delete" : {
+      "comment" : "Confirms deleting the drink waiting to be deleted, in the Today screen's history card."
+    },
+    "Delete %@ at %@" : {
+      "comment" : "Accessibility label for a drink's delete button in the history card. The arguments are the drink's name (such as \"Latte\") and when it was consumed (such as \"9:15 AM\")."
     },
     "Down to about %@ by %@ — half of your last cup is gone by %@." : {
       "comment" : "The decay card's tips. The arguments are the caffeine left at bedtime (such as \"34 mg\"), the bedtime (such as \"10:30 PM\"), and when the last drink is down to half its caffeine."
@@ -124,14 +196,32 @@
     "Drip coffee" : {
       "comment" : "A drink in the drink composer's list."
     },
+    "Each one is optional. Half-Life works without any of them." : {
+      "comment" : "Onboarding: the lead of the permissions step."
+    },
     "Energy drink" : {
       "comment" : "A drink in the drink composer's list."
     },
     "Espresso" : {
       "comment" : "A drink in the drink composer's list."
     },
+    "Face ID" : {
+      "comment" : "The name of Apple's Face ID, on onboarding's permission row and summary."
+    },
+    "First" : {
+      "comment" : "Onboarding: the chip for the first trimester of a pregnancy."
+    },
+    "First name" : {
+      "comment" : "Onboarding's About you step: the label of the first name field."
+    },
+    "First trimester" : {
+      "comment" : "Accessibility: the first trimester chip, read by VoiceOver."
+    },
     "Flat white" : {
       "comment" : "A drink in the drink composer's list."
+    },
+    "Get started" : {
+      "comment" : "Onboarding's Welcome screen: the button that starts onboarding."
     },
     "Good afternoon" : {
       "comment" : "The Today screen's greeting between 12:00pm and 5:00pm, when the user's name isn't known."
@@ -154,6 +244,34 @@
     "Green tea" : {
       "comment" : "A drink in the drink composer's list."
     },
+    "Half-Life" : {
+      "comment" : "Onboarding's Welcome screen: the app's name, as its title."
+    },
+    "Half-Life isn't medical advice. If you're pregnant or have liver disease, ask your doctor how much caffeine is right for you." : {
+      "comment" : "Onboarding: the note under the factors that change how fast caffeine clears."
+    },
+    "Half-Life shows how much caffeine will still be in you by then." : {
+      "comment" : "Onboarding: the lead of the bedtime step."
+    },
+    "Here's what Half-Life starts from. Your half-life is an estimate from what you told it." : {
+      "comment" : "Onboarding's summary: the lead under its title."
+    },
+    "Hour" : {},
+    "I have cirrhosis of the liver" : {
+      "comment" : "Onboarding: the option for cirrhosis, which makes caffeine clear more slowly."
+    },
+    "I smoke cigarettes" : {
+      "comment" : "Onboarding: the option for smoking, which makes caffeine clear faster."
+    },
+    "I take estrogen" : {
+      "comment" : "Onboarding: the option for taking estrogen, which makes caffeine clear more slowly."
+    },
+    "I take fluvoxamine (Luvox)" : {
+      "comment" : "Onboarding: the option for taking the antidepressant fluvoxamine. Luvox is its U.S. brand name."
+    },
+    "I'm pregnant" : {
+      "comment" : "Onboarding: the option for a pregnancy, which makes caffeine clear more slowly."
+    },
     "In your system now" : {
       "comment" : "The decay card's heading above the caffeine in the body right now, and that figure's accessibility label."
     },
@@ -163,29 +281,201 @@
     "Instant coffee" : {
       "comment" : "A drink in the drink composer's list."
     },
+    "It slows caffeine down a great deal." : {
+      "comment" : "Onboarding: the detail under the fluvoxamine option."
+    },
+    "Keep" : {
+      "comment" : "Keeps the drink waiting to be deleted, in the Today screen's history card."
+    },
+    "Last cup" : {
+      "comment" : "The Today screen's tile heading above the latest time to have the usual drink today."
+    },
     "Latte" : {
       "comment" : "A drink in the drink composer's list."
     },
+    "Lets Half-Life check that it's you." : {
+      "comment" : "Onboarding: what the Face ID or Touch ID permission is for. There's no app lock yet, so it doesn't promise one."
+    },
     "Log a drink" : {
-      "comment" : "The drink composer's title, and the label of the root screen's log button."
+      "comment" : "The drink composer's title, and the label of the log button above the root tab bar."
+    },
+    "Log my first cup" : {
+      "comment" : "Onboarding's summary: the button that finishes onboarding and opens the drink composer."
+    },
+    "Log your coffee in one tap. Half-Life borrows your sleep, steps, and heart rate from Apple Health, and shows you what your caffeine is actually doing." : {
+      "comment" : "Onboarding's Welcome screen: what the app does, under its name."
+    },
+    "Logged" : {
+      "comment" : "Shown on a one-tap favourite, and read by VoiceOver, for 2 seconds after one tap logged it."
+    },
+    "Logged %@" : {
+      "comment" : "VoiceOver announcement after one tap logged a favourite. The argument is the drink and its quantity, such as \"Espresso, 2 shots\"."
+    },
+    "Logged on %@" : {
+      "comment" : "The history card's heading for a day before yesterday. The argument is the day, such as \"Tuesday, Sep 8\"."
+    },
+    "Logged today" : {
+      "comment" : "The history card's heading when it shows today's drinks."
+    },
+    "Logged yesterday" : {
+      "comment" : "The history card's heading when it shows yesterday's drinks."
+    },
+    "Logs this drink now." : {
+      "comment" : "Accessibility hint of a one-tap favourite: one tap logs the drink as consumed now, with no confirmation."
     },
     "Matcha" : {
       "comment" : "A drink in the drink composer's list."
     },
+    "Minute" : {},
+    "Next day" : {
+      "comment" : "Accessibility label: shows the day after the one in the history card."
+    },
+    "No drinks logged." : {
+      "comment" : "The history card's message for a day with no drinks."
+    },
+    "No more today" : {
+      "comment" : "The Today screen's \"Last cup\" tile when even one more of the usual drink would leave too much caffeine at bedtime."
+    },
+    "None of these" : {
+      "comment" : "Onboarding: the option for having none of the listed factors that change how fast caffeine clears."
+    },
+    "Not asked" : {
+      "comment" : "Onboarding's summary: a permission's status when it hasn't been asked for."
+    },
+    "Not available" : {
+      "comment" : "Onboarding's summary: Apple Health's status on a device without Health."
+    },
+    "Not available on this device" : {
+      "comment" : "Onboarding: Apple Health's status on a device without Health."
+    },
+    "Not set up" : {
+      "comment" : "Onboarding: the Face ID or Touch ID status when none is enrolled on the device."
+    },
     "Nothing in your system right now." : {
       "comment" : "The decay card's sentence when no drink's caffeine is still counting."
+    },
+    "Notifications" : {
+      "comment" : "Onboarding: the notifications permission's name, on its row and in the summary."
     },
     "Now" : {
       "comment" : "The drink was consumed just now."
     },
+    "Off" : {
+      "comment" : "Onboarding: a permission's status when it's denied."
+    },
+    "On" : {
+      "comment" : "Onboarding: a permission's status when it's allowed."
+    },
+    "One tap" : {
+      "comment" : "Heading above the one-tap favourites, on the Today screen and in the drink composer. Each favourite logs a drink in one tap."
+    },
+    "Open Settings" : {
+      "comment" : "Onboarding: the button that opens Half-Life's page in the Settings app, for a permission that's off."
+    },
+    "Optic ID" : {
+      "comment" : "The name of Apple's Optic ID, on onboarding's permission row and summary."
+    },
+    "Permissions" : {
+      "comment" : "Onboarding: the title of the permissions step."
+    },
+    "Prefer not to say" : {
+      "comment" : "Onboarding's About you step: the age picker's choice for not giving an age."
+    },
+    "Previous day" : {
+      "comment" : "Accessibility label: shows the day before the one in the history card."
+    },
+    "Reads your sleep, steps, and resting heart rate. Nothing is written back, and your Health data never leaves this iPhone." : {
+      "comment" : "Onboarding: what the Apple Health permission is for. It must stay true: the app only reads, and Health data is never synced."
+    },
+    "Recommended sleep" : {
+      "comment" : "Onboarding's summary: the label of the sleep recommended for the user's age, such as \"7–9 hours\"."
+    },
+    "Removes the drink from your log and your caffeine curve." : {
+      "comment" : "Accessibility hint for the history card's Delete button."
+    },
+    "Second" : {
+      "comment" : "Onboarding: the chip for the second trimester of a pregnancy."
+    },
+    "Second trimester" : {
+      "comment" : "Accessibility: the second trimester chip, read by VoiceOver."
+    },
+    "Set up %@ in the Settings app." : {
+      "comment" : "Onboarding: the note when no Face ID or Touch ID is enrolled. The argument is \"Face ID\", \"Touch ID\", or \"Optic ID\"."
+    },
+    "Shows the drinks logged today." : {
+      "comment" : "Accessibility hint: the history card's Today button, which returns the card to today from an earlier day."
+    },
+    "Smoke speeds up how fast caffeine clears. Vaping and nicotine patches don't." : {
+      "comment" : "Onboarding: the detail under the smoking option. It's the smoke, not nicotine, that speeds clearance up."
+    },
+    "So Half-Life can remind you about your caffeine." : {
+      "comment" : "Onboarding: what the notifications permission is for."
+    },
+    "Some things change how fast your body clears caffeine. Choose any that apply." : {
+      "comment" : "Onboarding: the lead of the step that asks what changes how fast the user clears caffeine."
+    },
+    "Starting half-life" : {
+      "comment" : "Onboarding's summary: the label of the starting half-life, such as \"8.3 hours\"."
+    },
+    "Step %lld of 4" : {
+      "comment" : "Onboarding: the step's place in the flow, above its title. The argument is the step's number, from 1."
+    },
+    "Take me to Today" : {
+      "comment" : "Onboarding's summary: the button that finishes onboarding and opens the Today screen."
+    },
+    "The combined pill, patch, or ring, or hormone therapy." : {
+      "comment" : "Onboarding: the detail under the estrogen option, listing what counts. The progestin-only pill doesn't."
+    },
+    "The drink couldn't be deleted. Try again." : {
+      "comment" : "Shown in the history card when deleting a drink failed."
+    },
     "The drink couldn't be saved. Try again." : {
-      "comment" : "Shown in the drink composer when logging a drink failed."
+      "comment" : "Shown in the drink composer, or under the one-tap favourites, when logging a drink failed."
+    },
+    "Third" : {
+      "comment" : "Onboarding: the chip for the third trimester of a pregnancy."
+    },
+    "Third trimester" : {
+      "comment" : "Accessibility: the third trimester chip, read by VoiceOver."
     },
     "Time" : {
       "comment" : "Accessibility: the decay curve's horizontal axis, the time of day."
     },
+    "Today" : {
+      "comment" : "The Today screen's tab in the tab bar, its tile heading above the caffeine logged so far today, such as \"192 mg\", and the history card's button that returns it to today from an earlier day."
+    },
+    "Total" : {
+      "comment" : "The history card's label beside the day's total caffeine, such as \"192 mg\"."
+    },
+    "Touch ID" : {
+      "comment" : "The name of Apple's Touch ID, on onboarding's permission row and summary."
+    },
+    "What should we call you?" : {
+      "comment" : "Onboarding's About you step: the placeholder in the empty first name field."
+    },
     "When" : {
       "comment" : "Heading above the choices for when the drink was consumed."
+    },
+    "When do you want to be asleep?" : {
+      "comment" : "Onboarding: the title of the bedtime step."
+    },
+    "Which trimester?" : {
+      "comment" : "Onboarding: the heading above the trimester choices, after the user says they're pregnant."
+    },
+    "You're set, %@." : {
+      "comment" : "Onboarding's summary: its title, with the user's first name."
+    },
+    "You're set." : {
+      "comment" : "Onboarding's summary: its title, when the user didn't give a name."
+    },
+    "Your health data stays on this iPhone. Your drink log syncs only to your own iCloud. No account needed." : {
+      "comment" : "Onboarding's Welcome screen: the privacy note under the button. It must stay true: only the drink log syncs, to the user's own iCloud."
+    },
+    "Your starting half-life" : {
+      "comment" : "Onboarding: the label above the starting half-life that the user's answers give, such as \"8.3 hours\"."
+    },
+    "Your usual: %@, %@" : {
+      "comment" : "The Today screen's \"Last cup\" tile: the drink its time is for. The arguments are the drink's name, such as \"Latte\", and its quantity, such as \"2 shots\"."
     }
   },
   "version" : "1.0"

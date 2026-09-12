@@ -24,6 +24,11 @@ import OSLog
 /// It recalculates the status on the same events, and also at every whole minute once anyone observes the status,
 /// because the status is about the current time. It's an actor, off the main actor (constitution Article I.13). The
 /// Caffeine Decay Model article lists its requirements, REPO-1 to REPO-10.
+///
+/// It also publishes the cutoff, by executing ``CaffeineCutoffRule`` for the first favourite ``FavouriteDrinksRule``
+/// finds in every logged drink, with the threshold from its ``SleepThresholdDataSource``. It recalculates on the same
+/// events as the status, and sends each cutoff subscriber a value only when its cutoff has changed. The Caffeine
+/// Cutoff article lists its requirements, CUTREPO-1 to CUTREPO-4.
 actor LiveCaffeineDecayRepository: CaffeineDecayRepository {
     private static let logger = Logger(for: LiveCaffeineDecayRepository.self)
 
@@ -40,17 +45,28 @@ actor LiveCaffeineDecayRepository: CaffeineDecayRepository {
         let bedtime: Bedtime
     }
 
+    /// A cutoff subscriber: its stream, the calendar its bedtime is a time of day in, and the last cutoff it was sent.
+    private struct CutoffSubscriber {
+        let calendar: Calendar
+        let continuation: AsyncStream<CaffeineCutoff>.Continuation
+        var lastSent: CaffeineCutoff?
+    }
+
     private let drinkLog: any DrinkLogDataSource
     private let halfLifeSource: any HalfLifeDataSource
     private let absorptionSource: any AbsorptionRateDataSource
     private let bedtimeSource: any BedtimeDataSource
     private let clock: any ClockDataSource
+    private let thresholdSource: any SleepThresholdDataSource
     private let rule = CaffeineDecayRule()
     private let statusRule = CaffeineStatusRule()
+    private let cutoffRule = CaffeineCutoffRule()
+    private let favouritesRule = FavouriteDrinksRule()
     private var subscribers: [UUID: AsyncStream<[CaffeineLevel]>.Continuation] = [:]
     private var statusSubscribers: [UUID: StatusSubscriber] = [:]
+    private var cutoffSubscribers: [UUID: CutoffSubscriber] = [:]
     private var isListening = false
-    private var changeListener: Task<Void, Never>?
+    private var changeListeners: [Task<Void, Never>] = []
     private var minuteListener: Task<Void, Never>?
 
     /// Creates the repository.
@@ -60,20 +76,26 @@ actor LiveCaffeineDecayRepository: CaffeineDecayRepository {
     ///   - halfLife: Where the user's half-life is read from.
     ///   - absorption: Where the absorption rate is read from.
     ///   - bedtime: Where the user's bedtime is read from.
-    ///   - clock: The current time, and the minutes the status follows.
+    ///   - clock: The current time, and the minutes the status and the cutoff follow.
+    ///   - threshold: Where the sleep threshold is read from. Until it's personalised, every caller uses the standard
+    ///     one.
     init(
         drinkLog: any DrinkLogDataSource, halfLife: any HalfLifeDataSource, absorption: any AbsorptionRateDataSource,
-        bedtime: any BedtimeDataSource, clock: any ClockDataSource
+        bedtime: any BedtimeDataSource, clock: any ClockDataSource,
+        threshold: any SleepThresholdDataSource = StandardSleepThresholdDataSource()
     ) {
         self.drinkLog = drinkLog
         halfLifeSource = halfLife
         absorptionSource = absorption
         bedtimeSource = bedtime
         self.clock = clock
+        thresholdSource = threshold
     }
 
     deinit {
-        changeListener?.cancel()
+        for listener in changeListeners {
+            listener.cancel()
+        }
         minuteListener?.cancel()
     }
 
@@ -107,6 +129,22 @@ actor LiveCaffeineDecayRepository: CaffeineDecayRepository {
         return stream
     }
 
+    /// Streams the cutoff.
+    ///
+    /// A new subscriber immediately receives the cutoff for the current time. After that, a cutoff subscriber
+    /// receives a new cutoff when a change the drink log signals, or a minute the clock streams, changes it.
+    ///
+    /// - Parameter calendar: The calendar, and so the time zone, the bedtime is a time of day in.
+    nonisolated func cutoff(in calendar: Calendar) -> AsyncStream<CaffeineCutoff> {
+        let (stream, continuation) = AsyncStream.makeStream(of: CaffeineCutoff.self)
+        let id = UUID()
+        continuation.onTermination = { [weak self] _ in
+            Task { await self?.removeCutoffSubscriber(id) }
+        }
+        Task { await addCutoffSubscriber(id, CutoffSubscriber(calendar: calendar, continuation: continuation)) }
+        return stream
+    }
+
     /// Starts listening to the drink log before the first curve goes out, so no change after it is missed.
     private func addSubscriber(_ id: UUID, _ continuation: AsyncStream<[CaffeineLevel]>.Continuation) async {
         await listenForChanges()
@@ -133,30 +171,49 @@ actor LiveCaffeineDecayRepository: CaffeineDecayRepository {
         statusSubscribers[id] = nil
     }
 
-    /// Subscribes to the drink log's changes once, for the life of the repository.
+    /// Starts listening to the drink log before the first cutoff goes out, and follows the clock's minutes after it,
+    /// so the first cutoff is always the one for the current time.
+    private func addCutoffSubscriber(_ id: UUID, _ subscriber: CutoffSubscriber) async {
+        await listenForChanges()
+        cutoffSubscribers[id] = subscriber
+        await publishCutoff(at: clock.now(), to: [id])
+        listenForMinutes()
+    }
+
+    private func removeCutoffSubscriber(_ id: UUID) {
+        cutoffSubscribers[id] = nil
+    }
+
+    /// Subscribes once, for the life of the repository, to the changes of the drink log, the half-life, and the
+    /// bedtime (REPO-5, REPO-11, and REPO-12).
     private func listenForChanges() async {
         guard !isListening else { return }
         isListening = true
-        let changes = await drinkLog.changes()
-        changeListener = Task { [weak self] in
-            for await _ in changes {
-                await self?.publishChange()
+        let streams = [await drinkLog.changes(), await halfLifeSource.changes(), await bedtimeSource.changes()]
+        changeListeners = streams.map { changes in
+            Task { [weak self] in
+                for await _ in changes {
+                    await self?.publishChange()
+                }
             }
         }
     }
 
-    /// Follows the clock's minutes once, from the first status subscriber on. Only the status follows them.
+    /// Follows the clock's minutes once, from the first status or cutoff subscriber on. Only the status and the cutoff
+    /// follow them.
     private func listenForMinutes() {
         guard minuteListener == nil else { return }
         let minutes = clock.minutes()
         minuteListener = Task { [weak self] in
             for await minute in minutes {
                 await self?.publishStatusToEverySubscriber(at: minute)
+                await self?.publishCutoffToEverySubscriber(at: minute)
             }
         }
     }
 
-    /// Publishes a recalculated curve and status to every subscriber, after the drink log changes.
+    /// Publishes a recalculated curve and status to every subscriber, and the cutoff to each cutoff subscriber whose
+    /// cutoff changed, after the drink log changes.
     private func publishChange() async {
         if !subscribers.isEmpty, let curve = await calculateCurve() {
             for subscriber in subscribers.values {
@@ -164,6 +221,47 @@ actor LiveCaffeineDecayRepository: CaffeineDecayRepository {
             }
         }
         await publishStatusToEverySubscriber(at: clock.now())
+        await publishCutoffToEverySubscriber(at: clock.now())
+    }
+
+    private func publishCutoffToEverySubscriber(at now: Date) async {
+        await publishCutoff(at: now, to: Array(cutoffSubscribers.keys))
+    }
+
+    /// Calculates the cutoff at `now` for each of the cutoff subscribers `ids`, in its own calendar, and sends it to
+    /// those it differs for.
+    private func publishCutoff(at now: Date, to ids: [UUID]) async {
+        guard !ids.isEmpty, let inputs = await readCutoffInputs() else { return }
+        for id in ids {
+            guard var subscriber = cutoffSubscribers[id],
+                let cutoff = cutoffRule.cutoff(inputs, now: now, calendar: subscriber.calendar),
+                cutoff != subscriber.lastSent
+            else { continue }
+            subscriber.lastSent = cutoff
+            cutoffSubscribers[id] = subscriber
+            subscriber.continuation.yield(cutoff)
+        }
+    }
+
+    /// Reads the usual drink from every logged drink, the intakes of the drinks that still count, the kinetics, the
+    /// threshold, and the bedtime, once for every subscriber. Returns `nil`, after logging, if any of them couldn't be
+    /// read.
+    private func readCutoffInputs() async -> CaffeineCutoffRule.Inputs? {
+        do {
+            // The rule fills every slot the log can't with a starter, so there's always a first favourite.
+            guard let drink = favouritesRule.favourites(from: try await drinkLog.drinks()).first else { return nil }
+            return CaffeineCutoffRule.Inputs(
+                drink: drink,
+                intakes: try await drinkLog.nonNegligibleDrinks().map(\.intake),
+                kinetics: try await readKinetics(),
+                threshold: try await thresholdSource.threshold(),
+                bedtime: try await bedtimeSource.bedtime())
+        } catch {
+            let domain = (error as NSError).domain
+            let code = (error as NSError).code
+            Self.logger.error("Couldn't calculate the cutoff: \(domain, privacy: .public) \(code, privacy: .public)")
+            return nil
+        }
     }
 
     private func publishStatusToEverySubscriber(at now: Date) async {

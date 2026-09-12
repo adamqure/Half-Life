@@ -16,8 +16,8 @@ import SwiftData
 /// The drink log's storage: a SwiftData store that syncs to the user's private CloudKit database.
 ///
 /// It's a model actor, so it runs off the main actor (constitution Article IV.1). It keeps one change stream per
-/// subscriber, and signals each one after every successful store. The Drink Composer article lists its
-/// requirements, SRC-1 to SRC-4, and the Caffeine Decay Model article lists DATA-1 to DATA-5.
+/// subscriber, and signals each one after every successful store and deletion. The Drink Composer article lists its
+/// requirements, SRC-1 to SRC-7, and the Caffeine Decay Model article lists DATA-1 to DATA-5.
 @ModelActor
 actor SwiftDataDrinkLogDataSource: DrinkLogDataSource {
     private static let logger = Logger(for: SwiftDataDrinkLogDataSource.self)
@@ -52,6 +52,29 @@ actor SwiftDataDrinkLogDataSource: DrinkLogDataSource {
         } catch {
             modelContext.rollback()
             Self.logFailure("store a drink", error)
+            throw error
+        }
+        for subscriber in subscribers.values {
+            subscriber.yield()
+        }
+    }
+
+    /// Deletes the drink with identifier `id`, marked or not, then signals a change to every subscriber. When no
+    /// stored drink has that identifier, it changes nothing and signals nothing.
+    ///
+    /// - Parameter id: The identifier of the drink to delete.
+    /// - Throws: The store's error if the deletion couldn't be saved. Nothing is signalled then.
+    func delete(_ id: LoggedDrink.ID) async throws {
+        do {
+            let records = try modelContext.fetch(FetchDescriptor(predicate: #Predicate<DrinkRecord> { $0.id == id }))
+            guard !records.isEmpty else { return }
+            for record in records {
+                modelContext.delete(record)
+            }
+            try modelContext.save()
+        } catch {
+            modelContext.rollback()
+            Self.logFailure("delete a drink", error)
             throw error
         }
         for subscriber in subscribers.values {
@@ -97,8 +120,8 @@ actor SwiftDataDrinkLogDataSource: DrinkLogDataSource {
         }
     }
 
-    /// Returns a stream for one subscriber that yields after each store. It ends when its subscriber stops
-    /// listening.
+    /// Returns a stream for one subscriber that yields after each store and each deletion. It ends when its
+    /// subscriber stops listening.
     func changes() -> AsyncStream<Void> {
         let (stream, continuation) = AsyncStream.makeStream(of: Void.self)
         let id = UUID()

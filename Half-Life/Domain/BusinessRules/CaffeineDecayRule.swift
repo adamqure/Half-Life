@@ -98,6 +98,16 @@ nonisolated struct CaffeineDecayRule: Sendable {
         }
     }
 
+    /// Returns how long after it's consumed an intake peaks, in seconds. Every dose peaks at the same time.
+    ///
+    /// With the standard constants, that's 3,788.64 seconds (63.14 minutes). See the Caffeine Decay Model article,
+    /// RULE-9.
+    ///
+    /// - Parameter kinetics: The elimination half-life and the absorption rate.
+    func peakDelay(for kinetics: CaffeineKinetics) -> TimeInterval {
+        BatemanCurve(kinetics).peakDelay
+    }
+
     /// Returns when `intake` is half gone: the first moment, at or after its peak, when its own level is down to half
     /// its dose.
     ///

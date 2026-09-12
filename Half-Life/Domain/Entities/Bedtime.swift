@@ -9,6 +9,8 @@
 // Half-Life Bedtime
 //
 
+import Foundation
+
 /// The time of day the user wants to be asleep by.
 ///
 /// It's a time of day, not a date: the decay card finds the next time it comes round, in the user's calendar. It's
@@ -36,5 +38,19 @@ nonisolated struct Bedtime: Sendable, Equatable {
     private init(validHour hour: Int, minute: Int) {
         self.hour = hour
         self.minute = minute
+    }
+}
+
+extension Bedtime {
+    /// Returns the first time the bedtime comes round at or after `date`: tonight's, or tomorrow's once tonight's has
+    /// passed. See the Today Screen article, BED-3.
+    ///
+    /// - Parameters:
+    ///   - date: The moment to look from, usually the current time.
+    ///   - calendar: The calendar, and so the time zone, the bedtime is a time of day in.
+    /// - Returns: The next bedtime, or `nil` if the calendar can't find one.
+    func next(atOrAfter date: Date, in calendar: Calendar) -> Date? {
+        guard let tonight = calendar.date(bySettingHour: hour, minute: minute, second: 0, of: date) else { return nil }
+        return tonight >= date ? tonight : calendar.date(byAdding: .day, value: 1, to: tonight)
     }
 }

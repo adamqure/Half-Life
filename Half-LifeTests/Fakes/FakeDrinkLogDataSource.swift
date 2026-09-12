@@ -35,6 +35,8 @@ actor FakeDrinkLogDataSource: DrinkLogDataSource {
     private var readError: (any Error)?
     /// The error `markNegligible(_:)` throws instead of marking, if any. Set it with `failMarks(with:)`.
     private var markError: (any Error)?
+    /// The error `delete(_:)` throws instead of deleting, if any. Set it with `failDeletes(with:)`.
+    private var deleteError: (any Error)?
     private var subscribers: [UUID: AsyncStream<Void>.Continuation] = [:]
 
     init(drinks: [LoggedDrink] = [], negligibleIDs: Set<UUID> = [], storeError: (any Error)? = nil) {
@@ -53,6 +55,16 @@ actor FakeDrinkLogDataSource: DrinkLogDataSource {
             throw storeError
         }
         heldDrinks.append(drink)
+        signalChange()
+    }
+
+    /// Like the live data source, it signals a change only when it held a drink with the identifier.
+    func delete(_ id: LoggedDrink.ID) async throws {
+        if let deleteError {
+            throw deleteError
+        }
+        guard heldDrinks.contains(where: { $0.id == id }) else { return }
+        heldDrinks.removeAll { $0.id == id }
         signalChange()
     }
 
@@ -98,6 +110,11 @@ actor FakeDrinkLogDataSource: DrinkLogDataSource {
     /// Makes every mark throw `error` from now on, or mark normally again when it's `nil`.
     func failMarks(with error: (any Error)?) {
         markError = error
+    }
+
+    /// Makes every deletion throw `error` from now on, or delete normally again when it's `nil`.
+    func failDeletes(with error: (any Error)?) {
+        deleteError = error
     }
 
     /// Adds a drink without signalling a change.

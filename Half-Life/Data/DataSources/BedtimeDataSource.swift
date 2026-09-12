@@ -9,13 +9,15 @@
 // Half-Life BedtimeDataSource
 //
 
-/// Reads the user's bedtime from storage.
+/// Supplies the user's bedtime to ``CaffeineDecayRepository``, and signals when it changes.
 ///
-/// An implementation is the only code that touches where the bedtime is stored (constitution Article I.14).
-/// ``LiveCaffeineDecayRepository`` reads it. The Today Screen article lists its requirement, BEDSRC-1.
+/// ``FileProfileDataSource`` implements it from the stored profile. See the Onboarding article, BEDSRC-1.
 protocol BedtimeDataSource: Sendable {
     /// Returns the current bedtime: the stored one, or ``Bedtime/standard`` when nothing is stored.
     ///
     /// - Throws: An error if a stored bedtime couldn't be read.
     func bedtime() async throws -> Bedtime
+
+    /// Returns a stream that yields once after each change that could change the bedtime.
+    func changes() async -> AsyncStream<Void>
 }

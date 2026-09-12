@@ -35,7 +35,7 @@ nonisolated struct CaffeineStatusRule: Sendable {
         let lastHalfGone = active.max { $0.consumedAt < $1.consumedAt }.map {
             decay.halfGoneDate(of: $0, kinetics: kinetics)
         }
-        let bedtimeLevel = nextBedtime(bedtime, atOrAfter: now, calendar: calendar).map {
+        let bedtimeLevel = bedtime.next(atOrAfter: now, in: calendar).map {
             decay.level(at: $0, from: intakes, kinetics: kinetics)
         }
         return CaffeineStatus(
@@ -43,12 +43,5 @@ nonisolated struct CaffeineStatusRule: Sendable {
             activeIntakes: active,
             lastIntakeHalfGoneAt: lastHalfGone.flatMap { $0 > now ? $0 : nil },
             levelAtBedtime: bedtimeLevel)
-    }
-
-    /// The first time `bedtime` comes round at or after `now`: tonight's, or tomorrow's once tonight's has passed.
-    private func nextBedtime(_ bedtime: Bedtime, atOrAfter now: Date, calendar: Calendar) -> Date? {
-        guard let tonight = calendar.date(bySettingHour: bedtime.hour, minute: bedtime.minute, second: 0, of: now)
-        else { return nil }
-        return tonight >= now ? tonight : calendar.date(byAdding: .day, value: 1, to: tonight)
     }
 }

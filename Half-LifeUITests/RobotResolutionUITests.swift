@@ -21,7 +21,7 @@ final class RobotResolutionUITests: XCTestCase {
     @MainActor
     func testResolvingAmongSeveralRobotsReturnsTheOneShowing() throws {
         let app = XCUIApplication()
-        app.launch()
+        app.launchPastOnboarding()
 
         let robot = try app.resolve(expecting: [AbsentRobot.self, AppRobot.self])
 
@@ -31,7 +31,7 @@ final class RobotResolutionUITests: XCTestCase {
     @MainActor
     func testResolvingARobotThatIsNotShowingFailsAndNamesTheScreenShowing() {
         let app = XCUIApplication()
-        app.launch()
+        app.launchPastOnboarding()
 
         XCTAssertThrowsError(try app.resolve(AbsentRobot.self, timeout: 1)) { error in
             XCTAssertEqual(

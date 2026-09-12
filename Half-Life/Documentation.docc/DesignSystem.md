@@ -80,7 +80,7 @@ Contrast figures are WCAG ratios against the darkest surface the token appears o
 | `controlSelected` | #3B2C1E | — | Selected chip or segment, active tab, current progress dot |
 | `controlBorder` | #827C72 | 3.8 | Outline of an unselected radio or checkbox |
 | `controlTrack` | #DAD4CA | — | Progress track, upcoming progress dots |
-| `separatorOnCard` | #E8E4DE | — | Row dividers on cards (decorative). Not named `separator`, which would clash with UIKit's `UIColor.separator` and SwiftUI's `.separator` style. |
+| `separatorOnCard` | #E8E4DE | — | Row dividers on cards, and the line under the drink composer's one-tap row, on `backgroundCanvasTop` (decorative). Not named `separator`, which would clash with UIKit's `UIColor.separator` and SwiftUI's `.separator` style. |
 | `separatorOnEmphasis` | #5A4C3D | — | Dividers on `surfaceEmphasis` |
 | `borderOnEmphasis` | #6C5F51 | — | Outline buttons on `surfaceEmphasis` |
 | `borderCard` | #FFFFFF at 70% | — | Hairline edge around cards |
@@ -161,14 +161,14 @@ Values are rounded to a 4 pt grid. Prototype measurements are in parentheses.
 | `CornerRadius.extraSmall` | 8 | Icon tiles |
 | `Sizing.buttonHeight` | 52 | Primary and secondary buttons |
 | `Sizing.chipHeight` | 44 | Chips |
-| `Sizing.fabDiameter` | 64 | The log button in the tab bar |
+| `Sizing.fabDiameter` | 64 | The prototype's round log button. No view uses it since the log button moved to the tab bar's bottom accessory (<doc:OneTapLog>). |
 | `Sizing.iconTile` | 34 | Icon tiles in settings-style rows |
 | `Sizing.iconTileCompact` | 26 | Icon tiles on drink favourites |
 | `Sizing.curveHeight` | 160 | The decay curve on the Today screen |
 | `Sizing.minimumHitTarget` | 44 | The smallest tappable area, in both directions |
 
 - Corners use the continuous (squircle) style. Toggles, segmented controls, chart bars, and the log button are capsules or circles.
-- `Elevation.floating` is used for buttons, the log button, and the tab bar: a soft shadow in `textPrimary` at 18% opacity, offset 8 pt, with a SwiftUI shadow radius of 12 (about a 24 pt blur in the prototype's CSS).
+- `Elevation.floating` is for floating controls, such as the prototype's log button and tab bar. No view uses it since those moved to the system tab bar. It's a soft shadow in `textPrimary` at 18% opacity, offset 8 pt, with a SwiftUI shadow radius of 12 (about a 24 pt blur in the prototype's CSS).
 - `Elevation.card` is 5% opacity, offset 2 pt, radius 6, together with `borderCard`.
 - Both elevation values were estimated by eye from the screenshots.
 

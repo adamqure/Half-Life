@@ -301,7 +301,7 @@ The decay function lives in the Domain layer as a **business rule**. That's a st
 
 - **``LiveCaffeineDecayRepository`` executes the rule.** It reads the drinks that aren't marked negligible from ``DrinkLogDataSource`` and maps them to their intakes. It reads the half-life from ``HalfLifeDataSource`` and the absorption rate from ``AbsorptionRateDataSource``, and combines them into a ``CaffeineKinetics``. It reads the current time from ``ClockDataSource``. Then it applies the rule for the current time, and publishes the resulting curve on its `AsyncStream`.
 - **New intakes arrive from the data source.** Drinks are stored through `DrinkLogRepository` (see <doc:DrinkComposer>). The intake data source then signals a change to this repository, which re-fetches the intakes that aren't marked negligible, recalculates, and publishes the curve. Nothing adds an intake to this repository directly.
-- **The half-life comes from a half-life data source.** ``StandardHalfLifeDataSource`` supplies ``CaffeineHalfLife/standard`` until the tuning features store a user's own value.
+- **The half-life comes from a half-life data source.** ``FileProfileDataSource`` supplies the starting half-life that onboarding stored with the user's profile, or ``CaffeineHalfLife/standard`` until onboarding stores one (<doc:Onboarding>). It signals a change after each store, and the repository recalculates (REPO-11).
 - **The absorption rate comes from an absorption rate data source.** ``StandardAbsorptionRateDataSource`` supplies ``CaffeineAbsorptionRate/standard``. On 2026-09-12 the owner chose a data source over a constant in the rule, so that a tuned rate can replace the standard one the way a tuned half-life will, without changing the repository.
 - **The curve covers a fixed window.** It runs from 12 hours before the current time to 12 hours after: 1,440 levels, one per minute. The window belongs to the Domain, not to presentation, because the rule decides negligibility at the window's first sample.
 - **The repository marks intakes that no longer count.** An intake is negligible once it's past its peak and below 0.5 mg at the window's first sample. When the rule returns such intakes, the repository has the data source mark them, so later fetches skip them. A mark is state on the intake that the data source stores, and it's never cleared. A marked intake adds nothing anywhere in the window, so marking only saves work: the curve is the same whether or not an intake has been marked yet.
@@ -311,7 +311,7 @@ The decay function lives in the Domain layer as a **business rule**. That's a st
 - **Presentation chooses what to show.** Each feature shows the whole window or a part of it, such as the next few hours. It reads the current level from the sample for the current minute, found by date. That's the middle sample when the curve is calculated, and it moves later in the window as time passes. A feature can move its "now" marker along the curve it already has without asking for a new one. It never evaluates the decay function itself.
 - **Bateman absorption changed the rule and added one input.** The rule's operations take a ``CaffeineKinetics`` where they took a half-life, and the repository reads the absorption rate from its data source. The use cases, the features, and the three original entities didn't change.
 - **It's wired for the app.** `\.caffeineDecayRepository`, `\.observeCaffeineCurve`, and `\.observeCaffeineStatus` are registered in `CaffeineDecayDependencies.swift` (constitution Article I.15).
-  - Live, the repository reads the device's store through the shared ``DrinkLogDataSourceKey``, with ``StandardHalfLifeDataSource``, ``StandardAbsorptionRateDataSource``, ``StandardBedtimeDataSource``, and ``SystemClockDataSource``.
+  - Live, the repository reads the device's store through the shared ``DrinkLogDataSourceKey``, with the shared ``ProfileDataSourceKey`` data source for the half-life and the bedtime, ``StandardAbsorptionRateDataSource``, and ``SystemClockDataSource``.
   - In previews, it reads an empty in-memory store.
   - In tests, using either value without overriding it reports an issue.
 
@@ -355,6 +355,7 @@ Unit-tested directly. The rule is pure, so its tests need no fakes.
 | RULE-6 | The rule reads no clock and holds no state. The current time is an input, and the same inputs always give the same outputs. |
 | RULE-7 | The curve's samples are exactly one minute apart, on whole clock minutes. The spacing and the window are constants. |
 | RULE-8 | An intake is half gone at the first moment, at or after its peak, when its own level is at most half its dose, found to within a millisecond. With the standard constants, that's 20,948.07 seconds (5 hours 49 minutes 8 seconds) after it's consumed, for any dose. An intake that never reaches half its dose is half gone at its peak. |
+| RULE-9 | The rule reports how long an intake takes to peak: 3,788.64 seconds (63.14 minutes) with the standard constants, for any dose. ``CaffeineCutoffRule`` uses it, so the cutoff only considers cups that peak by bedtime (<doc:CaffeineCutoff>). |
 
 ### CaffeineDecayRepository
 
@@ -372,6 +373,8 @@ Tested against a fake intake data source and a fixed current time.
 | REPO-8 | After that, it publishes a new status for every minute the clock data source streams. The status is the one thing the repository recalculates on a timer, and the curve never follows the clock. |
 | REPO-9 | When the intake data source signals a change, it publishes a recalculated status to every status subscriber, as well as a recalculated curve. |
 | REPO-10 | It calculates the status with the bedtime it reads from the bedtime data source, in the calendar each subscriber gives. |
+
+The repository's third stream, the cutoff, has its own requirements, CUTREPO-1 to CUTREPO-4, in <doc:CaffeineCutoff>.
 
 ### Intake data source
 

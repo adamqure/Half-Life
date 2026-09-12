@@ -14,14 +14,23 @@
 /// An implementation is the only code that touches the drink log's storage (constitution Article I.14). Two
 /// repositories share it. The drink log repository stores and reads drinks, and ``LiveCaffeineDecayRepository``
 /// reads the drinks that still count and marks the ones that don't. The data source signals a change after each
-/// store, so both repositories hear about a drink however it was stored. The Drink Composer article lists its
-/// requirements, SRC-1 to SRC-4, and the Caffeine Decay Model article lists DATA-1 to DATA-5.
+/// store and each deletion, so both repositories hear about a drink however it was stored or deleted. The Drink
+/// Composer article lists its requirements, SRC-1 to SRC-7, and the Caffeine Decay Model article lists DATA-1 to
+/// DATA-5.
 protocol DrinkLogDataSource: Sendable {
     /// Stores a drink, unmarked, then signals a change to every subscriber.
     ///
     /// - Parameter drink: The drink to store.
     /// - Throws: An error if the drink couldn't be stored. Nothing is signalled then.
     func store(_ drink: LoggedDrink) async throws
+
+    /// Deletes the drink with the given identifier, marked or not, then signals a change to every subscriber.
+    ///
+    /// When no stored drink has the identifier, it changes nothing and signals nothing.
+    ///
+    /// - Parameter id: The identifier of the drink to delete.
+    /// - Throws: An error if the deletion couldn't be stored. Nothing is signalled then.
+    func delete(_ id: LoggedDrink.ID) async throws
 
     /// Returns every stored drink, oldest first, whether or not it's marked negligible.
     ///

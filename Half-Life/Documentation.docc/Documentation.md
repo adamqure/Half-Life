@@ -18,6 +18,7 @@ The principles every change must follow live in `constitution.md` at the reposit
 ### Caffeine model
 
 - <doc:CaffeineDecayModel>
+- <doc:CaffeineCutoff>
 
 ### Apple Health
 
@@ -28,7 +29,9 @@ The principles every change must follow live in `constitution.md` at the reposit
 ### Features
 
 - <doc:DrinkComposer>
+- <doc:OneTapLog>
 - <doc:TodayScreen>
+- <doc:Onboarding>
 
 ### Design
 

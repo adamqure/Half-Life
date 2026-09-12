@@ -22,7 +22,7 @@ final class Half_LifeUITests: XCTestCase {
     @MainActor
     func testLaunchShowsTheRootScreen() throws {
         let app = XCUIApplication()
-        app.launch()
+        app.launchPastOnboarding()
 
         _ = try app.resolve(AppRobot.self)
     }
@@ -31,16 +31,20 @@ final class Half_LifeUITests: XCTestCase {
     @MainActor
     func testRootScreenPassesAccessibilityAudit() throws {
         let app = XCUIApplication()
-        app.launch()
+        app.launchPastOnboarding()
 
-        try app.resolve(AppRobot.self).auditAccessibility()
+        // The owner approved this on 2026-09-12. At launch, contrast is ignored only for elements under the tab bar
+        // or in its fade, and for issues with no element. Then the screen scrolls to its end, and the second audit
+        // ignores nothing.
+        // See auditAccessibilityAboveTheTabBar.
+        try app.resolve(AppRobot.self).auditAccessibilityAboveTheTabBar()
     }
 
     @MainActor
     func testLaunchPerformance() throws {
         // This measures how long it takes to launch your application.
         measure(metrics: [XCTApplicationLaunchMetric()]) {
-            XCUIApplication().launch()
+            XCUIApplication().launchPastOnboarding()
         }
     }
 }

@@ -54,4 +54,40 @@ struct LogDrinkDependencyTests {
                     type: .cola, quantity: 1, milligrams: 34, consumedAt: Date(timeIntervalSinceReferenceDate: 0)))
         }
     }
+
+    /// A test that observes today's intake without overriding `\.observeCaffeineIntakeToday` fails.
+    @Test func observingTodaysIntakeWithoutOverridingItReportsAnIssue() async {
+        await withKnownIssue {
+            @Dependency(\.observeCaffeineIntakeToday) var observeCaffeineIntakeToday
+            for await _ in observeCaffeineIntakeToday.execute(Calendar(identifier: .gregorian)) {}
+        }
+    }
+
+    /// A test that observes today's intake through the drink log without overriding `\.drinkLogRepository` fails.
+    @Test func observingTodaysIntakeThroughTheDrinkLogWithoutOverridingItReportsAnIssue() async {
+        await withKnownIssue {
+            @Dependency(\.drinkLogRepository) var drinkLog
+            for await _ in drinkLog.intakeToday(in: Calendar(identifier: .gregorian)) {}
+        }
+    }
+}
+
+extension SwiftDataStoreTests {
+
+    /// Checks the drink log's preview registrations, which open an empty in-memory store. They run inside the
+    /// serialized `SwiftDataStoreTests`, because they open a store.
+    @Suite(.timeLimit(.minutes(1)))
+    struct DrinkLogPreviewDependencyTests {
+
+        /// DEP-5: observing today's intake uses the one app-scoped drink log repository.
+        @Test func previewObserveCaffeineIntakeTodayUsesTheAppScopedRepository() {
+            withDependencies {
+                $0.context = .preview
+            } operation: {
+                @Dependency(\.drinkLogRepository) var repository
+                @Dependency(\.observeCaffeineIntakeToday) var observeCaffeineIntakeToday
+                #expect((observeCaffeineIntakeToday.repository as AnyObject) === (repository as AnyObject))
+            }
+        }
+    }
 }

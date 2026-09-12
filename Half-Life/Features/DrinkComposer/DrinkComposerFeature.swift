@@ -17,7 +17,8 @@ import OSLog
 ///
 /// A drink is always chosen. The composer opens on the last drink logged, with its quantity, or on one espresso shot
 /// when nothing has been logged. ``AppFeature`` presents it as a sheet. It closes itself once the drink is logged,
-/// and stays open with an error if the drink couldn't be saved. See the Drink Composer article.
+/// and stays open with an error if the drink couldn't be saved. Above the drink tiles, a ``OneTapLogFeature`` row logs
+/// a favourite in one tap, which closes the composer too. See the Drink Composer and One-Tap Log articles.
 @Reducer nonisolated struct DrinkComposerFeature {
     /// When the drink was consumed, as the composer offers it.
     enum ConsumedWhen: CaseIterable, Equatable, Sendable {
@@ -56,6 +57,8 @@ import OSLog
         var isLogging = false
         /// Whether the last attempt to log the drink failed.
         var saveFailed = false
+        /// The one-tap row above the drink tiles.
+        var oneTapLog = OneTapLogFeature.State()
 
         /// The chosen drink's estimated caffeine, in milligrams.
         var estimatedMilligrams: Double {
@@ -85,6 +88,8 @@ import OSLog
         case logFailed
         /// The user closed the composer without logging.
         case closeTapped
+        /// An action for the one-tap row.
+        case oneTapLog(OneTapLogFeature.Action)
     }
 
     private static let logger = Logger(for: DrinkComposerFeature.self)
@@ -94,8 +99,11 @@ import OSLog
     @Dependency(\.dismiss) private var dismiss
 
     /// Reduces each action. It observes the drink log to open on the last drink logged, and logs the drink through
-    /// ``LogDrinkUseCase`` when the user taps Add.
+    /// ``LogDrinkUseCase`` when the user taps Add. It runs the one-tap row, and closes once the row logs a favourite.
     var body: some ReducerOf<Self> {
+        Scope(state: \.oneTapLog, action: \.oneTapLog) {
+            OneTapLogFeature()
+        }
         Reduce { state, action in
             switch action {
             case .task:
@@ -148,6 +156,10 @@ import OSLog
                 return .none
             case .closeTapped:
                 return .run { [dismiss] _ in await dismiss() }
+            case .oneTapLog(.delegate(.drinkLogged)):
+                return .run { [dismiss] _ in await dismiss() }
+            case .oneTapLog:
+                return .none
             }
         }
     }

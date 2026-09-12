@@ -21,7 +21,7 @@ final class DrinkComposerUITests: XCTestCase {
     /// Launches the app and opens the composer.
     @MainActor
     private func openComposer(in app: XCUIApplication) throws -> DrinkComposerRobot {
-        app.launch()
+        app.launchPastOnboarding()
         try app.resolve(AppRobot.self).openDrinkComposer()
         return try app.resolve(DrinkComposerRobot.self)
     }
@@ -85,6 +85,18 @@ final class DrinkComposerUITests: XCTestCase {
         let composer = try openComposer(in: app)
 
         composer.close()
+
+        composer.verifyClosed()
+        _ = try app.resolve(AppRobot.self)
+    }
+
+    /// ONETAP-UI-2: one tap on a favourite in the composer logs it and closes the composer.
+    @MainActor
+    func testLoggingAOneTapFavouriteCloses() throws {
+        let app = XCUIApplication()
+        let composer = try openComposer(in: app)
+
+        composer.logFavourite(.first)
 
         composer.verifyClosed()
         _ = try app.resolve(AppRobot.self)

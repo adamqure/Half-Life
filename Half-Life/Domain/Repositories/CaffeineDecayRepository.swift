@@ -39,4 +39,15 @@ protocol CaffeineDecayRepository: Sendable {
     ///
     /// - Parameter calendar: The calendar, and so the time zone, the bedtime is a time of day in.
     func status(in calendar: Calendar) -> AsyncStream<CaffeineStatus>
+
+    /// Streams the cutoff: the latest time the user's usual drink can be drunk and still leave no more than the sleep
+    /// threshold in the body at bedtime.
+    ///
+    /// Each new subscriber immediately receives the cutoff for the current time. After that, a subscriber receives a
+    /// new cutoff only when it changes: after a change to the data it comes from, or at a minute when the cutoff
+    /// passes. The implementation executes ``CaffeineCutoffRule``, for the first favourite ``FavouriteDrinksRule``
+    /// finds in the drink log. See the Caffeine Cutoff article.
+    ///
+    /// - Parameter calendar: The calendar, and so the time zone, the bedtime is a time of day in.
+    func cutoff(in calendar: Calendar) -> AsyncStream<CaffeineCutoff>
 }

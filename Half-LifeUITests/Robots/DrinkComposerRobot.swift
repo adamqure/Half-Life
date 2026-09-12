@@ -64,9 +64,14 @@ struct DrinkComposerRobot: Robot {
     private var decreaseButton: XCUIElement { app.buttons[DrinkComposerViewAccessibilityID.decreaseButton] }
     private var quantity: XCUIElement { app.staticTexts[DrinkComposerViewAccessibilityID.quantity] }
     private var estimate: XCUIElement { app.staticTexts[DrinkComposerViewAccessibilityID.estimate] }
+    private var addButton: XCUIElement { app.buttons[DrinkComposerViewAccessibilityID.addButton] }
 
     private func tile(_ drink: Drink) -> XCUIElement { app.buttons[drink.tileIdentifier] }
     private func choice(_ when: When) -> XCUIElement { app.buttons[when.identifier] }
+    /// Looked for only in the composer, because the Today screen shows the one-tap row too.
+    private func favouriteButton(_ favourite: OneTapFavourite) -> XCUIElement {
+        screen.buttons[favourite.identifier]
+    }
 
     /// Chooses a drink, scrolling the row of tiles until its tile is fully on screen.
     func selectDrink(_ drink: Drink, file: StaticString = #filePath, line: UInt = #line) {
@@ -99,6 +104,16 @@ struct DrinkComposerRobot: Robot {
     /// Closes the composer without logging.
     func close(file: StaticString = #filePath, line: UInt = #line) {
         tap(closeButton, named: "The close button", file: file, line: line)
+    }
+
+    /// Logs the chosen drink, with its quantity and when it was consumed. The composer closes once it's logged.
+    func logDrink(file: StaticString = #filePath, line: UInt = #line) {
+        tap(addButton, named: "The Add button", file: file, line: line)
+    }
+
+    /// Logs a one-tap favourite as consumed now, in one tap. The composer closes once it's logged.
+    func logFavourite(_ favourite: OneTapFavourite, file: StaticString = #filePath, line: UInt = #line) {
+        tap(favouriteButton(favourite), named: "The \(favourite) one-tap drink", file: file, line: line)
     }
 
     /// Checks that exactly one drink is chosen, and that its quantity and estimate are showing.
@@ -141,7 +156,7 @@ struct DrinkComposerRobot: Robot {
             ("close button", closeButton), ("estimate", estimate), ("quantity", quantity),
             ("decrease button", decreaseButton), ("increase button", increaseButton),
             ("Now", choice(.now)), ("1h ago", choice(.oneHourAgo)), ("2h ago", choice(.twoHoursAgo)),
-            ("4h ago", choice(.fourHoursAgo)), ("Add button", app.buttons[DrinkComposerViewAccessibilityID.addButton]),
+            ("4h ago", choice(.fourHoursAgo)), ("Add button", addButton),
         ]
         for (name, element) in elements {
             XCTAssertTrue(element.waitForExistence(timeout: 5), "The \(name) isn't showing.", file: file, line: line)

@@ -63,7 +63,7 @@ Background delivery isn't enabled, so the app hears about changes only while it 
 
 ## Access and missing data
 
-The data source only reads, and never requests authorization. The owner decided on 2026-09-11 that the HealthKit authorization data source is the only one that requests Health access. It's built with onboarding (roadmap rank 6), and it asks in one sheet for every type a feature needs, when the feature needs them (constitution Articles I.6 and V.3.1). Sleep needs read access to sleep analysis. The existing `NSHealthShareUsageDescription` purpose string already mentions sleep.
+The data source only reads, and never requests authorization. The owner decided on 2026-09-11 that the HealthKit authorization data source is the only one that requests Health access. It was built with onboarding (roadmap rank 6, <doc:Onboarding>), and it asks in one sheet for every type a feature needs, when the feature needs them (constitution Articles I.6 and V.3.1). Sleep needs read access to sleep analysis. The existing `NSHealthShareUsageDescription` purpose string already mentions sleep.
 
 - **Denied access looks like no sleep.** HealthKit doesn't reveal whether read access was denied: the query just returns no samples. So an empty result never means the user slept badly, or not at all. A feature that shows sleep can say only that Health has none to show, which matters for the brief's honesty criterion.
 - **Missing nights are normal.** A night without a tracker has no samples. Intervals say what was recorded, not what happened.

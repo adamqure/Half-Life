@@ -38,6 +38,30 @@ extension DependencyValues {
         get { self[ObserveLoggedDrinksUseCaseKey.self] }
         set { self[ObserveLoggedDrinksUseCaseKey.self] = newValue }
     }
+
+    /// Observes the caffeine logged today through the app-scoped ``drinkLogRepository``.
+    ///
+    /// In tests, using it without overriding it reports an issue.
+    var observeCaffeineIntakeToday: ObserveCaffeineIntakeTodayUseCase {
+        get { self[ObserveCaffeineIntakeTodayUseCaseKey.self] }
+        set { self[ObserveCaffeineIntakeTodayUseCaseKey.self] = newValue }
+    }
+
+    /// Observes one day of the drink log through the app-scoped ``drinkLogRepository``.
+    ///
+    /// In tests, using it without overriding it reports an issue.
+    var observeDrinkLogDay: ObserveDrinkLogDayUseCase {
+        get { self[ObserveDrinkLogDayUseCaseKey.self] }
+        set { self[ObserveDrinkLogDayUseCaseKey.self] = newValue }
+    }
+
+    /// Deletes a drink through the app-scoped ``drinkLogRepository``.
+    ///
+    /// In tests, using it without overriding it reports an issue.
+    var deleteDrink: DeleteDrinkUseCase {
+        get { self[DeleteDrinkUseCaseKey.self] }
+        set { self[DeleteDrinkUseCaseKey.self] = newValue }
+    }
 }
 
 /// Registers the app-scoped drink log repository.
@@ -70,6 +94,24 @@ private enum ObserveLoggedDrinksUseCaseKey: DependencyKey {
     static let testValue = ObserveLoggedDrinksUseCase(repository: DrinkLogRepositoryKey.testValue)
 }
 
+private enum ObserveCaffeineIntakeTodayUseCaseKey: DependencyKey {
+    static let liveValue = ObserveCaffeineIntakeTodayUseCase(repository: DrinkLogRepositoryKey.liveValue)
+    static let previewValue = ObserveCaffeineIntakeTodayUseCase(repository: DrinkLogRepositoryKey.previewValue)
+    static let testValue = ObserveCaffeineIntakeTodayUseCase(repository: DrinkLogRepositoryKey.testValue)
+}
+
+private enum ObserveDrinkLogDayUseCaseKey: DependencyKey {
+    static let liveValue = ObserveDrinkLogDayUseCase(repository: DrinkLogRepositoryKey.liveValue)
+    static let previewValue = ObserveDrinkLogDayUseCase(repository: DrinkLogRepositoryKey.previewValue)
+    static let testValue = ObserveDrinkLogDayUseCase(repository: DrinkLogRepositoryKey.testValue)
+}
+
+private enum DeleteDrinkUseCaseKey: DependencyKey {
+    static let liveValue = DeleteDrinkUseCase(drinkLog: DrinkLogRepositoryKey.liveValue)
+    static let previewValue = DeleteDrinkUseCase(drinkLog: DrinkLogRepositoryKey.previewValue)
+    static let testValue = DeleteDrinkUseCase(drinkLog: DrinkLogRepositoryKey.testValue)
+}
+
 /// The error an unimplemented dependency throws after reporting its issue.
 private struct UnimplementedDependency: Error {}
 
@@ -80,8 +122,25 @@ private struct UnimplementedDrinkLogRepository: DrinkLogRepository {
         return AsyncStream { $0.finish() }
     }
 
+    func intakeToday(in calendar: Calendar) -> AsyncStream<DailyCaffeineIntake> {
+        reportIssue(
+            "A test observed today's intake without overriding \\.drinkLogRepository or \\.observeCaffeineIntakeToday."
+        )
+        return AsyncStream { $0.finish() }
+    }
+
     func log(_ drink: LoggedDrink) async throws {
         reportIssue("A test logged a drink without overriding \\.drinkLogRepository or \\.logDrink.")
+        throw UnimplementedDependency()
+    }
+
+    func day(containing date: Date, in calendar: Calendar) -> AsyncStream<DrinkLogDay> {
+        reportIssue("A test observed a day of the drink log without overriding \\.drinkLogRepository.")
+        return AsyncStream { $0.finish() }
+    }
+
+    func delete(_ id: LoggedDrink.ID) async throws {
+        reportIssue("A test deleted a drink without overriding \\.drinkLogRepository.")
         throw UnimplementedDependency()
     }
 }

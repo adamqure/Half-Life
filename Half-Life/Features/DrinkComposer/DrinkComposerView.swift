@@ -12,7 +12,8 @@
 import ComposableArchitecture
 import SwiftUI
 
-/// The drink composer's screen: a header, a row of drink tiles that scrolls sideways, and the chosen drink's panel.
+/// The drink composer's screen: a header, the one-tap row, a separator, a row of drink tiles that scrolls sideways,
+/// and the chosen drink's panel.
 ///
 /// A drink is always chosen, so the panel always shows. The sheet is only as tall as its content. When the content
 /// is taller than the screen, at the largest text sizes, the sheet reaches full height and scrolls, so none of it is
@@ -30,11 +31,31 @@ struct DrinkComposerView: View {
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: Spacing.sectionGap) {
-                header
+                // The separator has a card gap on each side rather than a section gap, which keeps the sheet compact.
+                if dynamicTypeSize.isAccessibilitySize {
+                    header
+                        .padding(.horizontal, Spacing.screenMargin)
+                    drinkTiles
+                    VStack(alignment: .leading, spacing: Spacing.cardGap) {
+                        panel
+                        oneTapSeparator
+                        oneTapRow
+                    }
                     .padding(.horizontal, Spacing.screenMargin)
-                drinkTiles
-                panel
-                    .padding(.horizontal, Spacing.screenMargin)
+                } else {
+                    VStack(alignment: .leading, spacing: Spacing.cardGap) {
+                        VStack(alignment: .leading, spacing: Spacing.itemGap) {
+                            header
+                            oneTapRow
+                        }
+                        .padding(.horizontal, Spacing.screenMargin)
+                        oneTapSeparator
+                            .padding(.horizontal, Spacing.screenMargin)
+                        drinkTiles
+                    }
+                    panel
+                        .padding(.horizontal, Spacing.screenMargin)
+                }
             }
             .padding(.vertical, Spacing.itemGap)
             .onGeometryChange(for: CGFloat.self) {
@@ -79,6 +100,20 @@ struct DrinkComposerView: View {
             .buttonStyle(.plain)
             .accessibilityIdentifier(DrinkComposerViewAccessibilityID.closeButton)
         }
+    }
+
+    /// The one-tap row, in its slim style, so the sheet stays compact. It sits under the header. At accessibility text
+    /// sizes it moves under the panel, because its stacked favourites would push the panel off screen.
+    private var oneTapRow: some View {
+        OneTapLogView(store: store.scope(state: \.oneTapLog, action: \.oneTapLog), style: .slim)
+    }
+
+    /// The line between the one-tap row and the rest of the composer, so the favourites read as their own group. It
+    /// moves with the row, so it always sits between the row and the panel. It's decorative.
+    private var oneTapSeparator: some View {
+        Divider()
+            .overlay(Color.separatorOnCard)
+            .accessibilityHidden(true)
     }
 
     /// How many tiles fit the row's width: three, two from the xLarge text size, and one at accessibility sizes.
