@@ -19,4 +19,9 @@ struct FakeSleepThresholdDataSource: SleepThresholdDataSource {
     func threshold() -> SleepThreshold {
         value
     }
+
+    /// Returns a stream that finishes at once, because the threshold never changes.
+    func changes() -> AsyncStream<Void> {
+        AsyncStream { $0.finish() }
+    }
 }

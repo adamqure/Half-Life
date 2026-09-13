@@ -12,10 +12,10 @@
 import ComposableArchitecture
 import SwiftUI
 
-/// Onboarding's bedtime step: one time picker for any time of day.
+/// Onboarding's bedtime step: the system's time picker, for any time of day.
 ///
-/// The owner chose a picker over the prototype's chips on 2026-09-12, so a shift worker's bedtime fits too. See the
-/// Onboarding article.
+/// The owner chose a picker over the prototype's chips on 2026-09-12, so a shift worker's bedtime fits too, and the
+/// system's compact time picker over the app's own wheels on 2026-09-13. See the Onboarding article.
 @MainActor
 struct BedtimeView: View {
     /// The step's store.
@@ -38,51 +38,25 @@ struct BedtimeView: View {
             buttonIdentifier: BedtimeViewAccessibilityID.continueButton, isButtonDisabled: store.isSaving,
             action: continueTapped
         ) {
-            HStack(spacing: 0) {
-                Picker(selection: hour) {
-                    ForEach(0..<24, id: \.self) { hour in
-                        Text(OnboardingFormat.hour(hour, in: calendar)).tag(hour)
-                    }
-                } label: {
-                    Text("Hour")
-                }
-                .pickerStyle(.wheel)
-                .accessibilityIdentifier(BedtimeViewAccessibilityID.hourPicker)
-                Picker(selection: minute) {
-                    ForEach(0..<60, id: \.self) { minute in
-                        Text(OnboardingFormat.minute(minute)).tag(minute)
-                    }
-                } label: {
-                    Text("Minute")
-                }
-                .pickerStyle(.wheel)
-                .accessibilityIdentifier(BedtimeViewAccessibilityID.minutePicker)
+            DatePicker(selection: time, displayedComponents: .hourAndMinute) {
+                Text("Bedtime")
+                    .foregroundStyle(Color.textPrimary)
             }
-            .frame(maxWidth: .infinity)
-            .background(Color.surfaceCard, in: RoundedRectangle(cornerRadius: CornerRadius.large, style: .continuous))
-            .accessibilityElement(children: .contain)
+            .datePickerStyle(.compact)
+            .environment(\.timeZone, calendar.timeZone)
             .accessibilityIdentifier(BedtimeViewAccessibilityID.picker)
+            .padding(Spacing.cardPaddingCompact)
+            .background(Color.surfaceCard, in: RoundedRectangle(cornerRadius: CornerRadius.large, style: .continuous))
         }
         .task { await store.send(.task).finish() }
     }
 
-    /// The bedtime's hour, on its own wheel. Changing it keeps the minute.
-    private var hour: Binding<Int> {
+    /// The bedtime, as the date the time picker works with. A new time keeps only its hour and minute.
+    private var time: Binding<Date> {
         Binding {
-            store.bedtime.hour
-        } set: { hour in
-            if let bedtime = Bedtime(hour: hour, minute: store.bedtime.minute) {
-                store.send(.bedtimeChanged(bedtime))
-            }
-        }
-    }
-
-    /// The bedtime's minute, on its own wheel. Changing it keeps the hour.
-    private var minute: Binding<Int> {
-        Binding {
-            store.bedtime.minute
-        } set: { minute in
-            if let bedtime = Bedtime(hour: store.bedtime.hour, minute: minute) {
+            OnboardingFormat.date(for: store.bedtime, in: calendar)
+        } set: { date in
+            if let bedtime = OnboardingFormat.bedtime(at: date, in: calendar) {
                 store.send(.bedtimeChanged(bedtime))
             }
         }

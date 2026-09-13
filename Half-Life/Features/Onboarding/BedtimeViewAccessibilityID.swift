@@ -15,12 +15,8 @@ enum BedtimeViewAccessibilityID {
     static let screen = "bedtimeView.screen"
     /// The step's scrolling content.
     static let content = "bedtimeView.content"
-    /// The bedtime picker: an hour wheel and a minute wheel.
+    /// The bedtime's time picker.
     static let picker = "bedtimeView.picker"
-    /// The hour wheel.
-    static let hourPicker = "bedtimeView.hourPicker"
-    /// The minute wheel.
-    static let minutePicker = "bedtimeView.minutePicker"
     /// The button that saves and moves on.
     static let continueButton = "bedtimeView.continueButton"
 }

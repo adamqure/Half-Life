@@ -107,6 +107,7 @@ struct ColorTokenTests {
         + pairs(["dataHeart"], on: ["backgroundCanvasBottom"], minimum: text)
         + pairs(["AccentColor"], on: ["surfaceCard", "surfaceHighlight"], minimum: graphic)
         + pairs(["dataCaffeine", "dataSleep"], on: ["surfaceCard"], minimum: graphic)
+        + pairs(["dataSleep", "dataActivity", "dataHeart"], on: ["surfaceMuted"], minimum: graphic)
         + pairs(["controlBorder"], on: ["surfaceCard", "surfaceControl"], minimum: graphic)
 
     static func pairs(_ foregrounds: [String], on surfaces: [String], minimum: Double) -> [Pairing] {

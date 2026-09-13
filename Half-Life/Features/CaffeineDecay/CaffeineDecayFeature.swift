@@ -15,7 +15,9 @@ import Foundation
 /// The Today screen's decay card: the caffeine in your system now, where it's heading, and the curve.
 ///
 /// It observes the curve, the caffeine status, and the time of day, and reduces each value into `State`. Its only
-/// command is ``Action/task``, which starts all three observations. See the Today Screen article.
+/// command is ``Action/task``, which starts all three observations and refreshes the personal half-life estimate, so
+/// a week-old estimate is recalculated when the curve that uses it appears. See the Today Screen and Half-Life
+/// Estimator articles.
 @Reducer nonisolated struct CaffeineDecayFeature {
     /// Which of the card's sentences to show.
     enum Summary: Equatable {
@@ -47,11 +49,23 @@ import Foundation
             }
             return .bedtime(atBedtime)
         }
+
+        /// The curve's window, from its first level to one spacing past its last, or `nil` until the curve has two
+        /// levels. The levels are evenly spaced, and each stands for the interval up to the next, so a 24-hour window's
+        /// two ends share a clock time. The view labels the curve's two ends with it, and pins the chart's time axis
+        /// to it.
+        var timeSpan: ClosedRange<Date>? {
+            guard curve.count > 1, let first = curve.first?.date, let last = curve.last?.date else { return nil }
+            let end = last.addingTimeInterval(curve[1].date.timeIntervalSince(first))
+            guard first <= end else { return nil }
+            return first...end
+        }
     }
 
     /// What can happen to the card.
     enum Action {
-        /// Subscribes to the curve, the status, and the time of day, for as long as the view is on screen.
+        /// Subscribes to the curve, the status, and the time of day, for as long as the view is on screen, and
+        /// refreshes the half-life estimate.
         case task
         /// The decay repository published a curve.
         case curveUpdated([CaffeineLevel])
@@ -65,8 +79,10 @@ import Foundation
     @Dependency(\.observeCaffeineCurve) private var observeCaffeineCurve
     @Dependency(\.observeCaffeineStatus) private var observeCaffeineStatus
     @Dependency(\.observeTimeOfDay) private var observeTimeOfDay
+    @Dependency(\.refreshHalfLifeEstimate) private var refreshHalfLifeEstimate
 
-    /// Starts the observations, and reduces each value they emit into `State`.
+    /// Starts the observations, refreshes the half-life estimate, and reduces each value the observations emit into
+    /// `State`.
     var body: some ReducerOf<Self> {
         Reduce { state, action in
             switch action {
@@ -86,6 +102,9 @@ import Foundation
                         for await timeOfDay in observeTimeOfDay.execute(calendar) {
                             await send(.timeOfDayUpdated(timeOfDay))
                         }
+                    },
+                    .run { [refreshHalfLifeEstimate] _ in
+                        await refreshHalfLifeEstimate.execute(())
                     }
                 )
             case let .curveUpdated(curve):

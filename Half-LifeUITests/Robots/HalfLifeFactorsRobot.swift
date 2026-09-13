@@ -29,7 +29,6 @@ struct HalfLifeFactorsRobot: Robot {
     /// The app the robot drives.
     let app: XCUIApplication
 
-    private var halfLife: XCUIElement { app.descendants(matching: .any)[HalfLifeFactorsViewAccessibilityID.halfLife] }
     private var pregnantOption: XCUIElement { app.buttons[HalfLifeFactorsViewAccessibilityID.pregnantOption] }
     private var continueButton: XCUIElement { app.buttons[HalfLifeFactorsViewAccessibilityID.continueButton] }
     private var content: XCUIElement { app.scrollViews[HalfLifeFactorsViewAccessibilityID.content] }
@@ -67,17 +66,6 @@ struct HalfLifeFactorsRobot: Robot {
         element.tap()
     }
 
-    /// Checks that the starting half-life reads `hours`, such as "8.3".
-    func verifyStartingHalfLife(_ hours: String, file: StaticString = #filePath, line: UInt = #line) {
-        require(halfLife, "The starting half-life", file: file, line: line)
-        XCTAssertTrue(
-            waitForLabel(of: halfLife) { $0.contains(hours) },
-            "The starting half-life reads \"\(halfLife.label)\", not \(hours) hours.",
-            file: file,
-            line: line
-        )
-    }
-
     /// Checks that pregnancy is chosen, in `trimester`, once the saved choice has come back.
     func verifyPregnancy(trimester: Trimester, file: StaticString = #filePath, line: UInt = #line) {
         let element = choice(trimester)
@@ -88,11 +76,14 @@ struct HalfLifeFactorsRobot: Robot {
         XCTAssertEqual(result, .completed, "The trimester isn't chosen.", file: file, line: line)
     }
 
-    /// Checks that `factor`'s option is chosen.
+    /// Checks that `factor`'s option is chosen, once the saved choice has come back.
     func verifyChosen(_ factor: Factor, file: StaticString = #filePath, line: UInt = #line) {
         let element = option(factor)
         require(element, "The option", file: file, line: line)
-        XCTAssertTrue(element.isSelected, "The option isn't chosen.", file: file, line: line)
+        let isSelected = NSPredicate(format: "isSelected == true")
+        let result = XCTWaiter().wait(
+            for: [XCTNSPredicateExpectation(predicate: isSelected, object: element)], timeout: 5)
+        XCTAssertEqual(result, .completed, "The option isn't chosen.", file: file, line: line)
     }
 
     /// Checks that the step scrolls only vertically, even when swiped sideways.

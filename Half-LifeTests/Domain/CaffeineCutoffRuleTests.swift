@@ -190,4 +190,52 @@ struct CaffeineCutoffRuleTests {
 
         #expect(twoShots < oneShot)
     }
+
+    // MARK: - CUTOFF-9: the cutoffs for several nights, from tonight's on
+
+    func cutoffs(
+        nights: Int, after intakes: [CaffeineIntake] = [], now: Date = date(8)
+    ) -> [CaffeineCutoff] {
+        let inputs = CaffeineCutoffRule.Inputs(
+            drink: Self.latte, intakes: intakes, kinetics: .standard, threshold: Self.threshold, bedtime: .standard)
+        return rule.cutoffs(inputs, nights: nights, now: now, calendar: Self.utc)
+    }
+
+    /// Each night's cutoff is the one calculated from the moment the night before's bedtime has passed.
+    @Test func eachNightsCutoffFollowsTheBedtimeBeforeIt() throws {
+        let inputs = CaffeineCutoffRule.Inputs(
+            drink: Self.latte, intakes: [], kinetics: .standard, threshold: Self.threshold, bedtime: .standard)
+
+        let cutoffs = cutoffs(nights: 3)
+
+        #expect(cutoffs.count == 3)
+        #expect(try cutoffs.first == cutoff())
+        #expect(cutoffs.map(\.bedtime) == [Self.date(22.5), Self.date(46.5), Self.date(70.5)])
+        for (night, before) in zip(cutoffs.dropFirst(), cutoffs) {
+            #expect(night == rule.cutoff(inputs, now: before.bedtime.addingTimeInterval(1), calendar: Self.utc))
+        }
+    }
+
+    /// With no caffeine in the body, every night's cutoff is at the same time of day: the usual drink's alone.
+    @Test func withNothingLoggedEveryNightHasTheSameCutoff() throws {
+        let latestCups = try cutoffs(nights: 3).map { try #require($0.latestCup) }
+
+        #expect(latestCups == [Self.date(13), Self.date(37), Self.date(61)])
+    }
+
+    /// 200 mg at 7:00am leaves tonight no room at all. By tomorrow night about 1 mg of it is left, which still counts:
+    /// tomorrow's cutoff is no later than the 1:00pm it would be with nothing logged, and no more than half an hour
+    /// earlier.
+    @Test func caffeineLoggedTodayWeighsOnTonightMoreThanOnLaterNights() throws {
+        let cutoffs = cutoffs(nights: 2, after: [Self.intake(200, hours: 7)], now: Self.date(9))
+
+        #expect(cutoffs.first?.latestCup == nil)
+        let tomorrow = try #require(cutoffs.last?.latestCup)
+        #expect(tomorrow <= Self.date(37))
+        #expect(tomorrow >= Self.date(36.5))
+    }
+
+    @Test func noNightsGiveNoCutoffs() {
+        #expect(cutoffs(nights: 0).isEmpty)
+    }
 }

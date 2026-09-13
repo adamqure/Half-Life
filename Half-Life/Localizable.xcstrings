@@ -1,8 +1,66 @@
 {
   "sourceLanguage" : "en",
   "strings" : {
+    "–" : {
+      "comment" : "Shown in place of a group's average resting heart rate while it has no days."
+    },
+    "“Ask Half-Life a question”" : {
+      "comment" : "Onboarding's Siri and Shortcuts step: a phrase to try with Siri. It must match a phrase in AppShortcuts.xcstrings."
+    },
+    "“How much caffeine is in me in Half-Life?”" : {
+      "comment" : "Onboarding's Siri and Shortcuts step: a phrase to try with Siri. It must match a phrase in AppShortcuts.xcstrings."
+    },
+    "“Log a latte in Half-Life”" : {
+      "comment" : "Onboarding's Siri and Shortcuts step: a phrase to try with Siri. It must match a phrase in AppShortcuts.xcstrings."
+    },
+    "“When should I go to sleep in Half-Life?”" : {
+      "comment" : "Onboarding's Siri and Shortcuts step: a phrase to try with Siri. It must match a phrase in AppShortcuts.xcstrings."
+    },
+    "%@" : {
+
+    },
+    "%@ – %@" : {
+      "comment" : "Insights: tonight's sleep window, from its start to its end. The arguments are clock times, such as \"12:24 AM\" and \"1:54 AM\"."
+    },
+    "%@ · %@" : {
+      "comment" : "A one-tap favourite's quantity and caffeine. The first argument is the quantity with its unit, such as \"2 shots\", and the second is the caffeine, such as \"125 mg\"."
+    },
+    "%@ (%@) at %@" : {
+      "comment" : "App Intents: one drink in Siri's list of a day's drinks. The arguments are the drink, such as \"Latte\", its quantity, such as \"2 shots\", and when it was drunk, such as \"8:10 AM\".",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "%1$@ (%2$@) at %3$@"
+          }
+        }
+      }
+    },
+    "%@ (%@) at %@, from the demo data" : {
+      "comment" : "App Intents: one demo drink in Siri's list of a day's drinks. The arguments are the drink, its quantity, and when it was drunk.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "%1$@ (%2$@) at %3$@, from the demo data"
+          }
+        }
+      }
+    },
     "%@ ago" : {
       "comment" : "The drink was consumed this long ago. The argument is a short duration, such as \"1h\"."
+    },
+    "%@ is where your time asleep starts to drop, from the trend in your recent nights." : {
+
+    },
+    "%@ logged" : {
+      "comment" : "App Intents: how Shortcuts shows the intake value. The argument is an amount, such as \"290 mg\"."
+    },
+    "%@ now" : {
+      "comment" : "App Intents: how Shortcuts shows the caffeine-level value. The argument is an amount, such as \"85 mg\"."
+    },
+    "%@ or less" : {
+      "comment" : "The chart legend for the hollow dots on the resting heart rate screen: nights with caffeine at or under the threshold. %@ is the sleep threshold, such as \"40 mg\"."
     },
     "%@ per can" : {
       "comment" : "A drink's caffeine in one can. The argument is an amount, such as \"34 mg\"."
@@ -13,11 +71,62 @@
     "%@ per shot" : {
       "comment" : "A drink's caffeine in one espresso shot. The argument is an amount, such as \"63 mg\"."
     },
-    "%@ · %@" : {
-      "comment" : "A one-tap favourite's quantity and caffeine. The first argument is the quantity with its unit, such as \"2 shots\", and the second is the caffeine, such as \"125 mg\"."
+    "%@ steps" : {
+      "comment" : "Insights, steps screen: one side's average steps, such as \"8,420 steps\"."
+    },
+    "%@ steps over %lld days" : {
+      "comment" : "Insights, steps screen: VoiceOver's reading of one side of the comparison, such as \"8,420 steps over 30 days\". The arguments are the average steps and the day count.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$@ steps over %#@days@"
+          },
+          "substitutions" : {
+            "days" : {
+              "argNum" : 2,
+              "formatSpecifier" : "lld",
+              "variations" : {
+                "plural" : {
+                  "one" : {
+                    "stringUnit" : {
+                      "state" : "translated",
+                      "value" : "%arg day"
+                    }
+                  },
+                  "other" : {
+                    "stringUnit" : {
+                      "state" : "translated",
+                      "value" : "%arg days"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
     },
     "%@, %@" : {
       "comment" : "Accessibility label of a one-tap favourite. The first argument is the drink's name, such as \"Espresso\", and the second is its quantity, such as \"2 shots\"."
+    },
+    "%@, in bed %@" : {
+      "comment" : "Accessibility value of a day's column on the Insights tab's last 7 days card, for a night with time in bed but no sleep recorded. The arguments are the day's caffeine and the time in bed."
+    },
+    "%@, slept %@" : {
+      "comment" : "Accessibility value of a day's column on the Insights tab's last 7 days card. The arguments are the day's caffeine, such as \"63 milligrams\", and the night's time asleep, such as \"7 hours\"."
+    },
+    "%lld beats per minute higher" : {
+      "comment" : "VoiceOver's reading of the resting heart rate screen's headline difference, such as \"3 beats per minute higher\"."
+    },
+    "%lld beats per minute lower" : {
+      "comment" : "VoiceOver's reading of the resting heart rate screen's headline difference, such as \"2 beats per minute lower\"."
+    },
+    "%lld beats per minute on average, %@" : {
+      "comment" : "VoiceOver's reading of a group's average on the resting heart rate screen. %@ is how many days it has, such as \"9 days\"."
+    },
+    "%lld bpm" : {
+      "comment" : "Today's resting heart rate on the Apple Health card, in beats per minute, such as \"58 bpm\"."
     },
     "%lld cans" : {
       "comment" : "How many cans of the chosen drink.",
@@ -65,6 +174,52 @@
         }
       }
     },
+    "%lld days" : {
+      "comment" : "Insights, steps screen: how many days one side's average covers.",
+      "localizations" : {
+        "en" : {
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld day"
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld days"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "%lld nights" : {
+      "comment" : "Insights, sleep screen: how many nights an average, or a chart, covers.",
+      "localizations" : {
+        "en" : {
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld night"
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld nights"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "%lld shots" : {
       "comment" : "How many espresso shots of the chosen drink.",
       "localizations" : {
@@ -91,14 +246,93 @@
     "%lld–%lld hours" : {
       "comment" : "Onboarding's summary: the range of sleep recommended for the user's age. The arguments are the least and the most, in whole hours."
     },
-    "A starting estimate from what you chose. People vary a lot, even with none of these." : {
-      "comment" : "Onboarding: the note under the starting half-life. It must not claim more precision than the estimate has."
+    "A %@, %@, now still clears by your %@ bedtime. After this, caffeine will still be in you when you go to bed." : {
+      "comment" : "The cutoff reminder's notification, at the latest time the usual drink still fits before bedtime. The arguments are the drink's name, such as \"Latte\", its quantity, such as \"2 shots\", and the bedtime, such as \"10:30 PM\"."
+    },
+    "A caffeine night is one with more than your recommended caffeine in you when you fell asleep, or at your bedtime if Apple Health has no sleep that night." : {
+      "comment" : "Insights, steps screen: defines a caffeine night, under the averages. \"Your recommended caffeine\" is the sleep threshold, the most caffeine the app recommends having in you at bedtime."
+    },
+    "A pattern in your own days, not proof that caffeine caused it. Resting heart rate also moves with exercise, illness, alcohol, and stress." : {
+      "comment" : "The resting heart rate screen's footnote on what the comparison can't claim."
+    },
+    "A pattern in your own nights, not proof that caffeine caused it." : {
+      "comment" : "Insights, sleep screen: the footnote, so the screen doesn't claim more than a correlation."
+    },
+    "About %@ fewer steps after a caffeine night" : {
+      "comment" : "Insights, steps screen: the verdict when days after a caffeine night had clearly fewer steps. The argument is the difference, rounded to the nearest hundred, such as \"1,500\"."
+    },
+    "About %@ in your system now." : {
+      "comment" : "App Intents: Siri's reply for the caffeine level, when there's no bedtime to add. The argument is an amount, such as \"85 mg\"."
+    },
+    "About %@ in your system now. Down to about %@ by %@." : {
+      "comment" : "App Intents: Siri's reply for the caffeine level. The arguments are the amount now, the amount at bedtime, and the bedtime, such as \"85 mg\", \"34 mg\", and \"10:30 PM\".",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "About %1$@ in your system now. Down to about %2$@ by %3$@."
+          }
+        }
+      }
+    },
+    "About %@ more steps after a caffeine night" : {
+      "comment" : "Insights, steps screen: the verdict when days after a caffeine night had clearly more steps. The argument is the difference, rounded to the nearest hundred, such as \"1,500\"."
+    },
+    "About %@ would still be in you at your %@ bedtime. Clinical sleep studies support under %@ for the average person." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "About %1$@ would still be in you at your %2$@ bedtime. Clinical sleep studies support under %3$@ for the average person."
+          }
+        }
+      }
+    },
+    "About %@ would still be in you at your %@ bedtime. Your time asleep starts to drop above %@." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "About %1$@ would still be in you at your %2$@ bedtime. Your time asleep starts to drop above %3$@."
+          }
+        }
+      }
     },
     "About you" : {
       "comment" : "Onboarding: the title of the step that asks for the name and age."
     },
     "Add %@" : {
       "comment" : "Logs the chosen drink. The argument is its caffeine, such as \"125 mg\"."
+    },
+    "Add 30 days of demo drinks" : {
+      "comment" : "Settings: the button that adds 30 days of sample drinks to the log."
+    },
+    "Added" : {
+      "comment" : "Settings: the Demo data row's value while the log holds demo drinks."
+    },
+    "Adds 30 days of sample drinks, up to now, so your history and caffeine curve have something to show. Each one is labeled Demo in your history. Removing them keeps the drinks you logged." : {
+      "comment" : "Settings: under the sample drinks' button. It says what they are and what removing them keeps."
+    },
+    "After a caffeine night" : {
+      "comment" : "Insights, steps screen: the label over the average steps on days after a night with more than the sleep threshold of caffeine in the body at sleep."
+    },
+    "After a caffeine night: %@. Other days: %@." : {
+      "comment" : "Insights, steps screen: VoiceOver's value for the chart. Each argument is one side, such as \"8,420 steps over 30 days\", or \"none yet\"."
+    },
+    "After nights that began with over %@ of caffeine, your resting heart rate stayed within its usual day-to-day range." : {
+      "comment" : "Under the resting heart rate screen's \"No clear difference\" headline. %@ is the sleep threshold, such as \"40 mg\"."
+    },
+    "After nights that began with over %@ of caffeine: %@. After other nights: %@." : {
+      "comment" : "VoiceOver's summary of the resting heart rate screen's chart. The first %@ is the sleep threshold, such as \"40 milligrams\"; the others are each group's average, such as \"61 beats per minute on average, 9 days\"."
+    },
+    "After other nights" : {
+      "comment" : "The resting heart rate screen's label for the days after the other nights."
+    },
+    "After your cutoff" : {
+      "comment" : "The heading of the drink composer's warning, when the chosen drink, at the time chosen, is past its caffeine cutoff."
+    },
+    "Against your caffeine" : {
+      "comment" : "Insights: the heading of the card with a button for each kind of Apple Health data."
     },
     "Age" : {
       "comment" : "Onboarding's About you step: the label of the age picker."
@@ -109,11 +343,14 @@
     "Allow %@" : {
       "comment" : "Accessibility: the Face ID or Touch ID row's Allow button, read by VoiceOver. The argument is \"Face ID\", \"Touch ID\", or \"Optic ID\"."
     },
+    "Allow %@ for Half-Life in the Settings app to turn the lock on." : {
+      "comment" : "Settings' App lock section: why the lock can't be turned on while the user has said no to Face ID. The argument is \"Face ID\", \"Touch ID\", or \"Optic ID\"."
+    },
     "Allow Apple Health" : {
       "comment" : "Accessibility: the Apple Health row's Allow button, read by VoiceOver."
     },
     "Allow Half-Life to check that it's you." : {
-      "comment" : "Touch ID prompt's reason when Half-Life asks to use biometrics. There's no app lock yet."
+      "comment" : "Touch ID prompt's reason when Half-Life asks to use biometrics, which the app lock uses."
     },
     "Allow notifications" : {
       "comment" : "Accessibility: the notifications row's Allow button, read by VoiceOver."
@@ -121,8 +358,59 @@
     "Americano" : {
       "comment" : "A drink in the drink composer's list."
     },
+    "Answers a question about your caffeine, using Apple Intelligence on your iPhone." : {
+      "comment" : "App Intents: what the Ask Half-Life action does, shown in Shortcuts."
+    },
+    "Answers need Apple Intelligence. Open Half-Life to see your caffeine?" : {
+      "comment" : "App Intents: Siri asks this when Ask Half-Life can't answer because Apple Intelligence is unavailable."
+    },
+    "App lock" : {
+      "comment" : "Settings: the title of the section that turns the app lock on or off."
+    },
     "Apple Health" : {
       "comment" : "Onboarding: the Apple Health permission's name, on its row and in the summary."
+    },
+    "Apple Health hasn't recorded when you got into bed, so the time you took to fall asleep can't be measured." : {
+      "comment" : "Insights, sleep screen: the time to fall asleep card, when no night has time in bed."
+    },
+    "appView.tab.insights" : {
+      "comment" : "The Insights tab's title in the tab bar. The key is AppTab.insights's raw value, and the UI tests find the tab by this text.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Insights"
+          }
+        }
+      }
+    },
+    "appView.tab.settings" : {
+      "comment" : "The Settings tab's title in the tab bar. The key is AppTab.settings' raw value, and the UI tests find the tab by this text.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Settings"
+          }
+        }
+      }
+    },
+    "appView.tab.today" : {
+      "comment" : "The Today tab's title in the tab bar. The key is AppTab.today's raw value, and the UI tests find the tab by this text.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Today"
+          }
+        }
+      }
+    },
+    "Ask Half-Life" : {
+      "comment" : "App Intents: the Ask Half-Life action's name in Shortcuts, and its App Shortcut's title."
     },
     "Asked" : {
       "comment" : "Onboarding: Apple Health's status once it has been asked. iOS doesn't tell the app what the user allowed, so it can't say more."
@@ -130,26 +418,77 @@
     "Asleep by" : {
       "comment" : "Onboarding's summary: the label of the bedtime, such as \"10:30 PM\"."
     },
+    "At or under %@" : {
+      "comment" : "Insights, sleep screen: the nights whose caffeine at sleep onset was at or under the threshold, in the averages and the chart's legend. The argument is the threshold, such as \"40 mg\"."
+    },
+    "Bedtime" : {
+      "comment" : "The title of Settings' Bedtime screen, and the bedtime time picker's label there and in onboarding."
+    },
+    "Best time to sleep tonight" : {
+      "comment" : "Insights: the heading of the card with tonight's 90-minute window to fall asleep in."
+    },
     "Black tea" : {
       "comment" : "A drink in the drink composer's list."
     },
     "Both are optional. Your name is for the greeting, and your age sets how much sleep Half-Life compares yours with." : {
       "comment" : "Onboarding's About you step: why it asks for the name and age."
     },
+    "bpm" : {
+      "comment" : "The unit beside the resting heart rate screen's headline difference, such as \"+3 bpm\": beats per minute."
+    },
     "By %@" : {
       "comment" : "The Today screen's \"Last cup\" tile: the latest time to have the usual drink and still leave little enough caffeine at bedtime. The argument is a clock time, such as \"1:06 PM\"."
     },
     "Caffeine" : {
-      "comment" : "Accessibility: the decay curve's vertical axis, the caffeine in the body in milligrams."
+      "comment" : "Accessibility: the decay curve's vertical axis, the caffeine in the body in milligrams. Also the label of the chosen day's caffeine on the Insights tab's last 7 days card."
+    },
+    "Caffeine (mg)" : {
+      "comment" : "App Intents: a property of the intake value, in Shortcuts: the day's caffeine, in milligrams."
     },
     "Caffeine and your body" : {
       "comment" : "Onboarding: the title of the step that asks what changes how fast the user clears caffeine."
     },
+    "Caffeine at bedtime (mg)" : {
+      "comment" : "App Intents: a property of the caffeine-level value, in Shortcuts: the caffeine at bedtime, in milligrams."
+    },
+    "Caffeine at sleep onset" : {
+      "comment" : "Insights, sleep screen: the title of the charts' horizontal axis."
+    },
+    "Caffeine clears" : {
+      "comment" : "App Intents: a property of the sleep-time value, in Shortcuts: when caffeine falls under the sleep threshold."
+    },
     "Caffeine clears more slowly as a pregnancy goes on." : {
       "comment" : "Onboarding: the detail under the pregnancy option."
     },
+    "Caffeine Intake" : {
+      "comment" : "App Intents: the intake App Shortcut's title, and the name of the value the action returns."
+    },
+    "Caffeine is measured when Apple Health recorded you falling asleep. For nights with no sleep recorded, it's measured at your bedtime: %lld of %lld." : {
+      "comment" : "The resting heart rate screen's footnote when some nights had no recorded sleep. The numbers are how many nights were measured at the bedtime, and how many days there are."
+    },
+    "Caffeine Level" : {
+      "comment" : "App Intents: the caffeine-level App Shortcut's title, and the name of the value the action returns."
+    },
+    "Caffeine now (mg)" : {
+      "comment" : "App Intents: a property of the caffeine-level value, in Shortcuts: the caffeine in the body now, in milligrams."
+    },
     "Caffeine over the day" : {
-      "comment" : "Accessibility label of the Today screen's decay curve, which spans 12 hours either side of now."
+      "comment" : "Accessibility label of the Today screen's decay curve, which spans 12 hours either side of now. On the In your system Home Screen widget, the curve spans 6 hours either side of now."
+    },
+    "Caffeine should be under %@ by your %@ bedtime." : {
+      "comment" : "Insights: why tonight's sleep window starts at bedtime. The arguments are the sleep threshold, such as \"40 mg\", and the bedtime, such as \"10:30 PM\"."
+    },
+    "Caffeine should drop under %@ at about %@, after your %@ bedtime." : {
+      "comment" : "Insights: why tonight's sleep window starts after bedtime. The arguments are the sleep threshold, such as \"40 mg\", when caffeine drops under it, such as \"12:24 AM\", and the bedtime, such as \"10:30 PM\"."
+    },
+    "Caffeine should stay over %@ until after noon tomorrow, so there's no good time to fall asleep tonight." : {
+      "comment" : "App Intents: Siri's reply for the sleep time when caffeine doesn't clear. The argument is the sleep threshold, such as \"40 mg\"."
+    },
+    "Caffeine should stay over %@ until after noon tomorrow." : {
+      "comment" : "Insights: why there's no sleep window tonight. The argument is the sleep threshold, such as \"40 mg\"."
+    },
+    "Caffeine tonight" : {
+      "comment" : "Accessibility label of the Insights tab's chart of tonight's caffeine, from 6 PM to 4 AM or later."
     },
     "Cappuccino" : {
       "comment" : "A drink in the drink composer's list."
@@ -178,6 +517,9 @@
     "Current time" : {
       "comment" : "Accessibility: the marker on the decay curve at the current time."
     },
+    "Day" : {
+      "comment" : "App Intents: the intake action's day parameter, and the day in the value it returns."
+    },
     "Decrease quantity" : {
       "comment" : "Accessibility label: removes one unit of the chosen drink."
     },
@@ -187,14 +529,47 @@
     "Delete %@ at %@" : {
       "comment" : "Accessibility label for a drink's delete button in the history card. The arguments are the drink's name (such as \"Latte\") and when it was consumed (such as \"9:15 AM\")."
     },
+    "Deletes the demo drinks, and keeps the drinks you logged." : {
+      "comment" : "Accessibility hint of Settings' button that removes the sample drinks."
+    },
+    "Demo" : {
+      "comment" : "History card: the label on a sample drink that Settings added, so it isn't mistaken for one the user logged."
+    },
+    "Demo data" : {
+      "comment" : "Settings: the title of the section that adds or removes sample drinks."
+    },
+    "Demo Health data" : {
+      "comment" : "The Apple Health card's heading on the Today screen, when its data comes from the demo that Settings turns on, not from Apple Health."
+    },
+    "Demo heart rate and sleep" : {
+      "comment" : "Where the resting heart rate screen's data comes from while Settings' demo Health data switch is on."
+    },
+    "Demo sleep data" : {
+      "comment" : "Insights: under the last 7 days card, saying its sleep is made-up demo data, while the demo Health data switch is on. Also the footnote on the Sleep screen."
+    },
+    "Demo steps" : {
+      "comment" : "Insights, steps screen: says the steps come from the demo data, not Apple Health."
+    },
+    "Do you walk less the day after a caffeine night?" : {
+      "comment" : "Insights, steps screen: the question the screen answers, under its title."
+    },
     "Down to about %@ by %@ — half of your last cup is gone by %@." : {
       "comment" : "The decay card's tips. The arguments are the caffeine left at bedtime (such as \"34 mg\"), the bedtime (such as \"10:30 PM\"), and when the last drink is down to half its caffeine."
     },
     "Down to about %@ by %@." : {
       "comment" : "The decay card's tip once the last drink is past half gone. The arguments are the caffeine left at bedtime (such as \"34 mg\") and the bedtime (such as \"10:30 PM\")."
     },
+    "Drink" : {
+      "comment" : "App Intents: the Log a Drink action's drink parameter, and the name Siri and Shortcuts use for a drink."
+    },
+    "Drinks" : {
+      "comment" : "App Intents: a property of the intake value, in Shortcuts: how many drinks were logged that day."
+    },
     "Drip coffee" : {
       "comment" : "A drink in the drink composer's list."
+    },
+    "Each day" : {
+      "comment" : "Insights, steps screen: the heading of the chart card, a bar for each day's steps."
     },
     "Each one is optional. Half-Life works without any of them." : {
       "comment" : "Onboarding: the lead of the permissions step."
@@ -208,6 +583,12 @@
     "Face ID" : {
       "comment" : "The name of Apple's Face ID, on onboarding's permission row and summary."
     },
+    "Feel right?" : {
+      "comment" : "Insights: the first card's question, whether the finding feels right to the user."
+    },
+    "Finish setting up Half-Life" : {
+      "comment" : "What both Home Screen widgets show until onboarding is complete. A tap opens the app."
+    },
     "First" : {
       "comment" : "Onboarding: the chip for the first trimester of a pregnancy."
     },
@@ -219,6 +600,24 @@
     },
     "Flat white" : {
       "comment" : "A drink in the drink composer's list."
+    },
+    "From %@ to %@" : {
+      "comment" : "Accessibility: the clock times under the left and right ends of the Today screen's decay curve, read by VoiceOver as one element. The arguments are a day and a clock time each, written by the system, such as \"Today, 3:50 AM\" and \"Tomorrow, 3:50 AM\"."
+    },
+    "From Apple Health" : {
+      "comment" : "The Apple Health card's heading on the Today screen, when its sleep, steps, and heart rate come from Apple Health."
+    },
+    "Get Caffeine Intake" : {
+      "comment" : "App Intents: the intake action's name in Shortcuts."
+    },
+    "Get Caffeine Level" : {
+      "comment" : "App Intents: the caffeine-level action's name in Shortcuts."
+    },
+    "Get Last Cup" : {
+      "comment" : "App Intents: the last-cup action's name in Shortcuts."
+    },
+    "Get Sleep Time" : {
+      "comment" : "App Intents: the sleep-time action's name in Shortcuts."
     },
     "Get started" : {
       "comment" : "Onboarding's Welcome screen: the button that starts onboarding."
@@ -247,16 +646,50 @@
     "Half-Life" : {
       "comment" : "Onboarding's Welcome screen: the app's name, as its title."
     },
+    "Half-Life can only log a quantity of 1 or more." : {
+      "comment" : "App Intents: Siri's reply when the drink's quantity is below 1."
+    },
+    "Half-Life can't log a drink in the future." : {
+      "comment" : "App Intents: Siri's reply when the drink's time is later than now."
+    },
+    "Half-Life couldn't answer that. Try again." : {
+      "comment" : "App Intents: Siri's reply when Ask Half-Life's answer failed."
+    },
+    "Half-Life is locked" : {
+      "comment" : "The lock screen's title, while the app lock hides the app."
+    },
     "Half-Life isn't medical advice. If you're pregnant or have liver disease, ask your doctor how much caffeine is right for you." : {
       "comment" : "Onboarding: the note under the factors that change how fast caffeine clears."
+    },
+    "Half-Life locks each time you leave it, and asks for Face ID, Touch ID, or your passcode to open it again." : {
+      "comment" : "Settings' App lock section: the note under the option that turns the lock on or off."
     },
     "Half-Life shows how much caffeine will still be in you by then." : {
       "comment" : "Onboarding: the lead of the bedtime step."
     },
-    "Here's what Half-Life starts from. Your half-life is an estimate from what you told it." : {
+    "Half-Life works with Siri and the Shortcuts app as soon as it's installed. There's nothing to turn on. Try saying:" : {
+      "comment" : "Onboarding's Siri and Shortcuts step: the line under the title, which leads into the phrases to try."
+    },
+    "Have your usual %@, %@, by %@ to be at %@ or less by your %@ bedtime." : {
+      "comment" : "App Intents: Siri's reply for the last cup. The arguments are the usual drink, such as \"Latte\", its quantity, such as \"2 shots\", the latest time, the sleep threshold, such as \"40 mg\", and the bedtime.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Have your usual %1$@, %2$@, by %3$@ to be at %4$@ or less by your %5$@ bedtime."
+          }
+        }
+      }
+    },
+    "Heart rate and sleep from Apple Health" : {
+      "comment" : "Where the resting heart rate screen's data comes from."
+    },
+    "Here's what Half-Life starts from." : {
       "comment" : "Onboarding's summary: the lead under its title."
     },
-    "Hour" : {},
+    "Hides this finding until it changes." : {
+      "comment" : "Accessibility hint of the \"Not really\" answer to \"Feel right?\" on the Insights tab's first card."
+    },
     "I have cirrhosis of the liver" : {
       "comment" : "Onboarding: the option for cirrhosis, which makes caffeine clear more slowly."
     },
@@ -272,14 +705,29 @@
     "I'm pregnant" : {
       "comment" : "Onboarding: the option for a pregnancy, which makes caffeine clear more slowly."
     },
+    "In bed" : {
+      "comment" : "The Apple Health card's label above last night's time in bed, shown when Health recorded time in bed but no sleep. Also the label of a night's time in bed on the Insights tab's last 7 days card."
+    },
+    "In bed, %@. Time in bed, not sleep." : {
+      "comment" : "Accessibility label: last night's time in bed on the Apple Health card, shown when no sleep was recorded. The argument is a duration in words, such as \"7 hours, 10 minutes\"."
+    },
+    "In your system" : {
+      "comment" : "The In your system widget's name in the widget gallery. The widget shows the caffeine in the body now and its curve."
+    },
     "In your system now" : {
-      "comment" : "The decay card's heading above the caffeine in the body right now, and that figure's accessibility label."
+      "comment" : "The decay card's heading above the caffeine in the body right now, and that figure's accessibility label. Also the heading of the In your system Home Screen widget."
     },
     "Increase quantity" : {
       "comment" : "Accessibility label: adds one unit of the chosen drink."
     },
+    "Insights" : {
+      "comment" : "The Insights tab's title, at the top of the tab."
+    },
     "Instant coffee" : {
       "comment" : "A drink in the drink composer's list."
+    },
+    "It needs at least 5 days with steps after a caffeine night, and 5 other days." : {
+      "comment" : "Insights, steps screen: explains the verdict that there are too few days to compare yet."
     },
     "It slows caffeine down a great deal." : {
       "comment" : "Onboarding: the detail under the fluvoxamine option."
@@ -287,17 +735,50 @@
     "Keep" : {
       "comment" : "Keeps the drink waiting to be deleted, in the Today screen's history card."
     },
+    "Keeps the finding, and stops asking." : {
+      "comment" : "Accessibility hint of the \"Yes\" answer to \"Feel right?\" on the Insights tab's first card."
+    },
     "Last cup" : {
-      "comment" : "The Today screen's tile heading above the latest time to have the usual drink today."
+      "comment" : "The Today screen's tile heading above the latest time to have the usual drink today, and the title of the cutoff reminder's notification at that time. Also the label of the chosen day's last drink on the Insights tab's last 7 days card."
+    },
+    "Last Cup" : {
+      "comment" : "App Intents: the last-cup App Shortcut's title, and the name of the value the action returns."
+    },
+    "Last night" : {
+      "comment" : "The Apple Health card's label above last night's time asleep, such as \"6h 42m\"."
+    },
+    "Last night, %@ asleep" : {
+      "comment" : "Accessibility label: last night's time asleep on the Apple Health card. The argument is a duration in words, such as \"6 hours, 42 minutes\"."
+    },
+    "Latest cup" : {
+      "comment" : "App Intents: a property of the last-cup value, in Shortcuts: the latest time to have the usual drink."
+    },
+    "Latest drink %@" : {
+      "comment" : "The One tap widget's line under its favourites. The argument is when the latest drink was consumed, such as \"3:04 PM\". It isn't the Last cup tile's time, which is the cutoff."
     },
     "Latte" : {
       "comment" : "A drink in the drink composer's list."
     },
     "Lets Half-Life check that it's you." : {
-      "comment" : "Onboarding: what the Face ID or Touch ID permission is for. There's no app lock yet, so it doesn't promise one."
+      "comment" : "Settings' Permissions section: what the Face ID or Touch ID permission is for. Allowing it there doesn't turn the app lock on, which has its own switch."
+    },
+    "Lock Half-Life" : {
+      "comment" : "Settings' App lock section: the option that turns the lock on or off, on a device with no Face ID or Touch ID while the lock is on."
+    },
+    "Lock with %@" : {
+      "comment" : "Settings' App lock section: the option that turns the lock on or off. The argument is \"Face ID\", \"Touch ID\", or \"Optic ID\"."
+    },
+    "Locks Half-Life each time you leave it, so only you can see your caffeine and health data. You can turn the lock off in Settings." : {
+      "comment" : "Onboarding: what the Face ID or Touch ID row does. Allowing it also turns the app lock on."
     },
     "Log a drink" : {
       "comment" : "The drink composer's title, and the label of the log button above the root tab bar."
+    },
+    "Log a Drink" : {
+      "comment" : "App Intents: the Log a Drink action's name in Shortcuts, and its App Shortcut's title."
+    },
+    "Log a favourite drink without opening Half-Life." : {
+      "comment" : "The One tap widget's description in the widget gallery."
     },
     "Log my first cup" : {
       "comment" : "Onboarding's summary: the button that finishes onboarding and opens the drink composer."
@@ -311,6 +792,17 @@
     "Logged %@" : {
       "comment" : "VoiceOver announcement after one tap logged a favourite. The argument is the drink and its quantity, such as \"Espresso, 2 shots\"."
     },
+    "Logged %@, %@: about %@." : {
+      "comment" : "App Intents: Siri's reply after logging a drink. The arguments are the drink, such as \"Latte\", its quantity, such as \"2 shots\", and its caffeine, such as \"125 mg\".",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Logged %1$@, %2$@: about %3$@."
+          }
+        }
+      }
+    },
     "Logged on %@" : {
       "comment" : "The history card's heading for a day before yesterday. The argument is the day, such as \"Tuesday, Sep 8\"."
     },
@@ -320,24 +812,73 @@
     "Logged yesterday" : {
       "comment" : "The history card's heading when it shows yesterday's drinks."
     },
+    "Logs a drink in Half-Life, as drunk now." : {
+      "comment" : "App Intents: what the Log a Drink action does, shown in Shortcuts."
+    },
     "Logs this drink now." : {
       "comment" : "Accessibility hint of a one-tap favourite: one tap logs the drink as consumed now, with no confirmation."
     },
     "Matcha" : {
       "comment" : "A drink in the drink composer's list."
     },
-    "Minute" : {},
+    "More caffeine at sleep onset hasn't gone with less sleep in your nights so far, and on nights with more than %@ in you, you fall asleep sooner." : {
+      "comment" : "Insights, sleep screen's analysis card: no drop in time asleep, and a shorter time to fall asleep over the standard threshold. The argument is the threshold, such as \"35 mg\"."
+    },
+    "More caffeine at sleep onset hasn't gone with less sleep in your nights so far. There aren't yet enough nights with the time you got into bed to compare how quickly you fall asleep." : {
+      "comment" : "Insights, sleep screen's analysis card: no drop in time asleep, and too few nights with time in bed to compare falling asleep. The argument is the threshold, such as \"35 mg\"."
+    },
+    "More caffeine at sleep onset hasn't gone with less sleep, or with taking longer to fall asleep, in your nights so far." : {
+      "comment" : "Insights, sleep screen's analysis card: no drop in time asleep or in the time to fall asleep. The argument is the threshold, such as \"35 mg\"."
+    },
+    "Most caffeine at bedtime (mg)" : {
+      "comment" : "App Intents: a property of the last-cup value, in Shortcuts: the sleep threshold, in milligrams."
+    },
     "Next day" : {
       "comment" : "Accessibility label: shows the day after the one in the history card."
+    },
+    "No clear difference" : {
+      "comment" : "Insights, steps screen: the verdict when the difference is within the user's day-to-day swing."
+    },
+    "No days yet" : {
+      "comment" : "VoiceOver's reading of a group on the resting heart rate screen that has no days."
+    },
+    "No drinks logged on %@." : {
+      "comment" : "App Intents: Siri's reply for an earlier day's intake when nothing was logged. The argument is the day, such as \"Tuesday, September 1\"."
+    },
+    "No drinks logged today." : {
+      "comment" : "App Intents: Siri's reply for today's intake when nothing was logged."
+    },
+    "No drinks logged yesterday." : {
+      "comment" : "App Intents: Siri's reply for yesterday's intake when nothing was logged."
     },
     "No drinks logged." : {
       "comment" : "The history card's message for a day with no drinks."
     },
+    "No more caffeine today if you want to be at %@ or less by your %@ bedtime." : {
+      "comment" : "App Intents: Siri's reply for the last cup, when even one more of the usual drink would leave too much at bedtime. The arguments are the sleep threshold, such as \"40 mg\", and the bedtime, such as \"10:30 PM\".",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "No more caffeine today if you want to be at %1$@ or less by your %2$@ bedtime."
+          }
+        }
+      }
+    },
     "No more today" : {
       "comment" : "The Today screen's \"Last cup\" tile when even one more of the usual drink would leave too much caffeine at bedtime."
     },
+    "None" : {
+      "comment" : "Insights: the last 7 days card's last cup for a day with no drinks logged."
+    },
     "None of these" : {
       "comment" : "Onboarding: the option for having none of the listed factors that change how fast caffeine clears."
+    },
+    "none yet" : {
+      "comment" : "Insights, steps screen: VoiceOver's reading of a side with no days yet, inside a longer sentence."
+    },
+    "None yet" : {
+      "comment" : "Insights, steps screen: shown in place of an average when one side has no days yet."
     },
     "Not asked" : {
       "comment" : "Onboarding's summary: a permission's status when it hasn't been asked for."
@@ -348,8 +889,23 @@
     "Not available on this device" : {
       "comment" : "Onboarding: Apple Health's status on a device without Health."
     },
+    "Not enough days yet" : {
+      "comment" : "The resting heart rate screen's headline while either group has fewer than 5 days to compare."
+    },
+    "Not enough nights to say yet" : {
+      "comment" : "Insights, sleep screen: what the nights show, when there are too few on one side of the threshold."
+    },
+    "Not really" : {
+      "comment" : "Insights: the answer to \"Feel right?\" that the finding doesn't feel right. It hides the card until the finding changes."
+    },
+    "Not recorded" : {
+      "comment" : "Insights: a past day's sleep on the last 7 days card when Apple Health has no sleep or time in bed for that night."
+    },
     "Not set up" : {
       "comment" : "Onboarding: the Face ID or Touch ID status when none is enrolled on the device."
+    },
+    "Not tonight" : {
+      "comment" : "Insights: in place of tonight's sleep window, when caffeine is still over the threshold at noon tomorrow."
     },
     "Nothing in your system right now." : {
       "comment" : "The decay card's sentence when no drink's caffeine is still counting."
@@ -366,14 +922,40 @@
     "On" : {
       "comment" : "Onboarding: a permission's status when it's allowed."
     },
+    "On %@, you logged about %@: %@." : {
+      "comment" : "App Intents: Siri's reply for an earlier day's intake. The arguments are the day, such as \"Tuesday, September 1\", the total, and the list of drinks.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "On %1$@, you logged about %2$@: %3$@."
+          }
+        }
+      }
+    },
+    "On average, %@ at or under %@, and %@ over it." : {
+      "comment" : "Insights, sleep screen: VoiceOver's reading of a chart. The arguments are the average on the nights at or under the threshold, such as \"7 hours, 12 minutes\", the threshold, such as \"40 mg\", and the average on the nights over it."
+    },
     "One tap" : {
-      "comment" : "Heading above the one-tap favourites, on the Today screen and in the drink composer. Each favourite logs a drink in one tap."
+      "comment" : "Heading above the one-tap favourites, on the Today screen and in the drink composer. Each favourite logs a drink in one tap. Also the One tap Home Screen widget's name in the widget gallery, and its heading."
     },
     "Open Settings" : {
       "comment" : "Onboarding: the button that opens Half-Life's page in the Settings app, for a permission that's off."
     },
+    "Opening Half-Life." : {
+      "comment" : "App Intents: Siri says this as the app opens, after the user agrees to open it."
+    },
     "Optic ID" : {
       "comment" : "The name of Apple's Optic ID, on onboarding's permission row and summary."
+    },
+    "Other days" : {
+      "comment" : "Insights, steps screen: the label over the average steps on the days that didn't follow a caffeine night, and the chart legend's name for them."
+    },
+    "Over %@" : {
+      "comment" : "Insights, sleep screen: the nights whose caffeine at sleep onset was over the threshold, in the averages and the chart's legend. The argument is the threshold, such as \"40 mg\"."
+    },
+    "Over %@ of caffeine when the night began" : {
+      "comment" : "The chart legend for the filled dots on the resting heart rate screen. %@ is the sleep threshold, such as \"40 mg\"."
     },
     "Permissions" : {
       "comment" : "Onboarding: the title of the permissions step."
@@ -384,14 +966,35 @@
     "Previous day" : {
       "comment" : "Accessibility label: shows the day before the one in the history card."
     },
+    "Quantity" : {
+
+    },
+    "Question" : {
+      "comment" : "App Intents: the Ask Half-Life action's question parameter."
+    },
     "Reads your sleep, steps, and resting heart rate. Nothing is written back, and your Health data never leaves this iPhone." : {
       "comment" : "Onboarding: what the Apple Health permission is for. It must stay true: the app only reads, and Health data is never synced."
     },
     "Recommended sleep" : {
       "comment" : "Onboarding's summary: the label of the sleep recommended for the user's age, such as \"7–9 hours\"."
     },
+    "Remove demo drinks" : {
+      "comment" : "Settings: the button that removes the sample drinks it added to the log."
+    },
     "Removes the drink from your log and your caffeine curve." : {
       "comment" : "Accessibility hint for the history card's Delete button."
+    },
+    "Resting heart rate" : {
+      "comment" : "Insights: the button and screen for resting heart rate from Apple Health."
+    },
+    "Resting heart rate, %lld beats per minute" : {
+      "comment" : "Accessibility label: today's resting heart rate on the Apple Health card."
+    },
+    "Resting heart rate, the last 30 days" : {
+      "comment" : "VoiceOver's label for the resting heart rate screen's chart."
+    },
+    "Resting HR" : {
+      "comment" : "The Apple Health card's label above today's resting heart rate, such as \"58 bpm\". HR is short for heart rate."
     },
     "Second" : {
       "comment" : "Onboarding: the chip for the second trimester of a pregnancy."
@@ -399,11 +1002,53 @@
     "Second trimester" : {
       "comment" : "Accessibility: the second trimester chip, read by VoiceOver."
     },
+    "See all of Half-Life's shortcuts in the Shortcuts app." : {
+      "comment" : "Onboarding's Siri and Shortcuts step: the line above the button that opens the Shortcuts app."
+    },
+    "Set up %@ in the Settings app to turn the lock on." : {
+      "comment" : "Settings' App lock section: why the lock can't be turned on while Face ID isn't set up on the device. The argument is \"Face ID\", \"Touch ID\", or \"Optic ID\"."
+    },
     "Set up %@ in the Settings app." : {
       "comment" : "Onboarding: the note when no Face ID or Touch ID is enrolled. The argument is \"Face ID\", \"Touch ID\", or \"Optic ID\"."
     },
+    "Settings" : {
+      "comment" : "The Settings tab's title, in the tab bar and at the top of the tab."
+    },
+    "Shows made-up sleep, steps, and resting heart rate on the Today screen in place of Apple Health's. Nothing is written to Health." : {
+      "comment" : "Settings' Demo data screen: what the demo Health data option does."
+    },
     "Shows the drinks logged today." : {
       "comment" : "Accessibility hint: the history card's Today button, which returns the card to today from an earlier day."
+    },
+    "Sleep" : {
+      "comment" : "Insights: the button and screen for sleep from Apple Health."
+    },
+    "Sleep appears here when Apple Health has it." : {
+      "comment" : "Insights: under the last 7 days card, while it shows caffeine without sleep from Apple Health."
+    },
+    "Sleep from Apple Health" : {
+      "comment" : "Insights: under the last 7 days card, saying its sleep comes from Apple Health. Also the footnote on the Sleep screen."
+    },
+    "Sleep is shaped by many things, but the trend in your nights is that with more than %@ in you at sleep onset, you sleep less and take longer to fall asleep." : {
+      "comment" : "Insights, sleep screen's analysis card: a tolerance, and a longer time to fall asleep over it. The argument is the threshold, such as \"35 mg\"."
+    },
+    "Sleep is shaped by many things, but the trend in your nights is that with more than %@ in you at sleep onset, you sleep less, though you fall asleep about as quickly." : {
+      "comment" : "Insights, sleep screen's analysis card: a tolerance, and about the same time to fall asleep. The argument is the threshold, such as \"35 mg\"."
+    },
+    "Sleep is shaped by many things, but the trend in your nights is that with more than %@ in you at sleep onset, you sleep less, though you fall asleep sooner." : {
+      "comment" : "Insights, sleep screen's analysis card: a tolerance, and a shorter time to fall asleep over it. The argument is the threshold, such as \"35 mg\"."
+    },
+    "Sleep is shaped by many things, but the trend in your nights is that with more than %@ in you at sleep onset, you sleep less. There aren't yet enough nights with the time you got into bed to compare how quickly you fall asleep." : {
+      "comment" : "Insights, sleep screen's analysis card: a tolerance, and too few nights with time in bed to compare falling asleep. The argument is the threshold, such as \"35 mg\"."
+    },
+    "Sleep is shaped by many things, but the trend in your nights is that with more than %@ in you at sleep onset, you take longer to fall asleep, though you don't sleep less." : {
+      "comment" : "Insights, sleep screen's analysis card: no drop in time asleep, but a longer time to fall asleep over the standard threshold. The argument is the threshold, such as \"35 mg\"."
+    },
+    "Sleep Time" : {
+      "comment" : "App Intents: the sleep-time App Shortcut's title, and the name of the value the action returns."
+    },
+    "Slept" : {
+      "comment" : "Insights: the label of the chosen day's time asleep on the last 7 days card."
     },
     "Smoke speeds up how fast caffeine clears. Vaping and nicotine patches don't." : {
       "comment" : "Onboarding: the detail under the smoking option. It's the smoke, not nicotine, that speeds clearance up."
@@ -414,17 +1059,62 @@
     "Some things change how fast your body clears caffeine. Choose any that apply." : {
       "comment" : "Onboarding: the lead of the step that asks what changes how fast the user clears caffeine."
     },
-    "Starting half-life" : {
-      "comment" : "Onboarding's summary: the label of the starting half-life, such as \"8.3 hours\"."
-    },
-    "Step %lld of 4" : {
+    "Step %lld of 5" : {
       "comment" : "Onboarding: the step's place in the flow, above its title. The argument is the step's number, from 1."
+    },
+    "Steps" : {
+      "comment" : "Insights: the button and screen for steps from Apple Health."
+    },
+    "Steps each day" : {
+      "comment" : "Insights, steps screen: VoiceOver's label for the chart of each day's steps."
+    },
+    "Steps from Apple Health" : {
+      "comment" : "Insights, steps screen: says the steps come from Apple Health."
+    },
+    "Steps today" : {
+      "comment" : "The Apple Health card's label above today's step count, such as \"8,420\"."
+    },
+    "Steps today, %@" : {
+      "comment" : "Accessibility label: today's steps on the Apple Health card. The argument is a number, such as \"8,420\"."
     },
     "Take me to Today" : {
       "comment" : "Onboarding's summary: the button that finishes onboarding and opens the Today screen."
     },
+    "Tells you how much caffeine is in your system now, and how much will be left at bedtime." : {
+      "comment" : "App Intents: what the caffeine-level action does, shown in Shortcuts."
+    },
+    "Tells you the best time to fall asleep tonight, once your caffeine is low enough." : {
+      "comment" : "App Intents: what the sleep-time action does, shown in Shortcuts."
+    },
+    "Tells you the latest time to have your usual drink and still sleep well tonight." : {
+      "comment" : "App Intents: what the last-cup action does, shown in Shortcuts."
+    },
+    "Tells you what you drank on a day, and how much caffeine it came to." : {
+      "comment" : "App Intents: what the intake action does, shown in Shortcuts."
+    },
+    "That isn't available right now. Open Half-Life to see your caffeine." : {
+      "comment" : "App Intents: Siri's reply when the figure it was asked for isn't available."
+    },
+    "That's more than your day-to-day swing explains, but it's a pattern, not proof caffeine caused it." : {
+      "comment" : "Insights, steps screen: explains a verdict that names a difference, without claiming caffeine caused it."
+    },
+    "The app lock couldn't be changed. Try again." : {
+      "comment" : "Settings' App lock section: the message when turning the lock on or off failed."
+    },
+    "The caffeine in your system now, and how much is left by bedtime." : {
+      "comment" : "The In your system widget's description in the widget gallery."
+    },
     "The combined pill, patch, or ring, or hormone therapy." : {
       "comment" : "Onboarding: the detail under the estrogen option, listing what counts. The progestin-only pill doesn't."
+    },
+    "The day after a caffeine night" : {
+      "comment" : "Insights, steps screen: the chart legend's name for the bars marked with a coffee cup symbol."
+    },
+    "The demo drinks couldn't be changed. Try again." : {
+      "comment" : "Settings: shown when adding or removing the sample drinks failed."
+    },
+    "The demo Health data couldn't be changed. Try again." : {
+      "comment" : "Settings' Demo data screen: the demo Health data option couldn't be turned on or off."
     },
     "The drink couldn't be deleted. Try again." : {
       "comment" : "Shown in the history card when deleting a drink failed."
@@ -432,17 +1122,70 @@
     "The drink couldn't be saved. Try again." : {
       "comment" : "Shown in the drink composer, or under the one-tap favourites, when logging a drink failed."
     },
+    "The gap between the two is within your normal day-to-day swing, so it could be chance." : {
+      "comment" : "Insights, steps screen: explains the verdict that there's no clear difference."
+    },
+    "The last 7 days" : {
+      "comment" : "Insights: the heading of the card with each of the last 7 days' caffeine, and the chosen day's details."
+    },
+    "The last 30 days" : {
+      "comment" : "Insights, steps screen: the heading of the verdict card, which covers the 30 days before today."
+    },
     "Third" : {
       "comment" : "Onboarding: the chip for the third trimester of a pregnancy."
     },
     "Third trimester" : {
       "comment" : "Accessibility: the third trimester chip, read by VoiceOver."
     },
+    "This needs %lld days after a night that began with over %@ of caffeine, and %lld after other nights. So far there are %lld and %lld." : {
+      "comment" : "Under the resting heart rate screen's \"Not enough days yet\" headline. The first and third numbers are the days needed (5), %@ is the sleep threshold, such as \"40 mg\", and the last two are how many days each group has so far."
+    },
+    "This needs at least %lld nights on each side of %@ to compare your time asleep and how quickly you fall asleep. So far, %lld at or under it and %lld over it." : {
+      "comment" : "Insights, sleep screen's analysis card: too few nights to compare. The arguments are the fewest nights needed, 5, the standard threshold, \"40 mg\", and the nights at or under it and over it."
+    },
+    "This needs at least %lld nights on each side of %@ with the time you got into bed recorded." : {
+      "comment" : "Insights, sleep screen: the time to fall asleep card, when too few nights have time in bed to compare. The arguments are the fewest nights needed, 5, and the threshold, such as \"40 mg\"."
+    },
+    "This would still be rising at your %@ bedtime." : {
+      "comment" : "The drink composer's cutoff warning, when the chosen drink wouldn't peak before bedtime. The argument is the bedtime, such as \"10:30 PM\"."
+    },
+    "Threshold" : {
+      "comment" : "Accessibility: the dashed line on the Insights tab's chart at the sleep threshold, such as 40 mg."
+    },
     "Time" : {
       "comment" : "Accessibility: the decay curve's horizontal axis, the time of day."
     },
+    "Time asleep" : {
+      "comment" : "Insights, sleep screen: the heading of the card that sets each night's time asleep against the caffeine at sleep onset."
+    },
+    "Time asleep against caffeine" : {
+      "comment" : "Insights, sleep screen: VoiceOver's name for the time asleep chart."
+    },
+    "Time in bed, not sleep." : {
+      "comment" : "A note under the time in bed on the Apple Health card: Health recorded time in bed, which isn't the same as time asleep."
+    },
+    "Time to fall asleep" : {
+      "comment" : "Insights, sleep screen: the heading of the card that sets each night's time to fall asleep, from getting into bed, against the caffeine at sleep onset."
+    },
+    "Time to fall asleep against caffeine" : {
+      "comment" : "Insights, sleep screen: VoiceOver's name for the time to fall asleep chart."
+    },
     "Today" : {
-      "comment" : "The Today screen's tab in the tab bar, its tile heading above the caffeine logged so far today, such as \"192 mg\", and the history card's button that returns it to today from an earlier day."
+      "comment" : "The Today screen's tab in the tab bar, its tile heading above the caffeine logged so far today, such as \"192 mg\", and the history card's button that returns it to today from an earlier day. Also the Insights tab's last 7 days card's name for today."
+    },
+    "Today you've logged about %@: %@." : {
+      "comment" : "App Intents: Siri's reply for today's intake. The arguments are the total, such as \"290 mg\", and the list of drinks.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Today you've logged about %1$@: %2$@."
+          }
+        }
+      }
+    },
+    "Too few days to compare yet" : {
+      "comment" : "Insights, steps screen: the verdict when either side has fewer than 5 days with steps."
     },
     "Total" : {
       "comment" : "The history card's label beside the day's total caffeine, such as \"192 mg\"."
@@ -450,8 +1193,47 @@
     "Touch ID" : {
       "comment" : "The name of Apple's Touch ID, on onboarding's permission row and summary."
     },
+    "Turns the app lock off." : {
+      "comment" : "Accessibility hint: what tapping Settings' App lock option does while the lock is on."
+    },
+    "Turns the app lock on." : {
+      "comment" : "Accessibility hint: what tapping Settings' App lock option does while the lock is off."
+    },
+    "Unlock" : {
+      "comment" : "The lock screen's button that asks for Face ID, Touch ID, or the passcode to unlock the app."
+    },
+    "Unlock Half-Life to see your caffeine and health data." : {
+      "comment" : "The unlock prompt's reason. iOS shows it for Touch ID, and when asking for the passcode."
+    },
+    "Unlock it to see your caffeine and health data." : {
+      "comment" : "The lock screen's line under its title \"Half-Life is locked\"."
+    },
+    "Until your nights show a trend, this is %@, a level clinical sleep studies support for the average person." : {
+
+    },
+    "Use demo Health data" : {
+      "comment" : "Settings' Demo data screen: the option that shows made-up Health data on the Today screen's Apple Health card, in place of Apple Health's."
+    },
+    "Use Siri and Shortcuts" : {
+      "comment" : "Onboarding's Siri and Shortcuts step: the title."
+    },
+    "Usual drink" : {
+      "comment" : "App Intents: a property of the last-cup value, in Shortcuts: the drink the cutoff is for."
+    },
+    "Version %@ (%@)" : {
+      "comment" : "Settings: the root's last line, the app's version and build, such as \"Version 1.0 (1)\". The first argument is the version, the second the build number."
+    },
     "What should we call you?" : {
       "comment" : "Onboarding's About you step: the placeholder in the empty first name field."
+    },
+    "What we noticed" : {
+      "comment" : "Insights: the eyebrow of the first card, one finding about the user's own nights."
+    },
+    "What would you like to know?" : {
+      "comment" : "App Intents: Siri asks this when the user says \"Ask Half-Life\" without a question."
+    },
+    "What your nights show" : {
+      "comment" : "Insights, sleep screen's analysis card: its heading, over what the nights show across both charts."
     },
     "When" : {
       "comment" : "Heading above the choices for when the drink was consumed."
@@ -459,8 +1241,37 @@
     "When do you want to be asleep?" : {
       "comment" : "Onboarding: the title of the bedtime step."
     },
+    "When you want to be asleep. Half-Life works out how much caffeine will be left in you then." : {
+      "comment" : "Settings: under the bedtime picker."
+    },
     "Which trimester?" : {
       "comment" : "Onboarding: the heading above the trimester choices, after the user says they're pregnant."
+    },
+    "Window end" : {
+      "comment" : "Accessibility: the end of the shaded sleep window on the Insights tab's chart."
+    },
+    "Window start" : {
+      "comment" : "Accessibility: the start of the shaded sleep window on the Insights tab's chart."
+    },
+    "Written on your iPhone by Apple Intelligence" : {
+      "comment" : "Insights: the first card's footnote, saying the on-device model wrote the finding."
+    },
+    "Yes" : {
+      "comment" : "Insights: the answer to \"Feel right?\" that the finding feels right."
+    },
+    "Yesterday" : {
+      "comment" : "Insights: the last 7 days card's name for yesterday, above its details and read by VoiceOver on its column."
+    },
+    "Yesterday you logged about %@: %@." : {
+      "comment" : "App Intents: Siri's reply for yesterday's intake. The arguments are the total, such as \"290 mg\", and the list of drinks.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Yesterday you logged about %1$@: %2$@."
+          }
+        }
+      }
     },
     "You're set, %@." : {
       "comment" : "Onboarding's summary: its title, with the user's first name."
@@ -468,11 +1279,48 @@
     "You're set." : {
       "comment" : "Onboarding's summary: its title, when the user didn't give a name."
     },
-    "Your health data stays on this iPhone. Your drink log syncs only to your own iCloud. No account needed." : {
-      "comment" : "Onboarding's Welcome screen: the privacy note under the button. It must stay true: only the drink log syncs, to the user's own iCloud."
+    "Your best time to fall asleep is %@ to %@. Caffeine should be under %@ by your %@ bedtime." : {
+      "comment" : "App Intents: Siri's reply for the sleep time when caffeine clears by bedtime. The arguments are the window's start and end, the sleep threshold, such as \"40 mg\", and the bedtime.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Your best time to fall asleep is %1$@ to %2$@. Caffeine should be under %3$@ by your %4$@ bedtime."
+          }
+        }
+      }
     },
-    "Your starting half-life" : {
-      "comment" : "Onboarding: the label above the starting half-life that the user's answers give, such as \"8.3 hours\"."
+    "Your best time to fall asleep is %@ to %@. Caffeine should drop under %@ at about %@, after your %@ bedtime." : {
+      "comment" : "App Intents: Siri's reply for the sleep time when caffeine clears after bedtime. The arguments are the window's start and end, the sleep threshold, when caffeine clears, and the bedtime.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Your best time to fall asleep is %1$@ to %2$@. Caffeine should drop under %3$@ at about %4$@, after your %5$@ bedtime."
+          }
+        }
+      }
+    },
+    "Your caffeine and health data stays on this iPhone. No account needed." : {
+      "comment" : "Onboarding's Welcome screen: the privacy note under the button. It must stay true: nothing the app stores leaves the device."
+    },
+    "Your first name" : {
+      "comment" : "Settings: the placeholder in the name field."
+    },
+    "Your last %lld days of sleep, against the caffeine in you when you fell asleep." : {
+      "comment" : "Insights, sleep screen: the footnote, saying what the screen compares. The argument is the number of days, 30."
+    },
+    "Your resting heart rate was higher the day after a night that began with over %@ of caffeine." : {
+      "comment" : "Under the resting heart rate screen's headline difference. %@ is the sleep threshold, such as \"40 mg\"."
+    },
+    "Your resting heart rate was lower the day after a night that began with over %@ of caffeine." : {
+      "comment" : "Under the resting heart rate screen's headline difference. %@ is the sleep threshold, such as \"40 mg\"."
+    },
+    "Your sleep hasn't dropped with caffeine so far" : {
+      "comment" : "Insights, sleep screen: what the nights show, when time asleep doesn't drop with more caffeine at sleep onset."
+    },
+    "Your sleep holds up to about %@" : {
+      "comment" : "Insights, sleep screen: what the nights show, when they show a caffeine tolerance. The argument is the tolerance, such as \"55 mg\"."
     },
     "Your usual: %@, %@" : {
       "comment" : "The Today screen's \"Last cup\" tile: the drink its time is for. The arguments are the drink's name, such as \"Latte\", and its quantity, such as \"2 shots\"."

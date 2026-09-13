@@ -14,9 +14,9 @@
 /// An implementation is the only code that touches the drink log's storage (constitution Article I.14). Two
 /// repositories share it. The drink log repository stores and reads drinks, and ``LiveCaffeineDecayRepository``
 /// reads the drinks that still count and marks the ones that don't. The data source signals a change after each
-/// store and each deletion, so both repositories hear about a drink however it was stored or deleted. The Drink
-/// Composer article lists its requirements, SRC-1 to SRC-7, and the Caffeine Decay Model article lists DATA-1 to
-/// DATA-5.
+/// store, each deletion, and each replacement of the demo drinks, so both repositories hear about a drink however it
+/// was stored or deleted. The Drink Composer article lists its requirements, SRC-1 to SRC-7, the Caffeine Decay Model
+/// article lists DATA-1 to DATA-5, and the Settings article lists SRC-8 to SRC-10.
 protocol DrinkLogDataSource: Sendable {
     /// Stores a drink, unmarked, then signals a change to every subscriber.
     ///
@@ -31,6 +31,16 @@ protocol DrinkLogDataSource: Sendable {
     /// - Parameter id: The identifier of the drink to delete.
     /// - Throws: An error if the deletion couldn't be stored. Nothing is signalled then.
     func delete(_ id: LoggedDrink.ID) async throws
+
+    /// Deletes every demo drink and stores each of `drinks` as a demo drink, together, then signals a change to every
+    /// subscriber once.
+    ///
+    /// The user's own drinks stay. When there were no demo drinks and `drinks` is empty, it changes nothing and signals
+    /// nothing.
+    ///
+    /// - Parameter drinks: The new demo drinks, or none to remove the demo history. Each is stored marked demo.
+    /// - Throws: An error if the change couldn't be stored. Nothing changes or is signalled then.
+    func replaceDemoDrinks(with drinks: [LoggedDrink]) async throws
 
     /// Returns every stored drink, oldest first, whether or not it's marked negligible.
     ///

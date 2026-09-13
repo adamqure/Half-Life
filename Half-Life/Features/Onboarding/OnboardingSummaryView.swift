@@ -14,8 +14,8 @@ import SwiftUI
 
 /// Onboarding's summary: what Half-Life starts from, and the two ways out.
 ///
-/// It calls the half-life an estimate, and makes no promise about when it gets better, because the estimator that
-/// would refine it isn't built (the brief's *Honesty* criterion). See the Onboarding article.
+/// It never shows the half-life the user's answers give, because the app doesn't share its half-life calculation with
+/// the user. See the Onboarding article.
 @MainActor
 struct OnboardingSummaryView: View {
     /// The step's store.
@@ -34,7 +34,7 @@ struct OnboardingSummaryView: View {
                         .foregroundStyle(Color.textPrimary)
                         .accessibilityAddTraits(.isHeader)
                         .accessibilityIdentifier(OnboardingSummaryViewAccessibilityID.title)
-                    Text("Here's what Half-Life starts from. Your half-life is an estimate from what you told it.")
+                    Text("Here's what Half-Life starts from.")
                         .font(.body)
                         .foregroundStyle(Color.textPrimary)
                 }
@@ -90,10 +90,6 @@ struct OnboardingSummaryView: View {
 
     private func summary(of profile: UserProfile) -> some View {
         VStack(spacing: 0) {
-            SummaryRow(
-                label: Text("Starting half-life"), value: Text(OnboardingFormat.hours(profile.halfLife)),
-                identifier: OnboardingSummaryViewAccessibilityID.halfLife, isStacked: isStacked)
-            Divider().overlay(Color.separatorOnCard)
             SummaryRow(
                 label: Text("Asleep by"), value: Text(OnboardingFormat.time(profile.bedtime, in: calendar)),
                 identifier: OnboardingSummaryViewAccessibilityID.bedtime, isStacked: isStacked)

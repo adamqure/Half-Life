@@ -13,8 +13,10 @@ import Foundation
 
 /// Streams the time of day: the current minute and the part of the day it falls in, then each new minute.
 ///
-/// It executes ``DayPeriodRule`` on each minute that ``CurrentTimeRepository`` streams. It's the only use case that
-/// executes a business rule: the owner chose it over a second clock repository. See the Today Screen article.
+/// It executes ``DayPeriodRule`` on each minute that ``CurrentTimeRepository`` streams. Use cases that execute a
+/// business rule are exceptions the owner approved: this one over a second clock repository, and
+/// ``ObserveRestingHeartRateComparisonUseCase`` and ``ObserveStepsComparisonUseCase``, which each combine two
+/// repositories' streams. See the Today Screen article.
 nonisolated struct ObserveTimeOfDayUseCase: UseCase {
     /// The repository that streams the current time.
     let currentTime: any CurrentTimeRepository

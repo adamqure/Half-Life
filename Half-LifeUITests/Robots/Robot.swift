@@ -115,14 +115,31 @@ extension XCUIApplication {
         launch(profile: LaunchEnvironmentKey.fresh)
     }
 
+    /// Sends the app to the background with the Home button, then brings it back to the foreground, as a user leaving
+    /// the app and returning does. The app lock locks the app on the way (see the App Lock article).
+    func leaveAndComeBack() {
+        XCUIDevice.shared.press(.home)
+        activate()
+    }
+
+    /// Launches the app past onboarding, but holds it on its splash screen: the simulated app lock's setting never
+    /// answers, so the launch never finishes. See the Splash Screen article.
+    func launchHoldingTheSplash() {
+        launchEnvironment[LaunchEnvironmentKey.launch] = LaunchEnvironmentKey.heldLaunch
+        launchPastOnboarding()
+    }
+
     /// Launches the app at onboarding's Welcome screen, with text at the largest accessibility size.
     func launchAtOnboardingWithTheLargestText() {
         launchArguments += ["-UIPreferredContentSizeCategoryName", "UICTContentSizeCategoryAccessibilityXXXL"]
         launchAtOnboarding()
     }
 
+    /// Launches in the development language, English, so the tab bar's buttons carry the titles `AppRobot` finds them
+    /// by (constitution Article II.6).
     private func launch(profile: String) {
         launchEnvironment[LaunchEnvironmentKey.profile] = profile
+        launchArguments += ["-AppleLanguages", "(en)", "-AppleLocale", "en_US"]
         launch()
     }
 }
@@ -134,7 +151,11 @@ enum Robots {
     /// All robots, one per screen.
     static let all: [any Robot.Type] = [
         AppRobot.self, DrinkComposerRobot.self, TodayRobot.self, WelcomeRobot.self, AboutYouRobot.self,
-        HalfLifeFactorsRobot.self, BedtimeRobot.self, PermissionsRobot.self, OnboardingSummaryRobot.self,
+        HalfLifeFactorsRobot.self, BedtimeRobot.self, PermissionsRobot.self, SiriShortcutsRobot.self,
+        OnboardingSummaryRobot.self, SettingsRobot.self, InsightsRobot.self, AppLockRobot.self,
+        AboutYouSettingsRobot.self, FactorsSettingsRobot.self, BedtimeSettingsRobot.self,
+        PermissionSettingsRobot.self, AppLockSettingsRobot.self, DemoHistorySettingsRobot.self,
+        HeartRateDetailRobot.self, StepsDetailRobot.self, SleepDetailRobot.self, SplashRobot.self,
     ]
 }
 

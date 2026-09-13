@@ -194,6 +194,9 @@ struct DrinkLogHistoryView: View {
                 Text(drink.type.unit.quantityText(drink.quantity))
                     .font(.footnote)
                     .foregroundStyle(Color.textSecondary)
+                if drink.isDemo {
+                    DemoTag()
+                }
             }
             .fixedSize(horizontal: false, vertical: true)
             if !dynamicTypeSize.isAccessibilitySize {
@@ -290,6 +293,20 @@ struct DrinkLogHistoryView: View {
             Color.feedbackCautionBackground, in: RoundedRectangle(cornerRadius: CornerRadius.small, style: .continuous)
         )
         .accessibilityIdentifier(DrinkLogHistoryViewAccessibilityID.errorMessage)
+    }
+}
+
+/// The label on a demo drink, so a drink Settings added is never mistaken for one the user logged. It's text, so
+/// VoiceOver reads it as part of the row. See the Settings article.
+@MainActor
+private struct DemoTag: View {
+    var body: some View {
+        Text("Demo")
+            .font(.caption.weight(.semibold))
+            .foregroundStyle(Color.textPrimary)
+            .padding(.horizontal, Spacing.itemGap / 2)
+            .padding(.vertical, 2)
+            .background(Color.surfaceMuted, in: Capsule())
     }
 }
 

@@ -6,7 +6,7 @@ How Half-Life reads the user's daily step count from Apple Health.
 
 The brief asks Half-Life to pull sleep, steps, and other data from Apple Health, and to build a profile of how the user's caffeine habits might be affecting them. Step count is one number per day: the total number of steps Health recorded during that day.
 
-``HealthKitStepCountDataSource``, implementing ``StepCountDataSource``, is the only code that reads step count from HealthKit (constitution Articles I.14 and V.3.5). No repository reads it yet.
+``HealthKitStepCountDataSource``, implementing ``StepCountDataSource``, is the only code that reads step count from HealthKit (constitution Articles I.14 and V.3.5). ``HalfLifeEstimateRepository`` reads it, for the day before each night (<doc:HalfLifeEstimator>).
 
 ## What's read
 
@@ -43,7 +43,15 @@ A day with no step samples in Health returns `nil`, and a sum of zero returns `0
 | STEPS-4 | It returns `nil` when Health has no step count for that day. |
 | STEPS-5 | A failed query throws HealthKit's error, logged with the error's domain and code only. |
 
-`HealthKitStepCountDataSourceTests` covers STEPS-1 to STEPS-5. Each test replaces the HealthKit query with a stand-in that records the query it's given and answers it, so no test reads real Health data. The query against the real health store isn't unit-tested, because a test can't grant the test host access to Health. STEPS-5's logging isn't tested.
+The Apple Health card (<doc:AppleHealthCard>) needs today's steps to stay current, so the data source has a change stream, like sleep's. `changes()` gives each subscriber its own observer query on step count, through `HKHealthStore.observeHalfLife`, which stops when the subscriber stops listening.
+
+| ID | Requirement |
+|----|-------------|
+| STEPS-6 | Each subscriber to `changes()` starts its own observer query on step count, and gets one signal per change HealthKit reports. |
+| STEPS-7 | An error HealthKit reports to the observer signals nothing, and is logged with the error's domain and code only. |
+| STEPS-8 | When a subscriber stops listening, its observer query stops. |
+
+`HealthKitStepCountDataSourceTests` covers STEPS-1 to STEPS-5, and `HealthKitStepCountChangesTests` covers STEPS-6 to STEPS-8, with a stand-in for the observer query. Each test replaces the HealthKit query with a stand-in that records the query it's given and answers it, so no test reads real Health data. The query against the real health store isn't unit-tested, because a test can't grant the test host access to Health. STEPS-5's logging isn't tested.
 
 ## Access and missing data
 

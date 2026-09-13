@@ -27,7 +27,7 @@ This is the order in which Half-Life's features are built. Work from the top dow
 | 4 · Today screen | 26 (15%) | 191 (26%) | A working app: the decay model, logging (composer and one-tap favourites), and the Today screen. |
 | 9 · Personal half-life estimator | 80 (46%) | 486 (65%) | The thesis: the absorption model, onboarding survey, HealthKit read, demo seed data, and the personal half-life estimator. |
 | 13 · Pre-log cutoff warning | 100 (57%) | 604 (81%) | The priority map's default cut line. Adds tests, the Foundation Models layer, insight cards, and the pre-log warning. |
-| 15 · Patterns screen | 116 (67%) | 672 (90%) | Adds App Intents and the Patterns screen. |
+| 15 · Insights tab | 116 (67%) | 672 (90%) | Adds App Intents and the Insights tab. |
 | 21 · Settings | 136 (78%) | 717 (96%) | Every item with V/E ≥ 1.5. The six items that remain cost 38 points (22% of effort) for 30 points (4% of value), and none of them returns more than 1 value point per effort point. |
 | 27 · Biometric lock | 174 (100%) | 747 (100%) | Everything. |
 
@@ -41,7 +41,7 @@ This is the order in which Half-Life's features are built. Work from the top dow
 | 4 | 11 | Today screen | 8 | 89 | 11.13 | Big Bet | 26 (15%) | 191 (26%) | Best ratio on the board. The only thing a reviewer opens the app and sees. |
 | 5 | 2 | Bateman absorption | 13 | 55 | 4.23 | Big Bet | 39 (22%) | 246 (33%) | Half the write-up. Refines the curve the Today screen already draws. |
 | 6 | 5 | Onboarding survey | 5 | 13 | 2.60 | Quick Win | 44 (25%) | 259 (35%) | Produces the informed prior and the cutoff time. Day-one accuracy before any data exists. |
-| 7 | 20 | HealthKit read | 13 | 89 | 6.85 | Big Bet | 57 (33%) | 348 (47%) | Biggest dependency in the graph — both estimators and Patterns are dead without it. |
+| 7 | 20 | HealthKit read | 13 | 89 | 6.85 | Big Bet | 57 (33%) | 348 (47%) | Biggest dependency in the graph — both estimators and Insights are dead without it. |
 | 8 | 24 | Demo seed generator | 2 | 5 | 2.50 | Fill-in | 59 (34%) | 353 (47%) | Needed before the estimator so recovery can be validated against known ground truth. |
 | 9 | 3 | Personal half-life estimator | 21 | 133 | 6.33 | Big Bet | 80 (46%) | 486 (65%) | The thesis. The correction to the brief and the reason this isn't a calculator. |
 | 10 | 25 | Test suite | 5 | 8 | 1.60 | Fill-in | 85 (49%) | 494 (66%) | How AI-written code gets reviewed at speed. Estimator recovery is the key assertion. |
@@ -49,7 +49,7 @@ This is the order in which Half-Life's features are built. Work from the top dow
 | 12 | 14 | Insight cards | 5 | 55 | 11.00 | Quick Win | 95 (55%) | 583 (78%) | Second-best ratio. Where the honesty posture becomes visible to the user. |
 | 13 | 9 | Pre-log cutoff warning | 5 | 21 | 4.20 | Quick Win | 100 (57%) | 604 (81%) | The app intervening before the mistake. Strongest moment in the prototype. |
 | 14 | 18 | App Intents | 8 | 34 | 4.25 | Big Bet | 108 (62%) | 638 (85%) | The bonus, on a better substrate. Also lights up Shortcuts and the Action Button. |
-| 15 | 13 | Patterns screen | 8 | 34 | 4.25 | Big Bet | 116 (67%) | 672 (90%) | Satisfies the brief's correlation requirement, reframed as timing comparison. |
+| 15 | 13 | Insights tab (formerly Patterns screen) | 8 | 34 | 4.25 | Big Bet | 116 (67%) | 672 (90%) | Satisfies the brief's correlation requirement, reframed as timing comparison. |
 | 16 | 12 | Uncertainty rendering | 5 | 8 | 1.60 | Fill-in | 121 (70%) | 680 (91%) | Cross-cutting. Touches curve, hero number, insights, FM copy and settings. |
 | 17 | 8 | Retroactive timing | 5 | 13 | 2.60 | Quick Win | 126 (72%) | 693 (93%) | People log after they drink. First capture item that forces recomputation. |
 | 18 | 27 | Documentation | 3 | 13 | 4.33 | Quick Win | 129 (74%) | 706 (95%) | Graded directly. Mostly transcription — the reasoning already exists. |

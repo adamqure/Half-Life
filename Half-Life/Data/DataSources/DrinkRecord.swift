@@ -14,9 +14,9 @@ import SwiftData
 
 /// How SwiftData stores a logged drink and its negligible mark.
 ///
-/// The record syncs to the user's private CloudKit database (constitution Article V.1), so it follows CloudKit's
-/// rules: every property has a default value, and none is unique. The drink's type is stored as its raw value,
-/// which is why a ``DrinkType`` case is never renamed or removed once shipped. Only
+/// The store doesn't sync, but the record still follows CloudKit's rules, so turning sync on later (roadmap rank 23)
+/// needs no migration: every property has a default value, and none is unique. The drink's type is stored as its raw
+/// value, which is why a ``DrinkType`` case is never renamed or removed once shipped. Only
 /// ``SwiftDataDrinkLogDataSource`` uses it.
 @Model
 final class DrinkRecord {
@@ -32,6 +32,9 @@ final class DrinkRecord {
     var consumedAt: Date = Date.distantPast
     /// Whether the decay repository has marked the drink negligible. Once set, it's never cleared.
     var isNegligible: Bool = false
+    /// Whether the drink is part of the demo history. Records stored before the demo history existed read as the
+    /// user's own, through the default.
+    var isDemo: Bool = false
 
     /// Creates a record from its stored values.
     ///
@@ -42,9 +45,10 @@ final class DrinkRecord {
     ///   - milligrams: The drink's total estimated caffeine, in milligrams.
     ///   - consumedAt: When the drink was consumed.
     ///   - isNegligible: Whether the drink is marked negligible.
+    ///   - isDemo: Whether the drink is part of the demo history.
     init(
         id: UUID, typeRawValue: String, quantity: Int, milligrams: Double, consumedAt: Date,
-        isNegligible: Bool = false
+        isNegligible: Bool = false, isDemo: Bool = false
     ) {
         self.id = id
         self.typeRawValue = typeRawValue
@@ -52,20 +56,24 @@ final class DrinkRecord {
         self.milligrams = milligrams
         self.consumedAt = consumedAt
         self.isNegligible = isNegligible
+        self.isDemo = isDemo
     }
 
-    /// Creates an unmarked record of `drink`.
+    /// Creates a record of `drink`, not marked negligible.
     ///
-    /// - Parameter drink: The drink to store.
-    convenience init(_ drink: LoggedDrink) {
+    /// - Parameters:
+    ///   - drink: The drink to store.
+    ///   - isDemo: Whether to store it as a demo drink. By default, the drink's own ``LoggedDrink/isDemo``.
+    convenience init(_ drink: LoggedDrink, isDemo: Bool? = nil) {
         self.init(
             id: drink.id, typeRawValue: drink.type.rawValue, quantity: drink.quantity, milligrams: drink.milligrams,
-            consumedAt: drink.consumedAt)
+            consumedAt: drink.consumedAt, isDemo: isDemo ?? drink.isDemo)
     }
 
     /// The logged drink this record stores, or `nil` if this version of the app doesn't know its type.
     var loggedDrink: LoggedDrink? {
         guard let type = DrinkType(rawValue: typeRawValue) else { return nil }
-        return LoggedDrink(id: id, type: type, quantity: quantity, milligrams: milligrams, consumedAt: consumedAt)
+        return LoggedDrink(
+            id: id, type: type, quantity: quantity, milligrams: milligrams, consumedAt: consumedAt, isDemo: isDemo)
     }
 }

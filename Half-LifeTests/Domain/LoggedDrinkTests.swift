@@ -41,4 +41,20 @@ struct LoggedDrinkTests {
 
         #expect(LoggedDrink(id: id, type: .cola, quantity: 1, milligrams: 34, consumedAt: consumedAt).id == id)
     }
+
+    // MARK: - DRINK-3: a drink is the user's own unless it's marked as a demo drink
+
+    @Test func aDrinkIsTheUsersOwnByDefault() {
+        #expect(!LoggedDrink(type: .cola, quantity: 1, milligrams: 34, consumedAt: consumedAt).isDemo)
+    }
+
+    @Test func aDemoDrinkIsMarkedAndItsIntakeIsTheSame() {
+        let own = LoggedDrink(type: .latte, quantity: 2, milligrams: 125.4, consumedAt: consumedAt)
+        let demo = LoggedDrink(
+            id: own.id, type: .latte, quantity: 2, milligrams: 125.4, consumedAt: consumedAt, isDemo: true)
+
+        #expect(demo.isDemo)
+        #expect(demo != own)
+        #expect(demo.intake == own.intake)
+    }
 }

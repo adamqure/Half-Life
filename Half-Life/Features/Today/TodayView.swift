@@ -12,10 +12,12 @@
 import ComposableArchitecture
 import SwiftUI
 
-/// The Today screen: the greeting, the decay card, the "Today" and "Last cup" tiles, the one-tap row, and the history
-/// card at the bottom now, and the other drink-log cards as they're built.
+/// The Today screen: the greeting, the decay card, the "Today" and "Last cup" tiles, the one-tap row, the history card,
+/// and, at the bottom, the Apple Health card when Health has something to show.
 ///
-/// Its cards stack in a scroll view over the page gradient. See the Today Screen article.
+/// Its cards stack in a scroll view over the page gradient. The Apple Health card is hidden until it has something to
+/// show, and a hidden view never runs `.task`, so the scroll view starts its observation. See the Today Screen and
+/// Apple Health Card articles.
 @MainActor
 struct TodayView: View {
     /// The screen's store.
@@ -34,10 +36,12 @@ struct TodayView: View {
                 }
                 OneTapLogView(store: store.scope(state: \.oneTapLog, action: \.oneTapLog))
                 DrinkLogHistoryView(store: store.scope(state: \.history, action: \.history))
+                HealthSummaryView(store: store.scope(state: \.healthSummary, action: \.healthSummary))
             }
             .padding(.horizontal, Spacing.screenMargin)
             .padding(.vertical, Spacing.sectionGap)
         }
+        .task { await store.send(.healthSummary(.task)).finish() }
         .background {
             LinearGradient(
                 colors: [.backgroundCanvasTop, .backgroundCanvasBottom],

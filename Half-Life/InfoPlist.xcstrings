@@ -1,6 +1,18 @@
 {
   "sourceLanguage" : "en",
   "strings" : {
+    "CFBundleDisplayName" : {
+      "comment" : "The app's name as iOS shows it, on the Home Screen and in the Shortcuts button on onboarding's Siri and Shortcuts step.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Half-Life"
+          }
+        }
+      }
+    },
     "CFBundleName" : {
       "comment" : "Bundle name",
       "extractionState" : "extracted_with_value",
@@ -57,18 +69,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Half-Life saves the drinks you log to Apple Health as caffeine, so your intake appears alongside your other health data."
-          }
-        }
-      }
-    },
-    "NSSiriUsageDescription" : {
-      "comment" : "Purpose string. iOS shows it when Half-Life first asks to use Siri. Say what the user can do with Half-Life through Siri.",
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Siri can log your drinks in Half-Life and answer questions about your caffeine."
           }
         }
       }

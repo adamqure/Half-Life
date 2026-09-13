@@ -12,10 +12,14 @@
 /// Reads the sleep threshold: the most caffeine the cutoff allows in the body at bedtime.
 ///
 /// An implementation is the only code that touches where the threshold is stored (constitution Article I.14).
-/// ``LiveCaffeineDecayRepository`` reads it. The Caffeine Cutoff article lists its requirement, THRESH-3.
+/// ``LiveCaffeineDecayRepository`` reads it. The Caffeine Cutoff article lists its requirements, THRESH-3 and
+/// THRESH-4, and the Insights article the personal threshold's, TOLSRC-1 to TOLSRC-3.
 protocol SleepThresholdDataSource: Sendable {
     /// Returns the current threshold: the user's own once it's personalised, or ``SleepThreshold/standard``.
     ///
     /// - Throws: An error if a stored threshold couldn't be read.
     func threshold() async throws -> SleepThreshold
+
+    /// Returns a stream that yields once after each change that could change the threshold.
+    func changes() async -> AsyncStream<Void>
 }

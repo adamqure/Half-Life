@@ -64,6 +64,54 @@ struct CaffeineCutoffRule: Sendable {
         return CaffeineCutoff(drink: inputs.drink, latestCup: latestCup, bedtime: night, threshold: inputs.threshold)
     }
 
+    /// Returns the cutoffs for the next `nights` bedtimes, tonight's first.
+    ///
+    /// Each later night's cutoff is calculated from the moment the bedtime before it has passed, with only the intakes
+    /// already logged, so it assumes nothing more is drunk until then. With nothing left in the body, every night's
+    /// cutoff is the usual drink's alone. See the Caffeine Cutoff article, CUTOFF-9.
+    ///
+    /// - Parameters:
+    ///   - inputs: The usual drink, the intakes already logged, the kinetics, the threshold, and the bedtime.
+    ///   - nights: How many bedtimes to calculate a cutoff for.
+    ///   - now: The current time.
+    ///   - calendar: The calendar the bedtime is a time of day in, and whose half hours the cutoffs round to.
+    /// - Returns: A cutoff for each night, in order. It stops early if the calendar can't find a bedtime.
+    func cutoffs(_ inputs: Inputs, nights: Int, now: Date, calendar: Calendar) -> [CaffeineCutoff] {
+        var cutoffs: [CaffeineCutoff] = []
+        var from = now
+        while cutoffs.count < nights, let night = cutoff(inputs, now: from, calendar: calendar) {
+            cutoffs.append(night)
+            from = night.bedtime.addingTimeInterval(1)
+        }
+        return cutoffs
+    }
+
+    /// Returns why `inputs.drink`, consumed at `consumedAt`, breaks the cutoff, or `nil` if it doesn't: the drink
+    /// composer's warning.
+    ///
+    /// The bedtime is the next one at or after `consumedAt`. A drink less than the peak delay before it would still be
+    /// rising then, whatever its size. Otherwise, the rule adds the drink to every intake logged, and warns when the
+    /// level at bedtime is more than the threshold. It checks the exact level, not the cutoff's half hour, so it never
+    /// warns with an amount under the threshold. See the Caffeine Cutoff article, WARN-1 to WARN-5.
+    ///
+    /// - Parameters:
+    ///   - inputs: The drink to check, the intakes already logged, the kinetics, the threshold, and the bedtime.
+    ///   - consumedAt: When the drink is consumed.
+    ///   - calendar: The calendar, and so the time zone, the bedtime is a time of day in.
+    /// - Returns: The warning, or `nil` when the drink fits, or the calendar can't find the next bedtime.
+    func warning(_ inputs: Inputs, consumedAt: Date, calendar: Calendar) -> CutoffWarning? {
+        guard let night = inputs.bedtime.next(atOrAfter: consumedAt, in: calendar) else { return nil }
+        guard consumedAt <= night.addingTimeInterval(-decay.peakDelay(for: inputs.kinetics)) else {
+            return .stillRisingAtBedtime(bedtime: night)
+        }
+        let cup = CaffeineIntake(
+            id: UUID(), milligrams: inputs.drink.type.estimatedMilligrams(quantity: inputs.drink.quantity),
+            consumedAt: consumedAt)
+        let level = decay.level(at: night, from: inputs.intakes + [cup], kinetics: inputs.kinetics)
+        guard level.milligrams > inputs.threshold.milligrams else { return nil }
+        return .tooMuchAtBedtime(level: level, threshold: inputs.threshold)
+    }
+
     /// The last moment from `start` to `end` that `fits`, which holds for an unbroken stretch from `start`, or `nil`
     /// if `start` doesn't fit or comes after `end`.
     private func latestMoment(from start: Date, to end: Date, fits: (Date) -> Bool) -> Date? {

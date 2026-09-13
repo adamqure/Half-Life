@@ -14,6 +14,7 @@ The Today screen is roadmap rank 4, "the only thing a reviewer opens the app and
 | ``LastCupFeature`` | The cutoff: the latest time the usual drink still leaves no more than the sleep threshold at bedtime (<doc:CaffeineCutoff>) | ``ObserveCaffeineCutoffUseCase`` | ``CaffeineDecayRepository`` | Built, and shown in the trailing half of the tile row, beside the "Today" tile |
 | ``OneTapLogFeature`` | The three favourite drinks, each logged in one tap (<doc:OneTapLog>) | ``ObserveFavouriteDrinksUseCase``, ``LogDrinkUseCase`` | ``FavouriteDrinksRepository``, ``DrinkLogRepository`` | Built, and shown under the tile row, headed "One tap" |
 | ``DrinkLogHistoryFeature`` | One day of the drink log, its total, buttons for the day before and after, and deleting a drink (see "History card" below) | ``ObserveDrinkLogDayUseCase``, ``DeleteDrinkUseCase``, `ObserveTimeOfDayUseCase` | ``DrinkLogRepository``, `CurrentTimeRepository` | Built, and shown at the bottom of the screen, under the one-tap row |
+| ``HealthSummaryFeature`` | Last night's sleep, or time in bed, today's steps, and today's resting heart rate, each only when Health has it (<doc:AppleHealthCard>) | ``ObserveHealthSummaryUseCase`` | ``HealthDataRepository`` | Built, and shown at the bottom of the screen, under the history card. It's hidden when there's nothing to show. |
 
 The owner set this composition and each feature's repositories on 2026-09-11. The greeting and the decay card came first because they don't need the drink log, which the drink composer's work built (<doc:DrinkComposer>). The "Today" tile followed on 2026-09-12, and the other three followed it the same day.
 
@@ -58,7 +59,7 @@ What the user has told the app about themselves. Onboarding fills it in (<doc:On
 
 ### ObserveTimeOfDayUseCase
 
-It turns each minute that `CurrentTimeRepository` streams into a `TimeOfDay`, with the period from `DayPeriodRule`. It's the only use case that executes a business rule; everywhere else, repositories do (constitution Article I.10). The owner chose this on 2026-09-11, over a second clock repository.
+It turns each minute that `CurrentTimeRepository` streams into a `TimeOfDay`, with the period from `DayPeriodRule`. Use cases that execute a business rule are exceptions the owner approved; everywhere else, repositories do (constitution Article I.10). The owner chose this one on 2026-09-11, over a second clock repository. `ObserveRestingHeartRateComparisonUseCase` and `ObserveStepsComparisonUseCase` followed on 2026-09-13, each combining two repositories' streams (<doc:Insights>).
 
 The calendar is the use case's input. The reducer passes TCA's `\.calendar` dependency, which is `Calendar.autoupdatingCurrent` in the live app, so a time-zone change shows up at the next minute. Tests pass a calendar with a fixed time zone.
 
@@ -93,7 +94,7 @@ The repository has a second stream, `status(in:)`, of a new entity. The calendar
 - The figure and the tips come from ``CaffeineStatusRule``, a Domain business rule that the repository executes, so no feature evaluates the decay function (VIEW-1 in <doc:CaffeineDecayModel>). It sums levels with ``CaffeineDecayRule``, so the figure, the tips, and the curve always agree. The current level replaces VIEW-3's "found by date" lookup.
 - "Half of your last cup is gone by" follows Bateman absorption (rank 5), which replaced instant absorption on 2026-09-12. That changed the rule, not the entity. The cup is half gone once its own level falls back to half its dose, after its peak. ``CaffeineDecayRule`` finds that moment by bisection, because the Bateman function has no closed-form inverse.
 - A drink logged this minute counts as in your system, although none of its caffeine has reached the body yet. So the card shows its tips, not "Nothing in your system right now", while the figure is still 0 mg.
-- **The bedtime** is a ``Bedtime``: a time of day, not a date. Until onboarding (rank 6) or Settings (rank 21) stores one, it's 10:30pm, the prototype's example. The repository reads it from `BedtimeDataSource`, and ``FileProfileDataSource`` returns the one onboarding saved, or that default when nothing is saved. The Last Cup card's cutoff will share it.
+- **The bedtime** is a ``Bedtime``: a time of day, not a date. Until onboarding (rank 6) or Settings (<doc:Settings>) stores one, it's 10:30pm, the prototype's example. The repository reads it from `BedtimeDataSource`, and ``FileProfileDataSource`` returns the one onboarding saved, or that default when nothing is saved. The Last Cup card's cutoff will share it.
   - This design first read the bedtime from the profile data source. A dedicated data source keeps the profile to what the user has told the app, and matches how the half-life is read.
 - **The next bedtime** is the first occurrence of the bedtime at or after the current minute. At 11:30pm, with a 10:30pm bedtime, that's tomorrow at 10:30pm. This is the AI's choice and still to be confirmed.
 
@@ -110,12 +111,20 @@ The repository has a second stream, `status(in:)`, of a new entity. The calendar
 | `.bedtimeAndHalfGone` | The last cup isn't half gone yet | "Down to about 34 mg by 11:00 PM — half of your last cup is gone by 4:27 PM." |
 | `.bedtime` | The last cup is past half gone | "Down to about 34 mg by 11:00 PM." |
 
+`State.timeSpan` is the curve's window: from its first level to one spacing past its last, where the window ends, or `nil` until the curve has two levels (DECAY-6). The levels are evenly spaced, and each stands for the interval up to the next, so a 24-hour window's two ends share a clock time. The view labels the curve's ends with it, and pins the chart's time axis to it.
+
 ### The card
 
 - **The figure** is the level now, rounded to whole milligrams, in `metricHero` light (80 pt at the default size, scaled with `@ScaledMetric(relativeTo: .largeTitle)`) and the accent color. Its "mg" is set at 45% of that size in `textSecondary`. The amount is a `Measurement` formatted with `usage: .asProvided`, so it stays in milligrams in every locale (constitution Article VII.3). The figure appears once the first status arrives.
 - **The sentence** uses the same whole-milligram amounts, and clock times formatted for the locale.
-- **The curve** shows the whole 24-hour window in Swift Charts: an area under a 2.5 pt `dataCaffeine` line, with a dashed rule and a dot at the current level. It's 160 pt high (`Sizing.curveHeight`), with no axes.
-- **VoiceOver** reads the heading and the time as one element, "In your system now, 3:24 PM", then the figure's amount in full, "85 milligrams". The curve's label is "Caffeine over the day", and Swift Charts adds its own audio graph.
+- **The curve** shows the whole 24-hour window in Swift Charts: an area under a 2.5 pt `dataCaffeine` line, with a dashed rule and a dot at the current level. It's 160 pt high (`Sizing.curveHeight`), and Swift Charts draws no axes.
+- **The curve's times** sit under its left and right edges: the start and end of its window, each as a day and a clock time, such as "Today, 3:50 AM" and "Tomorrow, 3:50 AM". They're in `caption` `textSecondary` with monospaced digits. A `DateFormatter` with the short date and time styles and `doesRelativeDateFormatting` writes them, so the day names and the order come from the locale (constitution Article VII.3). The chart's time axis is pinned to `State.timeSpan`, so each label sits exactly under the edge it names. The amount axis stays unlabelled, because the figure above says what the curve measures.
+  - The owner asked for them on 2026-09-13, because the curve had no context along its time axis.
+  - The first build showed only the clock times of the first and last levels, such as "3:50 AM" and "3:49 AM". The owner pointed out that they read as a minute apart on a 24-hour curve. They were offered a day and time, a weekday and time, relative hours such as "12h ago", or ticks every 6 hours, and chose a day and time. Relative hours would drift, because the curve recalculates only when its data changes, not as time passes.
+  - The window's end is one minute past its last level, a sliver of the chart's width, so both ends show the same clock time.
+  - At large Dynamic Type sizes each label wraps rather than truncating.
+- **VoiceOver** reads the heading and the time as one element, "In your system now, 3:24 PM", then the figure's amount in full, "85 milligrams". The curve's label is "Caffeine over the day", and Swift Charts adds its own audio graph. The curve's times follow as one element, "From Today, 3:50 AM to Tomorrow, 3:50 AM".
+  - That element combines its text rather than ignoring it, so it keeps the static-text trait. Built with its text ignored, it had no traits, and the accessibility audit failed it as a control with too small a hit area.
   - The first build hid the heading from VoiceOver, because the figure repeated it. The accessibility audit flags visible text that VoiceOver can't reach ("Potentially inaccessible text"), so the heading is readable and the figure no longer repeats it.
 - **The AI chose, still to be confirmed:**
   - the wording "Nothing in your system right now." when nothing is counting
@@ -234,6 +243,7 @@ Both are registered in `DrinkLogDependencies.swift` as `\.deleteDrink` and `\.ob
 - **The day buttons** sit beside the title: round 44 pt buttons with a left and a right chevron, labeled "Previous day" and "Next day" for VoiceOver. A disabled Next has a dimmed chevron, and VoiceOver announces it as dimmed, so color isn't the only signal (Article VI.3).
 - **Today** is a capsule in the style of Keep, 44 pt high, before the chevrons, with the hint "Shows the drinks logged today." At accessibility text sizes, the buttons sit under the title, so the title keeps its width.
 - **Each row** shows the time, the drink's name above its quantity ("Latte" and "2 shots"), the caffeine in `textAccent`, and a ×. VoiceOver reads the time, name, quantity, and caffeine as one element, and the × as "Delete Latte at 9:15 AM". At accessibility text sizes, the row's details stack (Article VI.2).
+- **A demo drink is labeled "Demo"**, in a small capsule under its quantity, so a drink Settings added is never mistaken for one the user logged. The label is text, so VoiceOver reads it with the row, and color isn't the signal (<doc:Settings>).
 - **While a drink waits to be deleted**, its row shows Keep and Delete below its details, in place of the ×. Delete is the dark primary button, and its hint says it removes the drink from the log and the caffeine curve. The owner was offered a confirmation dialog. The AI built the confirmation into the row instead, so that every control carries an identifier from `DrinkLogHistoryViewAccessibilityID` for the robot to find it by (Article II.6–7). Whether a system dialog's buttons would expose identifiers wasn't tested.
 - **The total** closes the card, such as "TOTAL 192 mg". A day with no drinks says "No drinks logged." above a total of 0 mg.
 - **The AI chose, still to be confirmed:**
@@ -246,7 +256,7 @@ Both are registered in `DrinkLogDependencies.swift` as `\.deleteDrink` and `\.ob
 
 ### Privacy and logging
 
-Deleting a drink removes its record from the SwiftData store, and the store's CloudKit mirroring removes it from the user's private database (constitution Article V.1). No copy is kept. A successful deletion is a routine health event, so it isn't logged. A failed one is logged at `error`, with the error's domain and code, and no drink data (Article XI.6–7).
+Deleting a drink removes its record from the SwiftData store on the device, which doesn't sync (<doc:DrinkComposer>). No copy is kept. A successful deletion is a routine health event, so it isn't logged. A failed one is logged at `error`, with the error's domain and code, and no drink data (Article XI.6–7).
 
 ## Testable requirements
 
@@ -303,6 +313,7 @@ Tested with an exhaustive `TestStore`, with both use cases overridden.
 | TODAY-2 | The decay card's actions reach `CaffeineDecayFeature`, and its state changes appear under `TodayFeature.State.caffeineDecay`. |
 | TODAY-3 | The "Today" tile's actions reach `CaffeineIntakeTodayFeature`, and its state changes appear under `TodayFeature.State.caffeineIntakeToday`. |
 | TODAY-4 | The history card's actions reach `DrinkLogHistoryFeature`, and its state changes appear under `TodayFeature.State.history`. |
+| TODAY-5 | The Apple Health card's actions reach `HealthSummaryFeature`, and its state changes appear under `TodayFeature.State.healthSummary` (<doc:AppleHealthCard>). |
 
 ### DailyCaffeineIntakeRule
 
@@ -429,6 +440,7 @@ Tested with an exhaustive `TestStore`, with all three use cases overridden.
 | DECAY-2 | `task` subscribes to the status, and each status is reduced into `State`. |
 | DECAY-3 | `task` subscribes to the time of day, and each time of day is reduced into `State`. |
 | DECAY-4 | `summary` is `nil` before the first status, `.clear` when nothing counts, both tips while the last cup is on its way to half gone, and only the level at bedtime after that. |
+| DECAY-6 | `timeSpan` is `nil` until the curve has two levels, and runs from its first level to one spacing past its last after that. |
 
 ### Dependency registrations
 
@@ -448,8 +460,8 @@ Each repository and use case is registered with live, test, and preview values (
 | ID | Requirement |
 |----|-------------|
 | UI-1 | Launching the app shows the Today screen, with a greeting for the time of day. |
-| UI-2 | The Today screen passes the system accessibility audit (constitution Article VI.4), twice. At launch, contrast is ignored only for elements under the tab bar or in its fade, 44 pt above the log button, and for issues with no element. Scrolled to the end, nothing is ignored. The owner approved both on 2026-09-12 (<doc:OneTapLog>). |
-| UI-3 | The Today screen shows the caffeine in your system now, in milligrams, and its decay curve. |
+| UI-2 | The Today screen passes the system accessibility audit (constitution Article VI.4), twice. At launch, contrast is ignored only for elements under the tab bar or in its fade, 44 pt above the log button, and for issues with no element. Scrolled to the end, contrast is ignored only for elements that reach above where the content started at rest, and only if the first audit checked them in full. The owner approved the first two on 2026-09-12 (<doc:OneTapLog>), and the last on 2026-09-13 (<doc:Settings>). |
+| UI-3 | The Today screen shows the caffeine in your system now, in milligrams, and its decay curve, labelled with the day and clock time at each of its two ends. |
 | UI-4 | The Today screen shows the caffeine logged today, in milligrams. |
 | UI-5 | Logging a drink adds its caffeine to today's total. The test compares the total before and after logging one espresso shot, allowing 1 mg for rounding. Each UI test starts with an empty drink log (LAUNCH-3 in <doc:Onboarding>), but the comparison doesn't depend on that. It would fail if midnight passed between the two readings. |
 | UI-6 | The history card opens on today, and lists a drink logged through the composer. |

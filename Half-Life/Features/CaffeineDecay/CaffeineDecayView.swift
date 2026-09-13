@@ -27,6 +27,17 @@ struct CaffeineDecayView: View {
     private static let wholeNumber = FloatingPointFormatStyle<Double>.number.precision(.fractionLength(0))
     private static let clockTime = Date.FormatStyle.dateTime.hour().minute()
 
+    /// Writes a day and a clock time, such as "Today, 3:50 AM" or "Tomorrow, 3:50 AM". The day names and the order
+    /// come from the locale. `Date.FormatStyle` has no relative day names, so this is a `DateFormatter`.
+    private static let dayAndTime: DateFormatter = {
+        let formatter = DateFormatter()
+        formatter.locale = .autoupdatingCurrent
+        formatter.dateStyle = .short
+        formatter.timeStyle = .short
+        formatter.doesRelativeDateFormatting = true
+        return formatter
+    }()
+
     /// The card's figure, sentence, and curve.
     var body: some View {
         VStack(alignment: .leading, spacing: Spacing.itemGap) {
@@ -117,8 +128,44 @@ struct CaffeineDecayView: View {
         }
     }
 
-    /// The curve across its whole window, with a dashed rule and a dot at the current level.
+    /// The curve across its whole window, with the clock times at its two ends underneath.
     private var curve: some View {
+        VStack(alignment: .leading, spacing: Spacing.itemGap / 2) {
+            if let timeSpan = store.timeSpan {
+                chart.chartXScale(domain: timeSpan)
+                timeLabels(timeSpan)
+            } else {
+                chart
+            }
+        }
+    }
+
+    /// The start and end of the curve's window, each as a day and a clock time, under its left and right edges.
+    /// VoiceOver reads them as one element, after the curve.
+    private func timeLabels(_ timeSpan: ClosedRange<Date>) -> some View {
+        let start = Self.dayAndTime.string(from: timeSpan.lowerBound)
+        let end = Self.dayAndTime.string(from: timeSpan.upperBound)
+        return HStack(alignment: .firstTextBaseline) {
+            // At large Dynamic Type sizes each time wraps rather than truncating.
+            Text(start)
+                .fixedSize(horizontal: false, vertical: true)
+            Spacer(minLength: Spacing.itemGap)
+            Text(end)
+                .multilineTextAlignment(.trailing)
+                .fixedSize(horizontal: false, vertical: true)
+        }
+        .font(.caption)
+        .monospacedDigit()
+        .foregroundStyle(Color.textSecondary)
+        // Combined, not ignored, so the element keeps its text's static-text trait, and the audit doesn't take it for
+        // a control with too small a hit area.
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel(Text("From \(start) to \(end)"))
+        .accessibilityIdentifier(CaffeineDecayViewAccessibilityID.timeSpan)
+    }
+
+    /// The curve itself, with a dashed rule and a dot at the current level.
+    private var chart: some View {
         Chart {
             ForEach(store.curve, id: \.date) { level in
                 AreaMark(x: .value("Time", level.date), y: .value("Caffeine", level.milligrams))

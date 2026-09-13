@@ -117,6 +117,27 @@ final class DrinkComposerUITests: XCTestCase {
         try composer.auditAccessibility(except: [.textClipped, .elementDetection])
     }
 
+    /// WARN-UI: nine cups of cold brew now leave more than the threshold at the next bedtime, whatever the time of day,
+    /// so the cutoff warning shows. The composer passes the audit with it showing, and Add still logs the drink.
+    @MainActor
+    func testAWarningShowsPastTheCutoffAndAddStillLogs() throws {
+        let composer = try openComposer(in: XCUIApplication())
+        composer.selectDrink(.coldBrew)
+        for _ in 0..<7 {
+            composer.addOneUnit()
+        }
+        composer.verifyQuantity("9 cups")
+
+        composer.verifyCutoffWarningShowing()
+        composer.verifyCutoffWarningNamesSleepStudies()
+        // The two checks testComposerPassesAccessibilityAudit skips, with the owner's approval of 2026-09-12, for the
+        // same reasons: the warning only makes the sheet taller.
+        try composer.auditAccessibility(except: [.textClipped, .elementDetection])
+
+        composer.logDrink()
+        composer.verifyClosed()
+    }
+
     /// At an accessibility text size, the sheet grows with its content, and every control stays fully on screen.
     @MainActor
     func testLargestTextKeepsEveryControlOnScreen() throws {

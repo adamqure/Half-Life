@@ -55,12 +55,44 @@ extension DependencyValues {
         set { self[ObserveDrinkLogDayUseCaseKey.self] = newValue }
     }
 
+    /// Observes the last 7 days of the drink log through the app-scoped ``drinkLogRepository``.
+    ///
+    /// In tests, using it without overriding it reports an issue.
+    var observeDrinkLogWeek: ObserveDrinkLogWeekUseCase {
+        get { self[ObserveDrinkLogWeekUseCaseKey.self] }
+        set { self[ObserveDrinkLogWeekUseCaseKey.self] = newValue }
+    }
+
     /// Deletes a drink through the app-scoped ``drinkLogRepository``.
     ///
     /// In tests, using it without overriding it reports an issue.
     var deleteDrink: DeleteDrinkUseCase {
         get { self[DeleteDrinkUseCaseKey.self] }
         set { self[DeleteDrinkUseCaseKey.self] = newValue }
+    }
+
+    /// Adds the demo history through the app-scoped ``drinkLogRepository``.
+    ///
+    /// In tests, using it without overriding it reports an issue.
+    var addDemoHistory: AddDemoHistoryUseCase {
+        get { self[AddDemoHistoryUseCaseKey.self] }
+        set { self[AddDemoHistoryUseCaseKey.self] = newValue }
+    }
+
+    /// Removes the demo history through the app-scoped ``drinkLogRepository``.
+    ///
+    /// In tests, using it without overriding it reports an issue.
+    var removeDemoHistory: RemoveDemoHistoryUseCase {
+        get { self[RemoveDemoHistoryUseCaseKey.self] }
+        set { self[RemoveDemoHistoryUseCaseKey.self] = newValue }
+    }
+
+    /// Observes whether the drink log holds demo drinks through the app-scoped ``drinkLogRepository``.
+    ///
+    /// In tests, using it without overriding it reports an issue.
+    var observeDemoHistory: ObserveDemoHistoryUseCase {
+        get { self[ObserveDemoHistoryUseCaseKey.self] }
+        set { self[ObserveDemoHistoryUseCaseKey.self] = newValue }
     }
 }
 
@@ -106,10 +138,34 @@ private enum ObserveDrinkLogDayUseCaseKey: DependencyKey {
     static let testValue = ObserveDrinkLogDayUseCase(repository: DrinkLogRepositoryKey.testValue)
 }
 
+private enum ObserveDrinkLogWeekUseCaseKey: DependencyKey {
+    static let liveValue = ObserveDrinkLogWeekUseCase(repository: DrinkLogRepositoryKey.liveValue)
+    static let previewValue = ObserveDrinkLogWeekUseCase(repository: DrinkLogRepositoryKey.previewValue)
+    static let testValue = ObserveDrinkLogWeekUseCase(repository: DrinkLogRepositoryKey.testValue)
+}
+
 private enum DeleteDrinkUseCaseKey: DependencyKey {
     static let liveValue = DeleteDrinkUseCase(drinkLog: DrinkLogRepositoryKey.liveValue)
     static let previewValue = DeleteDrinkUseCase(drinkLog: DrinkLogRepositoryKey.previewValue)
     static let testValue = DeleteDrinkUseCase(drinkLog: DrinkLogRepositoryKey.testValue)
+}
+
+private enum AddDemoHistoryUseCaseKey: DependencyKey {
+    static let liveValue = AddDemoHistoryUseCase(drinkLog: DrinkLogRepositoryKey.liveValue)
+    static let previewValue = AddDemoHistoryUseCase(drinkLog: DrinkLogRepositoryKey.previewValue)
+    static let testValue = AddDemoHistoryUseCase(drinkLog: DrinkLogRepositoryKey.testValue)
+}
+
+private enum RemoveDemoHistoryUseCaseKey: DependencyKey {
+    static let liveValue = RemoveDemoHistoryUseCase(drinkLog: DrinkLogRepositoryKey.liveValue)
+    static let previewValue = RemoveDemoHistoryUseCase(drinkLog: DrinkLogRepositoryKey.previewValue)
+    static let testValue = RemoveDemoHistoryUseCase(drinkLog: DrinkLogRepositoryKey.testValue)
+}
+
+private enum ObserveDemoHistoryUseCaseKey: DependencyKey {
+    static let liveValue = ObserveDemoHistoryUseCase(drinkLog: DrinkLogRepositoryKey.liveValue)
+    static let previewValue = ObserveDemoHistoryUseCase(drinkLog: DrinkLogRepositoryKey.previewValue)
+    static let testValue = ObserveDemoHistoryUseCase(drinkLog: DrinkLogRepositoryKey.testValue)
 }
 
 /// The error an unimplemented dependency throws after reporting its issue.
@@ -139,8 +195,31 @@ private struct UnimplementedDrinkLogRepository: DrinkLogRepository {
         return AsyncStream { $0.finish() }
     }
 
+    func recentDays(_ count: Int, in calendar: Calendar) -> AsyncStream<[DrinkLogDay]> {
+        reportIssue(
+            "A test observed the recent days without overriding \\.drinkLogRepository or \\.observeDrinkLogWeek.")
+        return AsyncStream { $0.finish() }
+    }
+
     func delete(_ id: LoggedDrink.ID) async throws {
         reportIssue("A test deleted a drink without overriding \\.drinkLogRepository.")
+        throw UnimplementedDependency()
+    }
+
+    func hasDemoHistory() -> AsyncStream<Bool> {
+        reportIssue(
+            "A test observed the demo history without overriding \\.drinkLogRepository or \\.observeDemoHistory.")
+        return AsyncStream { $0.finish() }
+    }
+
+    func addDemoHistory(in calendar: Calendar) async throws {
+        reportIssue("A test added the demo history without overriding \\.drinkLogRepository or \\.addDemoHistory.")
+        throw UnimplementedDependency()
+    }
+
+    func removeDemoHistory() async throws {
+        reportIssue(
+            "A test removed the demo history without overriding \\.drinkLogRepository or \\.removeDemoHistory.")
         throw UnimplementedDependency()
     }
 }

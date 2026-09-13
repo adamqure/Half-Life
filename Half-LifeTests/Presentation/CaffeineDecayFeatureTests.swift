@@ -37,7 +37,8 @@ struct CaffeineDecayFeatureTests {
     }
 
     static func store(
-        curves: [[CaffeineLevel]] = [], statuses: [CaffeineStatus] = [], time: (any CurrentTimeRepository)? = nil
+        curves: [[CaffeineLevel]] = [], statuses: [CaffeineStatus] = [], time: (any CurrentTimeRepository)? = nil,
+        estimates: FakeHalfLifeEstimateRepository = FakeHalfLifeEstimateRepository()
     ) -> TestStoreOf<CaffeineDecayFeature> {
         let repository = FakeCaffeineDecayRepository(curves: curves, statuses: { _ in statuses })
         var utc = Calendar(identifier: .gregorian)
@@ -49,6 +50,7 @@ struct CaffeineDecayFeatureTests {
             $0.observeCaffeineCurve = ObserveCaffeineCurveUseCase(repository: repository)
             $0.observeCaffeineStatus = ObserveCaffeineStatusUseCase(repository: repository)
             $0.observeTimeOfDay = ObserveTimeOfDayUseCase(currentTime: time ?? SilentCurrentTimeRepository())
+            $0.refreshHalfLifeEstimate = RefreshHalfLifeEstimateUseCase(repository: estimates)
         }
     }
 
@@ -84,6 +86,33 @@ struct CaffeineDecayFeatureTests {
             $0.timeOfDay = TimeOfDay(date: Self.now, period: .afternoon)
         }
         await store.finish()
+    }
+
+    /// DECAY-5: `task` refreshes the half-life estimate, which the repository recalculates only when it's due.
+    @Test func taskRefreshesTheHalfLifeEstimate() async {
+        let estimates = FakeHalfLifeEstimateRepository()
+        let store = Self.store(estimates: estimates)
+
+        await store.send(.task)
+        await store.finish()
+
+        #expect(await estimates.refreshCount == 1)
+    }
+
+    /// DECAY-6: until the curve has two levels, there's no spacing to find its window's end by, so no time span.
+    @Test func noTimeSpanBeforeTheCurveHasTwoLevels() {
+        #expect(CaffeineDecayFeature.State().timeSpan == nil)
+        #expect(CaffeineDecayFeature.State(curve: [CaffeineLevel(date: Self.now, milligrams: 180.2)]).timeSpan == nil)
+    }
+
+    /// DECAY-6: the time span runs from the curve's first level to one spacing past its last, where its window ends,
+    /// so a 24-hour window's two ends share a clock time.
+    @Test func timeSpanRunsToTheEndOfTheWindow() {
+        let start = Self.now.addingTimeInterval(-43_200)
+        let curve = (0..<3).map { CaffeineLevel(date: start.addingTimeInterval(Double($0) * 60), milligrams: 0) }
+        let state = CaffeineDecayFeature.State(curve: curve)
+
+        #expect(state.timeSpan == start...start.addingTimeInterval(180))
     }
 
     /// DECAY-4: before the first status arrives, there's no summary.

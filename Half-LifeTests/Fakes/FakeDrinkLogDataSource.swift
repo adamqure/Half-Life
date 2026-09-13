@@ -37,6 +37,9 @@ actor FakeDrinkLogDataSource: DrinkLogDataSource {
     private var markError: (any Error)?
     /// The error `delete(_:)` throws instead of deleting, if any. Set it with `failDeletes(with:)`.
     private var deleteError: (any Error)?
+    /// The error `replaceDemoDrinks(with:)` throws instead of replacing, if any. Set it with
+    /// `failDemoReplacements(with:)`.
+    private var demoReplacementError: (any Error)?
     private var subscribers: [UUID: AsyncStream<Void>.Continuation] = [:]
 
     init(drinks: [LoggedDrink] = [], negligibleIDs: Set<UUID> = [], storeError: (any Error)? = nil) {
@@ -66,6 +69,24 @@ actor FakeDrinkLogDataSource: DrinkLogDataSource {
         guard heldDrinks.contains(where: { $0.id == id }) else { return }
         heldDrinks.removeAll { $0.id == id }
         signalChange()
+    }
+
+    /// Like the live data source, it stores each new drink marked demo, and signals a change only when something
+    /// changed.
+    func replaceDemoDrinks(with drinks: [LoggedDrink]) async throws {
+        if let demoReplacementError {
+            throw demoReplacementError
+        }
+        let hadDemoDrinks = heldDrinks.contains(where: \.isDemo)
+        heldDrinks.removeAll(where: \.isDemo)
+        heldDrinks += drinks.map {
+            LoggedDrink(
+                id: $0.id, type: $0.type, quantity: $0.quantity, milligrams: $0.milligrams, consumedAt: $0.consumedAt,
+                isDemo: true)
+        }
+        if hadDemoDrinks || !drinks.isEmpty {
+            signalChange()
+        }
     }
 
     func drinks() async throws -> [LoggedDrink] {
@@ -115,6 +136,11 @@ actor FakeDrinkLogDataSource: DrinkLogDataSource {
     /// Makes every deletion throw `error` from now on, or delete normally again when it's `nil`.
     func failDeletes(with error: (any Error)?) {
         deleteError = error
+    }
+
+    /// Makes every demo replacement throw `error` from now on, or replace normally again when it's `nil`.
+    func failDemoReplacements(with error: (any Error)?) {
+        demoReplacementError = error
     }
 
     /// Adds a drink without signalling a change.

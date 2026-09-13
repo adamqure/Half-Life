@@ -15,10 +15,10 @@ import SwiftUI
 /// primary button pinned to the bottom.
 ///
 /// The content scrolls, so nothing is lost at the largest Dynamic Type sizes (constitution Article VI.2). The step's
-/// place is written out ("Step 2 of 4") rather than drawn as dots, so it doesn't rely on color (Article VI.3).
+/// place is written out ("Step 2 of 5") rather than drawn as dots, so it doesn't rely on color (Article VI.3).
 @MainActor
 struct OnboardingStepLayout<Content: View>: View {
-    /// The step's place among the four numbered steps, from 1.
+    /// The step's place among the five numbered steps, from 1.
     let step: Int
     /// The step's title.
     let title: Text
@@ -44,7 +44,7 @@ struct OnboardingStepLayout<Content: View>: View {
         ScrollView {
             VStack(alignment: .leading, spacing: Spacing.sectionGap) {
                 VStack(alignment: .leading, spacing: Spacing.sectionHeaderGap) {
-                    OnboardingEyebrow(text: Text("Step \(step) of 4"))
+                    OnboardingEyebrow(text: Text("Step \(step) of 5"))
                     title
                         .font(.titleLarge)
                         .foregroundStyle(Color.textPrimary)

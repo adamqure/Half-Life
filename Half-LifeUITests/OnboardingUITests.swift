@@ -11,7 +11,7 @@
 
 import XCTest
 
-/// Onboarding's scenarios (UI-ONB-1 to UI-ONB-6 in the Onboarding article). Each launch starts with nothing saved and
+/// Onboarding's scenarios (UI-ONB-1 to UI-ONB-9 in the Onboarding article). Each launch starts with nothing saved and
 /// simulated permissions.
 final class OnboardingUITests: XCTestCase {
 
@@ -30,6 +30,7 @@ final class OnboardingUITests: XCTestCase {
         try app.resolve(HalfLifeFactorsRobot.self).continueToNextStep()
         try app.resolve(BedtimeRobot.self).continueToNextStep()
         try app.resolve(PermissionsRobot.self).continueToNextStep()
+        try app.resolve(SiriShortcutsRobot.self).continueToNextStep()
         try app.resolve(OnboardingSummaryRobot.self).takeMeToToday()
 
         try app.resolve(TodayRobot.self).verifyGreetingForTheTimeOfDay()
@@ -49,6 +50,7 @@ final class OnboardingUITests: XCTestCase {
         try app.resolve(HalfLifeFactorsRobot.self).continueToNextStep()
         try app.resolve(BedtimeRobot.self).continueToNextStep()
         try app.resolve(PermissionsRobot.self).continueToNextStep()
+        try app.resolve(SiriShortcutsRobot.self).continueToNextStep()
         let summary = try app.resolve(OnboardingSummaryRobot.self)
         summary.verifyTitle(names: "Alex")
         summary.takeMeToToday()
@@ -56,29 +58,23 @@ final class OnboardingUITests: XCTestCase {
         try app.resolve(TodayRobot.self).verifyGreeting(names: "Alex")
     }
 
-    /// UI-ONB-5: a factor sets the starting half-life, on its step and on the summary.
+    /// UI-ONB-5: a chosen factor shows as chosen once it's saved.
     @MainActor
-    func testEstrogenGivesAStartingHalfLifeOfAboutEightHours() throws {
+    func testAChosenFactorShowsAsChosen() throws {
         let app = XCUIApplication()
         app.launchAtOnboarding()
 
         try app.resolve(WelcomeRobot.self).getStarted()
         try app.resolve(AboutYouRobot.self).continueToNextStep()
         let factors = try app.resolve(HalfLifeFactorsRobot.self)
-        factors.verifyStartingHalfLife("5.5")
         factors.choose(.estrogen)
-        factors.verifyChosen(.estrogen)
-        factors.verifyStartingHalfLife("8.3")
-        factors.continueToNextStep()
-        try app.resolve(BedtimeRobot.self).continueToNextStep()
-        try app.resolve(PermissionsRobot.self).continueToNextStep()
 
-        try app.resolve(OnboardingSummaryRobot.self).verifyStartingHalfLife("8.3")
+        factors.verifyChosen(.estrogen)
     }
 
     /// UI-ONB-5: pregnancy takes its trimester.
     @MainActor
-    func testPregnancyInTheThirdTrimesterLengthensTheHalfLife() throws {
+    func testPregnancyTakesItsTrimester() throws {
         let app = XCUIApplication()
         app.launchAtOnboarding()
 
@@ -88,7 +84,6 @@ final class OnboardingUITests: XCTestCase {
         factors.choosePregnancy(trimester: .third)
 
         factors.verifyPregnancy(trimester: .third)
-        factors.verifyStartingHalfLife("14.9")
     }
 
     /// UI-ONB-6: each permission shows the outcome of asking for it.
@@ -110,6 +105,27 @@ final class OnboardingUITests: XCTestCase {
         permissions.verifyBiometricsOn()
     }
 
+    /// UI-ONB-9: the "Use Siri and Shortcuts" step shows phrases to try and the Shortcuts app's button, which names the
+    /// app, and asks for nothing.
+    @MainActor
+    func testSiriAndShortcutsShowsPhrasesToTryAndTheShortcutsButton() throws {
+        let app = XCUIApplication()
+        app.launchAtOnboarding()
+
+        try app.resolve(WelcomeRobot.self).getStarted()
+        try app.resolve(AboutYouRobot.self).continueToNextStep()
+        try app.resolve(HalfLifeFactorsRobot.self).continueToNextStep()
+        try app.resolve(BedtimeRobot.self).continueToNextStep()
+        let permissions = try app.resolve(PermissionsRobot.self)
+        permissions.continueToNextStep()
+        let siri = try app.resolve(SiriShortcutsRobot.self)
+        siri.verifyPhrasesToTry()
+        siri.verifyShortcutsButtonNamesTheApp()
+        siri.continueToNextStep()
+
+        _ = try app.resolve(OnboardingSummaryRobot.self)
+    }
+
     /// ONB-3: "Log my first cup" finishes onboarding and opens the drink composer.
     @MainActor
     func testLogMyFirstCupOpensTheComposer() throws {
@@ -121,6 +137,7 @@ final class OnboardingUITests: XCTestCase {
         try app.resolve(HalfLifeFactorsRobot.self).continueToNextStep()
         try app.resolve(BedtimeRobot.self).continueToNextStep()
         try app.resolve(PermissionsRobot.self).continueToNextStep()
+        try app.resolve(SiriShortcutsRobot.self).continueToNextStep()
         try app.resolve(OnboardingSummaryRobot.self).logFirstCup()
 
         _ = try app.resolve(DrinkComposerRobot.self)
@@ -164,6 +181,9 @@ final class OnboardingUITests: XCTestCase {
         let permissions = try app.resolve(PermissionsRobot.self)
         permissions.verifyScrollsOnlyVertically()
         permissions.continueToNextStep()
+        let siri = try app.resolve(SiriShortcutsRobot.self)
+        siri.verifyScrollsOnlyVertically()
+        siri.continueToNextStep()
         try app.resolve(OnboardingSummaryRobot.self).verifyScrollsOnlyVertically()
     }
 
@@ -191,6 +211,9 @@ final class OnboardingUITests: XCTestCase {
         let permissions = try app.resolve(PermissionsRobot.self)
         try permissions.auditAccessibility()
         permissions.continueToNextStep()
+        let siri = try app.resolve(SiriShortcutsRobot.self)
+        try siri.auditAccessibilityExcusingTheShortcutsButton()
+        siri.continueToNextStep()
         try app.resolve(OnboardingSummaryRobot.self).auditAccessibility()
     }
 }

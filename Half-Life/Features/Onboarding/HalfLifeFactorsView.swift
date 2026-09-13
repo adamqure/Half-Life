@@ -12,17 +12,17 @@
 import ComposableArchitecture
 import SwiftUI
 
-/// Onboarding's step that asks what changes how fast the user clears caffeine, with the starting half-life it gives.
+/// Onboarding's step that asks what changes how fast the user clears caffeine.
 ///
 /// Each option shows whether it's chosen with a checkmark and the selected trait, not by its fill alone (constitution
-/// Article VI.3). The step says plainly that Half-Life isn't medical advice. See the Onboarding article.
+/// Article VI.3). The step never shows the half-life the choices give. It says plainly that Half-Life isn't medical
+/// advice. See the Onboarding article.
 @MainActor
 struct HalfLifeFactorsView: View {
     /// The step's store.
     let store: StoreOf<HalfLifeFactorsFeature>
 
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
-    @ScaledMetric(relativeTo: .title) private var metricSize: CGFloat = 40
 
     /// Tells the step the user tapped Continue.
     private func continueTapped() {
@@ -86,8 +86,6 @@ struct HalfLifeFactorsView: View {
                 ) {
                     store.send(.factorTapped(.fluvoxamine))
                 }
-                halfLifeCard
-                    .padding(.top, Spacing.itemGap)
                 Text(
                     """
                     Half-Life isn't medical advice. If you're pregnant or have liver disease, ask your doctor how much \
@@ -96,6 +94,7 @@ struct HalfLifeFactorsView: View {
                 )
                 .font(.footnote)
                 .foregroundStyle(Color.textPrimary)
+                .padding(.top, Spacing.itemGap)
             }
         }
         .task { await store.send(.task).finish() }
@@ -133,30 +132,6 @@ struct HalfLifeFactorsView: View {
             }
         }
         .padding(.leading, Spacing.cardPaddingCompact)
-    }
-
-    /// The starting half-life the saved choices give, on the emphasis surface.
-    private var halfLifeCard: some View {
-        VStack(alignment: .leading, spacing: Spacing.sectionHeaderGap) {
-            Text("Your starting half-life")
-                .font(.eyebrow)
-                .textCase(.uppercase)
-                .foregroundStyle(Color.textOnEmphasisSecondary)
-            if let halfLife = store.halfLife {
-                Text(OnboardingFormat.hours(halfLife))
-                    .font(.system(size: metricSize))
-                    .monospacedDigit()
-                    .foregroundStyle(Color.textOnEmphasis)
-                    .accessibilityIdentifier(HalfLifeFactorsViewAccessibilityID.halfLife)
-            }
-            Text("A starting estimate from what you chose. People vary a lot, even with none of these.")
-                .font(.subheadline)
-                .foregroundStyle(Color.textOnEmphasisSecondary)
-        }
-        .padding(Spacing.cardPadding)
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .background(
-            Color.surfaceEmphasis, in: RoundedRectangle(cornerRadius: CornerRadius.large, style: .continuous))
     }
 }
 

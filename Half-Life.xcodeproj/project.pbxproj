@@ -8,6 +8,8 @@
 
 /* Begin PBXBuildFile section */
 		04A1C0012F00000000000001 /* ComposableArchitecture in Frameworks */ = {isa = PBXBuildFile; productRef = 04A1C0022F00000000000001 /* ComposableArchitecture */; };
+		3C0A00012F00000000000001 /* Half-LifeWidgets.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 3C0A00022F00000000000001 /* Half-LifeWidgets.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		6A1E0001F00DBA5E00000001 /* AppIntents.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 6A1E0001F00DBA5E00000002 /* AppIntents.framework */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -25,12 +27,35 @@
 			remoteGlobalIDString = 0410193E3054BF3400025BC2;
 			remoteInfo = "Half-Life";
 		};
+		3C0A00032F00000000000001 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 041019373054BF3400025BC2 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 3C0A00042F00000000000001;
+			remoteInfo = "Half-LifeWidgets";
+		};
 /* End PBXContainerItemProxy section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		3C0A00052F00000000000001 /* Embed Foundation Extensions */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 13;
+			files = (
+				3C0A00012F00000000000001 /* Half-LifeWidgets.appex in Embed Foundation Extensions */,
+			);
+			name = "Embed Foundation Extensions";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
 		0410193F3054BF3400025BC2 /* Half-Life.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Half-Life.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		0410194C3054BF3500025BC2 /* Half-LifeTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "Half-LifeTests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
 		041019563054BF3500025BC2 /* Half-LifeUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "Half-LifeUITests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
+		3C0A00022F00000000000001 /* Half-LifeWidgets.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = "Half-LifeWidgets.appex"; sourceTree = BUILT_PRODUCTS_DIR; };
+		6A1E0001F00DBA5E00000002 /* AppIntents.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AppIntents.framework; path = System/Library/Frameworks/AppIntents.framework; sourceTree = SDKROOT; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
@@ -41,25 +66,82 @@
 			);
 			target = 0410193E3054BF3400025BC2 /* Half-Life */;
 		};
+		3C0A00062F00000000000001 /* Exceptions for "Half-Life" folder in "Half-LifeWidgets" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				AppIntents/DrinkTypeAppEnum.swift,
+				AppIntents/LogDrinkIntent.swift,
+				Assets.xcassets,
+				Data/DataSources/ClockDataSource.swift,
+				Data/DataSources/FileWidgetSnapshotDataSource.swift,
+				Data/DataSources/SystemClockDataSource.swift,
+				Data/DataSources/WidgetSnapshotDataSource.swift,
+				Data/Repositories/LiveWidgetTimelineRepository.swift,
+				DesignSystem/CornerRadius.swift,
+				DesignSystem/Elevation.swift,
+				DesignSystem/Sizing.swift,
+				DesignSystem/Spacing.swift,
+				DesignSystem/Typography.swift,
+				Domain/BusinessRules/WidgetTimelineRule.swift,
+				Domain/Entities/Bedtime.swift,
+				Domain/Entities/CaffeineLevel.swift,
+				Domain/Entities/DrinkType.swift,
+				Domain/Entities/FavouriteDrink.swift,
+				Domain/Entities/ServingUnit.swift,
+				Domain/Entities/WidgetSnapshot.swift,
+				Domain/Entities/WidgetTimeline.swift,
+				Domain/Repositories/WidgetTimelineRepository.swift,
+				Domain/UseCases/ObserveWidgetTimelineUseCase.swift,
+				Domain/UseCases/UseCase.swift,
+				Features/DrinkComposer/DrinkComposerViewAccessibilityID.swift,
+				Features/DrinkComposer/DrinkPresentation.swift,
+				Localizable.xcstrings,
+				"Logging/Logger+HalfLife.swift",
+			);
+			target = 3C0A00042F00000000000001 /* Half-LifeWidgets */;
+		};
+		3C0A00072F00000000000001 /* Exceptions for "Half-LifeWidgets" folder in "Half-LifeWidgets" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Info.plist,
+			);
+			target = 3C0A00042F00000000000001 /* Half-LifeWidgets */;
+		};
 		CB28661495C04375A07EFAEC /* Exceptions for "Half-Life" folder in "Half-LifeUITests" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
 				App/AppViewAccessibilityID.swift,
 				App/UITesting/LaunchEnvironmentKey.swift,
+				Features/AppLock/AppLockViewAccessibilityID.swift,
 				Features/CaffeineDecay/CaffeineDecayViewAccessibilityID.swift,
 				Features/CaffeineIntakeToday/CaffeineIntakeTodayViewAccessibilityID.swift,
 				Features/DailyGreeting/DailyGreetingViewAccessibilityID.swift,
 				Features/DrinkComposer/DrinkComposerViewAccessibilityID.swift,
 				Features/DrinkLogHistory/DrinkLogHistoryViewAccessibilityID.swift,
+				Features/HealthSummary/HealthSummaryViewAccessibilityID.swift,
+				Features/Insights/HeartRateDetailViewAccessibilityID.swift,
+				Features/Insights/InsightsViewAccessibilityID.swift,
+				Features/Insights/SleepDetailViewAccessibilityID.swift,
+				Features/Insights/StepsDetailViewAccessibilityID.swift,
 				Features/LastCup/LastCupViewAccessibilityID.swift,
 				Features/Onboarding/AboutYouViewAccessibilityID.swift,
 				Features/Onboarding/BedtimeViewAccessibilityID.swift,
 				Features/Onboarding/HalfLifeFactorsViewAccessibilityID.swift,
 				Features/Onboarding/OnboardingSummaryViewAccessibilityID.swift,
 				Features/Onboarding/PermissionsViewAccessibilityID.swift,
+				Features/Onboarding/SiriShortcutsViewAccessibilityID.swift,
 				Features/Onboarding/WelcomeViewAccessibilityID.swift,
 				Features/OneTapLog/OneTapLogViewAccessibilityID.swift,
+				Features/Settings/AboutYouSettingsViewAccessibilityID.swift,
+				Features/Settings/AppLockSettingsViewAccessibilityID.swift,
+				Features/Settings/BedtimeSettingsViewAccessibilityID.swift,
+				Features/Settings/DemoHistorySettingsViewAccessibilityID.swift,
+				Features/Settings/FactorsSettingsViewAccessibilityID.swift,
+				Features/Settings/PermissionSettingsViewAccessibilityID.swift,
+				Features/Settings/SettingsViewAccessibilityID.swift,
+				Features/Splash/SplashViewAccessibilityID.swift,
 				Features/Today/TodayViewAccessibilityID.swift,
+				Localizable.xcstrings,
 			);
 			target = 041019553054BF3500025BC2 /* Half-LifeUITests */;
 		};
@@ -71,6 +153,7 @@
 			exceptions = (
 				04101AA93054F9F200025BC2 /* Exceptions for "Half-Life" folder in "Half-Life" target */,
 				CB28661495C04375A07EFAEC /* Exceptions for "Half-Life" folder in "Half-LifeUITests" target */,
+				3C0A00062F00000000000001 /* Exceptions for "Half-Life" folder in "Half-LifeWidgets" target */,
 			);
 			path = "Half-Life";
 			sourceTree = "<group>";
@@ -85,6 +168,14 @@
 			path = "Half-LifeUITests";
 			sourceTree = "<group>";
 		};
+		3C0A00082F00000000000001 /* Half-LifeWidgets */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				3C0A00072F00000000000001 /* Exceptions for "Half-LifeWidgets" folder in "Half-LifeWidgets" target */,
+			);
+			path = "Half-LifeWidgets";
+			sourceTree = "<group>";
+		};
 /* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -93,6 +184,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				04A1C0012F00000000000001 /* ComposableArchitecture in Frameworks */,
+				6A1E0001F00DBA5E00000001 /* AppIntents.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -110,6 +202,13 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		3C0A00092F00000000000001 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
@@ -119,6 +218,8 @@
 				041019413054BF3400025BC2 /* Half-Life */,
 				0410194F3054BF3500025BC2 /* Half-LifeTests */,
 				041019593054BF3500025BC2 /* Half-LifeUITests */,
+				3C0A00082F00000000000001 /* Half-LifeWidgets */,
+				6A1E0001F00DBA5E00000003 /* Frameworks */,
 				041019403054BF3400025BC2 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -129,8 +230,17 @@
 				0410193F3054BF3400025BC2 /* Half-Life.app */,
 				0410194C3054BF3500025BC2 /* Half-LifeTests.xctest */,
 				041019563054BF3500025BC2 /* Half-LifeUITests.xctest */,
+				3C0A00022F00000000000001 /* Half-LifeWidgets.appex */,
 			);
 			name = Products;
+			sourceTree = "<group>";
+		};
+		6A1E0001F00DBA5E00000003 /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				6A1E0001F00DBA5E00000002 /* AppIntents.framework */,
+			);
+			name = Frameworks;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -143,10 +253,12 @@
 				0410193B3054BF3400025BC2 /* Sources */,
 				0410193C3054BF3400025BC2 /* Frameworks */,
 				0410193D3054BF3400025BC2 /* Resources */,
+				3C0A00052F00000000000001 /* Embed Foundation Extensions */,
 			);
 			buildRules = (
 			);
 			dependencies = (
+				3C0A000C2F00000000000001 /* PBXTargetDependency */,
 			);
 			fileSystemSynchronizedGroups = (
 				041019413054BF3400025BC2 /* Half-Life */,
@@ -205,6 +317,28 @@
 			productReference = 041019563054BF3500025BC2 /* Half-LifeUITests.xctest */;
 			productType = "com.apple.product-type.bundle.ui-testing";
 		};
+		3C0A00042F00000000000001 /* Half-LifeWidgets */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 3C0A000D2F00000000000001 /* Build configuration list for PBXNativeTarget "Half-LifeWidgets" */;
+			buildPhases = (
+				3C0A000A2F00000000000001 /* Sources */,
+				3C0A00092F00000000000001 /* Frameworks */,
+				3C0A000B2F00000000000001 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			fileSystemSynchronizedGroups = (
+				3C0A00082F00000000000001 /* Half-LifeWidgets */,
+			);
+			name = "Half-LifeWidgets";
+			packageProductDependencies = (
+			);
+			productName = "Half-LifeWidgets";
+			productReference = 3C0A00022F00000000000001 /* Half-LifeWidgets.appex */;
+			productType = "com.apple.product-type.app-extension";
+		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
@@ -225,6 +359,9 @@
 					041019553054BF3500025BC2 = {
 						CreatedOnToolsVersion = 26.6;
 						TestTargetID = 0410193E3054BF3400025BC2;
+					};
+					3C0A00042F00000000000001 = {
+						CreatedOnToolsVersion = 26.6;
 					};
 				};
 			};
@@ -248,6 +385,7 @@
 				0410193E3054BF3400025BC2 /* Half-Life */,
 				0410194B3054BF3500025BC2 /* Half-LifeTests */,
 				041019553054BF3500025BC2 /* Half-LifeUITests */,
+				3C0A00042F00000000000001 /* Half-LifeWidgets */,
 			);
 		};
 /* End PBXProject section */
@@ -268,6 +406,13 @@
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 		041019543054BF3500025BC2 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		3C0A000B2F00000000000001 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -298,6 +443,13 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		3C0A000A2F00000000000001 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
@@ -310,6 +462,11 @@
 			isa = PBXTargetDependency;
 			target = 0410193E3054BF3400025BC2 /* Half-Life */;
 			targetProxy = 041019573054BF3500025BC2 /* PBXContainerItemProxy */;
+		};
+		3C0A000C2F00000000000001 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 3C0A00042F00000000000001 /* Half-LifeWidgets */;
+			targetProxy = 3C0A00032F00000000000001 /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
 
@@ -447,25 +604,33 @@
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = "Half-Life/Info.plist";
+				INFOPLIST_KEY_CFBundleDisplayName = "Localized in InfoPlist.xcstrings";
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.healthcare-fitness";
+				INFOPLIST_KEY_NSFaceIDUsageDescription = "Localized in InfoPlist.xcstrings";
+				INFOPLIST_KEY_NSHealthClinicalHealthRecordsShareUsageDescription = "Localized in InfoPlist.xcstrings";
+				INFOPLIST_KEY_NSHealthShareUsageDescription = "Localized in InfoPlist.xcstrings";
+				INFOPLIST_KEY_NSHealthUpdateUsageDescription = "Localized in InfoPlist.xcstrings";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
-				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
-				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
-				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations = UIInterfaceOrientationPortrait;
 				INFOPLIST_KEY_UIUserInterfaceStyle = Light;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.0;
+				MARKETING_VERSION = 1.0.0;
 				PRODUCT_BUNDLE_IDENTIFIER = "com.quillanq.Half-Life";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SUPPORTS_MACCATALYST = NO;
+				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
+				SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD = NO;
 				SWIFT_APPROACHABLE_CONCURRENCY = YES;
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
 				SWIFT_VERSION = 5.0;
-				TARGETED_DEVICE_FAMILY = "1,2";
+				TARGETED_DEVICE_FAMILY = 1;
 			};
 			name = Debug;
 		};
@@ -481,25 +646,33 @@
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = "Half-Life/Info.plist";
+				INFOPLIST_KEY_CFBundleDisplayName = "Localized in InfoPlist.xcstrings";
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.healthcare-fitness";
+				INFOPLIST_KEY_NSFaceIDUsageDescription = "Localized in InfoPlist.xcstrings";
+				INFOPLIST_KEY_NSHealthClinicalHealthRecordsShareUsageDescription = "Localized in InfoPlist.xcstrings";
+				INFOPLIST_KEY_NSHealthShareUsageDescription = "Localized in InfoPlist.xcstrings";
+				INFOPLIST_KEY_NSHealthUpdateUsageDescription = "Localized in InfoPlist.xcstrings";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
-				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
-				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
-				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations = UIInterfaceOrientationPortrait;
 				INFOPLIST_KEY_UIUserInterfaceStyle = Light;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.0;
+				MARKETING_VERSION = 1.0.0;
 				PRODUCT_BUNDLE_IDENTIFIER = "com.quillanq.Half-Life";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SUPPORTS_MACCATALYST = NO;
+				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
+				SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD = NO;
 				SWIFT_APPROACHABLE_CONCURRENCY = YES;
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
 				SWIFT_VERSION = 5.0;
-				TARGETED_DEVICE_FAMILY = "1,2";
+				TARGETED_DEVICE_FAMILY = 1;
 			};
 			name = Release;
 		};
@@ -587,6 +760,68 @@
 			};
 			name = Release;
 		};
+		3C0A000E2F00000000000001 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = "Half-LifeWidgets/Half-LifeWidgets.entitlements";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 422Y4K9N6G;
+				DOCC_MINIMUM_ACCESS_LEVEL = public;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = "Half-LifeWidgets/Info.plist";
+				IPHONEOS_DEPLOYMENT_TARGET = 26.5;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 1.0.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "com.quillanq.Half-Life.Widgets";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "WIDGET_EXTENSION $(inherited)";
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		3C0A000F2F00000000000001 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = "Half-LifeWidgets/Half-LifeWidgets.entitlements";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 422Y4K9N6G;
+				DOCC_MINIMUM_ACCESS_LEVEL = public;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = "Half-LifeWidgets/Info.plist";
+				IPHONEOS_DEPLOYMENT_TARGET = 26.5;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 1.0.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "com.quillanq.Half-Life.Widgets";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "WIDGET_EXTENSION $(inherited)";
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -622,6 +857,15 @@
 			buildConfigurations = (
 				041019673054BF3500025BC2 /* Debug */,
 				041019683054BF3500025BC2 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		3C0A000D2F00000000000001 /* Build configuration list for PBXNativeTarget "Half-LifeWidgets" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				3C0A000E2F00000000000001 /* Debug */,
+				3C0A000F2F00000000000001 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;

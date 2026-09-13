@@ -72,9 +72,9 @@ extension DependencyValues {
     }
 }
 
-/// Registers the app-scoped permissions repository. It's private, because only the use cases in this file are built
-/// from it.
-private enum PermissionsRepositoryKey: DependencyKey {
+/// Registers the app-scoped permissions repository. The use cases in this file are built from it, and so is
+/// ``TurnOnAppLockUseCase`` in `AppLockDependencies.swift`, which is why it isn't private.
+enum PermissionsRepositoryKey: DependencyKey {
     static let liveValue: any PermissionsRepository =
         UITestLaunchConfiguration.current.isUITest
         ? LivePermissionsRepository.simulated()

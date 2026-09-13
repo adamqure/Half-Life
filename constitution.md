@@ -10,7 +10,7 @@ The app combines **The Composable Architecture (TCA)** ([pointfreeco/swift-compo
 
 | Layer | Contains | May depend on |
 |-------|----------|---------------|
-| **Presentation** | TCA features: reducers and their views | Domain (use cases and entities) |
+| **Presentation** | TCA features (reducers and their views), App Intents, and widgets | Domain (use cases and entities) |
 | **Domain** | Entities, business rules, use cases, and repository protocols | Nothing (Swift and Foundation only) |
 | **Data** | Repository implementations and data sources (HealthKit, SwiftData, …) | Domain (to implement its protocols) |
 
@@ -45,6 +45,17 @@ Dependencies point inward, toward Domain. Domain never imports SwiftUI, Composab
 16. Every layer is tested in isolation. Reducers use an exhaustive `TestStore` with use cases overridden. Use cases are tested against in-memory fake repositories. Repositories are tested against fake data sources.
 17. The architecture is documented in the DocC catalog (see Article VIII).
 
+### Presentation without a reducer: App Intents and widgets
+
+18. **App Intents and widgets are presentation without a reducer.** Neither has a screen in the app, or state that outlives one run, so neither has a store, `State`, or effects. Like a reducer, each reaches business logic and data only through use cases, and never touches a repository or data source (I.3).
+    - **An App Intent** performs one command or answers one question, for Siri, Shortcuts, Spotlight, the Action Button, or a widget's button. It gets its use cases from the same `DependencyKey`s as the reducers (I.15), and answers a question with the first value of an `Observe…` use case. It replies with a dialog, and at most a result snippet drawn by thin views. It runs in the app's process, even when a widget performs it, so the app stays the only process that writes user data.
+    - **A widget** renders a timeline of fixed entries, not a live view. Its timeline provider takes the first value of an `Observe…` use case for each timeline it builds, and hands the entries to thin views. Its buttons perform App Intents rather than calling use cases themselves.
+19. **The widget extension reads through the same layers.** Its use cases, repositories, and data sources follow I.7–14, with two differences. Its repositories live for one timeline, not for the app, and each one's stream publishes a single value, then finishes. It builds them in one composition root, not through `DependencyKey`s (I.15). Each file it shares with the app belongs to both targets, so the file's tests in the app target cover it.
+20. **Widgets and Siri snippets are tested without robots.** They appear outside the app that UI tests launch, on the Home Screen or in Siri, so Articles II.5–11 and VI.4 don't apply to them. An App Intent's dialog is Siri's own UI, not a screen of the app's, so those articles don't apply to it either. Instead:
+    - the App Intents, rules, and repositories behind them are unit-tested in the app target;
+    - each widget has SwiftUI previews at every size it supports, and each snippet has a preview, each including the largest accessibility text size;
+    - each widget and snippet is checked with Accessibility Inspector before release, and the result is recorded in the DocC catalog.
+
 ## Article II: Test-first development
 
 1. All production code is written test-first (red → green → refactor).
@@ -56,6 +67,7 @@ Dependencies point inward, toward Domain. Domain never imports SwiftUI, Composab
 
 5. **Tests drive the app through robots.** UI tests are XCTest/XCUITest tests in `Half-LifeUITests/`. Each feature's view (a screen) has exactly one robot, `<Feature>Robot`, in `Half-LifeUITests/Robots/`. A test interacts with the app only through robots. It never queries `XCUIApplication` for elements or touches an `XCUIElement` itself.
 6. **Elements are found by accessibility identifier.** Every element a robot interacts with or verifies has an accessibility identifier, set in the view's source with `.accessibilityIdentifier(_:)`. Robots never locate elements by label, value, or position.
+   - **The one exception is the system tab bar's buttons.** iOS gives them no accessibility identifier, however it's set (verified 2026-09-12). So the root screen's robot, and only that robot, finds each tab's button by its label, the tab's title in the development language. It does so for no other element. Each tab is a case of an enum in the root view's `<View>AccessibilityID` file, beside its identifiers, so the view and the robot share one definition (II.7). The case's raw value is the title's key in the String Catalog, not its text, so the text lives only in the catalog (Article VII). The view titles the tab with the key's text. The robot looks up the same key in the catalog, which also belongs to the UI test target, in the development language. Neither the view nor the robot writes a tab's title as text. The UI tests run the app in the development language, so each label matches the text the robot looks up.
 7. **Identifiers are defined once, per view.** A view's identifiers are `static let` constants on an enum named `<View>AccessibilityID`, in its own file `<View>AccessibilityID.swift` next to the view. That file belongs to both the `Half-Life` and `Half-LifeUITests` targets, so the view and its robot share one definition and a mismatch is a compile error. Neither the view nor the robot writes an identifier as a string literal.
    - Values follow `<view>.<element>` in lower camel case (e.g. `caffeineLogView.addButton`), which keeps them unique across the app.
    - Every view that has a robot defines a `screen` identifier on its root element. The robot uses it to detect its screen.
@@ -76,11 +88,12 @@ Dependencies point inward, toward Domain. Domain never imports SwiftUI, Composab
 
 ## Article IV: Safety and correctness
 
-1. Concurrency follows Swift's data-race safety model. The app target's default actor isolation is `nonisolated`, because TCA reducers fail under a `MainActor` default. Only the UI and presentation layers run on the main actor, and every UI and presentation type states its isolation explicitly.
+1. Concurrency follows Swift's data-race safety model. The app target's default actor isolation is `nonisolated`, because TCA reducers fail under a `MainActor` default. Only the UI and presentation layers run on the main actor, and every UI and presentation type states its isolation explicitly, except the App Intents types in IV.1.4.
    1. **UI types are `@MainActor`.** Views, the app, and other types that conform to a SwiftUI or UIKit UI protocol are marked `@MainActor` explicitly, even where the protocol, such as `View`, would infer it.
    2. **Reducers are `nonisolated`.** A reducer reduces `Sendable` state and actions, and TCA runs it on the store, which is `@MainActor`. So each `@Reducer` type is marked `nonisolated` explicitly, and is never `@MainActor`: a `@MainActor` reducer crashes at runtime (verified 2026-09-11 against TCA 1.26.2).
    3. **Domain and Data stay off the main actor.** Domain types are `nonisolated`: entities are immutable `Sendable` values, and business rules and use cases hold no state. Repositories are their own actors (Article I.13). A data source that presents system UI (Article I.6) runs only that presentation on the main actor, in a method marked `@MainActor`.
-   4. **Enforcement.** SwiftLint custom rules in `.swiftlint.yml` reject a UI type without `@MainActor`, a reducer without `nonisolated`, and a `@MainActor` reducer.
+   4. **App Intents take the default, and are never `@MainActor`.** App Intents, the entities they return, the App Shortcuts provider, and every `AppEnum` take the target's `nonisolated` default without writing it. Written on a type with `@Parameter` or `@Property` properties, `nonisolated` is a compiler warning, and an error in the Swift 6 language mode (verified 2026-09-13). An intent awaits `Sendable` use cases and touches no UI. A result snippet's view is a UI type, so it's `@MainActor` (IV.1.1).
+   5. **Enforcement.** SwiftLint custom rules in `.swiftlint.yml` reject a UI type without `@MainActor`, a reducer without `nonisolated`, a `@MainActor` reducer, and a `@MainActor` App Intent, entity, App Shortcuts provider, or `AppEnum`.
 2. No force unwraps (`!`) or `try!` in production code unless a comment explains why the operation cannot fail.
 
 ## Article V: Privacy and security
@@ -106,13 +119,14 @@ Half-Life handles health data: caffeine intake the user records in the app, and 
 1. Every interactive element has a meaningful accessibility label, plus a hint or value where it helps. Decorative images are hidden from assistive technologies.
 2. Layouts support Dynamic Type up to the largest accessibility sizes without losing essential content.
 3. Color is never the only way information is conveyed, and text meets WCAG AA contrast.
-4. Every screen is covered by a UI test that runs `performAccessibilityAudit()`.
+4. Every screen is covered by a UI test that runs `performAccessibilityAudit()`. Widgets and Siri snippets are checked as Article I.20 describes.
 
 ## Article VII: Localization
 
 1. No hard-coded user-facing strings. All user-facing text lives in a String Catalog. Text in code lives in `Localizable.xcstrings`. Text that iOS reads from the Info.plist, such as purpose strings and the app's name, lives in `InfoPlist.xcstrings`.
    1. The Info.plist declares each key that `InfoPlist.xcstrings` localizes, because App Store validation and the frameworks look for the key there. Its value there is only a placeholder. The text itself is never written into `Info.plist` or the project's build settings.
    2. Every localization the app ships translates every key in `InfoPlist.xcstrings`. A localization without the translation shows the Info.plist's placeholder, not the development language's text.
+   3. App Shortcut phrases, the words that run an App Intent through Siri, live in a third catalog, `AppShortcuts.xcstrings`, which is where App Intents looks for them. Every localization the app ships translates every phrase, because Siri can't match a phrase in a language that has none.
 2. In SwiftUI, use string-literal keys (`Text("…")`) or `LocalizedStringResource`. Outside views, use `String(localized:)`. Never build sentences by concatenation; use interpolation inside a localized string so translators see the whole sentence.
 3. Dates, numbers, durations, and measurements are formatted with locale-aware APIs (`.formatted(...)`), never by hand.
 
@@ -180,3 +194,10 @@ Change this constitution only through a deliberate, dedicated edit, never as a s
 | 2026-09-11 | V | V.3.5: HealthKit no longer has to go through a single data source. More than one data source may wrap it, each still reached only through repositories, so tests and previews never touch real Health data | Adam Ure (AI-assisted) |
 | 2026-09-12 | V | V.3.1: a single HealthKit authorization data source requests access, in one sheet for all the types a feature needs. The data sources that read or write a type never request authorization themselves | Adam Ure (AI-assisted) |
 | 2026-09-12 | V | V.3.1: onboarding's permissions step may request Health access for the types the app's features read, when the user taps to allow it, after explaining each type. Access is still never requested automatically at launch | Adam Ure (AI-assisted) |
+| 2026-09-12 | II | II.6: the root screen's robot may find the system tab bar's buttons by their labels, because iOS gives them no accessibility identifier. It's the only exception to finding elements by identifier, made for the Settings tab | Adam Ure (AI-assisted) |
+| 2026-09-12 | II | II.6 refined: each tab's title is a constant in the root view's `<View>AccessibilityID` file, which the view and the robot share, so no test writes it as a string literal. The UI tests run the app in the development language, so the labels match | Adam Ure (AI-assisted) |
+| 2026-09-12 | II | II.6 refined again: each tab is an enum case whose raw value is its title's String Catalog key, not its text, so neither the app nor the tests hard-code the title. The robot looks the key up in the catalog, which joins the UI test target | Adam Ure (AI-assisted) |
+| 2026-09-12 | I, VI | I.18–20: widgets are presentation without a reducer. A widget's timeline provider takes the first value of an `Observe…` use case for each timeline, and its buttons perform App Intents. The widget extension's repositories live for one timeline, and one composition root builds them. Widgets are tested with unit tests, previews, and an Accessibility Inspector check instead of robots. VI.4 points to I.20 | Adam Ure (AI-assisted) |
+| 2026-09-12 | I, IV, VI | I.18 and I.20 widened from widgets to App Intents. An intent is presentation without a reducer: it calls use cases from the reducers' `DependencyKey`s, answers with the first value of an `Observe…` use case, and runs in the app's process, even from a widget. Siri snippets are tested like widgets, and dialogs aren't screens. The layer table names App Intents and widgets. IV.1.4: App Intents, the App Shortcuts provider, and `AppEnum`s are `nonisolated`, and SwiftLint enforces it (IV.1.5) | Adam Ure (AI-assisted) |
+| 2026-09-12 | VII | VII.1.3: App Shortcut phrases live in a third String Catalog, `AppShortcuts.xcstrings`, and every shipped localization translates them | Adam Ure (AI-assisted) |
+| 2026-09-13 | IV | IV.1.4 revised: App Intents, their entities, the App Shortcuts provider, and `AppEnum`s take the target's `nonisolated` default without writing it, because `nonisolated` on a type with `@Parameter` or `@Property` properties is a compiler warning. They're never `@MainActor`, and SwiftLint rejects that instead (IV.1.5) | Adam Ure (AI-assisted) |

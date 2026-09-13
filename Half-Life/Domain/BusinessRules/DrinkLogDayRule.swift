@@ -31,4 +31,20 @@ struct DrinkLogDayRule: Sendable {
             intake: intakeRule.intake(from: drinks, on: date, calendar: calendar),
             drinks: drinks.filter { calendar.isDate($0.consumedAt, inSameDayAs: date) })
     }
+
+    /// Returns the `count` calendar days that end with the one `date` falls in, oldest first, each as
+    /// ``day(containing:from:calendar:)`` gives it. See the Insights article, RECENTRULE-1 to RECENTRULE-3.
+    ///
+    /// - Parameters:
+    ///   - date: A moment in the last day, usually the current time.
+    ///   - count: How many days to return.
+    ///   - drinks: The drinks to choose from, oldest first.
+    ///   - calendar: The calendar, and so the time zone, that defines the days.
+    func days(endingOn date: Date, count: Int, from drinks: [LoggedDrink], calendar: Calendar) -> [DrinkLogDay] {
+        (0..<max(count, 0)).reversed().compactMap { daysAgo in
+            calendar.date(byAdding: .day, value: -daysAgo, to: date).map {
+                day(containing: $0, from: drinks, calendar: calendar)
+            }
+        }
+    }
 }

@@ -165,7 +165,12 @@ struct PermissionsView: View {
     private func biometricsRow(_ biometry: Biometry, @ViewBuilder status: () -> some View) -> some View {
         PermissionRow(
             symbol: Self.symbol(of: biometry), title: Self.name(of: biometry),
-            detail: Text("Lets Half-Life check that it's you."), status: status)
+            detail: Text(
+                """
+                Locks Half-Life each time you leave it, so only you can see your caffeine and health data. You can \
+                turn the lock off in Settings.
+                """
+            ), status: status)
     }
 
     private static func name(of biometry: Biometry) -> Text {

@@ -124,6 +124,17 @@ extension TodayRobot {
             loggedDrinks.firstMatch.waitForExistence(timeout: 5), "The card lists no drinks.", file: file, line: line)
     }
 
+    /// Checks that the card lists at least one demo drink, labeled as one.
+    func verifyListsADemoDrink(file: StaticString = #filePath, line: UInt = #line) {
+        let labeled = NSPredicate { _, _ in
+            loggedDrinks.allElementsBoundByIndex.contains { $0.label.contains("Demo") }
+        }
+        let arrived = XCTNSPredicateExpectation(predicate: labeled, object: nil)
+        XCTAssertEqual(
+            XCTWaiter.wait(for: [arrived], timeout: 5), .completed, "The card lists no drink labeled Demo.", file: file,
+            line: line)
+    }
+
     /// Checks that the card is asking whether to delete a drink.
     func verifyDeletionIsAsked(file: StaticString = #filePath, line: UInt = #line) {
         XCTAssertTrue(

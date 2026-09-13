@@ -5,6 +5,7 @@ included:
   - Half-Life
   - Half-LifeTests
   - Half-LifeUITests
+  - Half-LifeWidgets
 
 excluded:
   - build
@@ -73,8 +74,8 @@ custom_rules:
     message: "Give every interpolated value in a log message an explicit privacy: .public, .private, or .private(mask: .hash) (Article XI.5)."
     severity: error
 
-  # Article IV.1: actor isolation. UI types state @MainActor, reducers state nonisolated, and a reducer is never
-  # @MainActor. These apply to the app target only, and skip comments and strings.
+  # Article IV.1: actor isolation. UI types state @MainActor, reducers state nonisolated, and neither a reducer nor an
+  # App Intents type is ever @MainActor. These apply to the app target only, and skip comments and strings.
   ui_explicit_main_actor:
     name: "Explicit @MainActor on UI types"
     # A struct or class that conforms to a SwiftUI or UIKit UI protocol, without @MainActor on the line directly above.
@@ -97,4 +98,13 @@ custom_rules:
     excluded: '/Half-Life(Tests|UITests)/'
     excluded_match_kinds: [comment, comment.mark, comment.url, doccomment, doccomment.field, string]
     message: "A @Reducer type is never @MainActor. TCA runs reducers on the store, and a @MainActor reducer crashes at runtime (constitution Article IV.1.2)."
+    severity: error
+  app_intent_main_actor:
+    name: "No @MainActor App Intent"
+    # A @MainActor struct, enum, or class that conforms to an App Intents protocol, with the attribute on its line or
+    # the line above.
+    regex: '@MainActor\s+(?:(?:private|fileprivate|internal|public)\s+)?(?:final\s+)?(?:struct|enum|class)\s+\w+[^{\n]*:[^{\n]*\b(?:AppIntent|SnippetIntent|LiveActivityIntent|AppShortcutsProvider|AppEnum|AppEntity|TransientAppEntity)\b'
+    excluded: '/Half-Life(Tests|UITests)/'
+    excluded_match_kinds: [comment, comment.mark, comment.url, doccomment, doccomment.field, string]
+    message: "App Intents, their entities, the App Shortcuts provider, and AppEnums are never @MainActor. They take the target's nonisolated default (constitution Article IV.1.4)."
     severity: error

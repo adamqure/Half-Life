@@ -21,9 +21,6 @@ struct OnboardingSummaryRobot: Robot {
 
     private var title: XCUIElement { app.descendants(matching: .any)[OnboardingSummaryViewAccessibilityID.title] }
     private var content: XCUIElement { app.scrollViews[OnboardingSummaryViewAccessibilityID.content] }
-    private var halfLife: XCUIElement {
-        app.descendants(matching: .any)[OnboardingSummaryViewAccessibilityID.halfLife]
-    }
     private var logFirstCupButton: XCUIElement { app.buttons[OnboardingSummaryViewAccessibilityID.logFirstCupButton] }
     private var takeMeToTodayButton: XCUIElement {
         app.buttons[OnboardingSummaryViewAccessibilityID.takeMeToTodayButton]
@@ -35,17 +32,6 @@ struct OnboardingSummaryRobot: Robot {
         XCTAssertTrue(
             waitForLabel(of: title) { $0.contains(name) },
             "The heading reads \"\(title.label)\", without \(name).",
-            file: file,
-            line: line
-        )
-    }
-
-    /// Checks that the starting half-life reads `hours`, such as "8.3".
-    func verifyStartingHalfLife(_ hours: String, file: StaticString = #filePath, line: UInt = #line) {
-        require(halfLife, "The starting half-life", file: file, line: line)
-        XCTAssertTrue(
-            waitForLabel(of: halfLife) { $0.contains(hours) },
-            "The starting half-life reads \"\(halfLife.label)\", not \(hours) hours.",
             file: file,
             line: line
         )

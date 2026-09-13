@@ -14,11 +14,14 @@ The principles every change must follow live in `constitution.md` at the reposit
 
 - <doc:Architecture>
 - <doc:Logging>
+- <doc:LanguageModel>
 
 ### Caffeine model
 
 - <doc:CaffeineDecayModel>
 - <doc:CaffeineCutoff>
+- <doc:CutoffReminder>
+- <doc:HalfLifeEstimator>
 
 ### Apple Health
 
@@ -30,8 +33,15 @@ The principles every change must follow live in `constitution.md` at the reposit
 
 - <doc:DrinkComposer>
 - <doc:OneTapLog>
+- <doc:AppIntents>
+- <doc:Widgets>
 - <doc:TodayScreen>
+- <doc:AppleHealthCard>
+- <doc:Insights>
 - <doc:Onboarding>
+- <doc:Settings>
+- <doc:AppLock>
+- <doc:SplashScreen>
 
 ### Design
 

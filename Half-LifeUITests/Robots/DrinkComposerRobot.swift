@@ -65,6 +65,9 @@ struct DrinkComposerRobot: Robot {
     private var quantity: XCUIElement { app.staticTexts[DrinkComposerViewAccessibilityID.quantity] }
     private var estimate: XCUIElement { app.staticTexts[DrinkComposerViewAccessibilityID.estimate] }
     private var addButton: XCUIElement { app.buttons[DrinkComposerViewAccessibilityID.addButton] }
+    private var cutoffWarning: XCUIElement {
+        app.descendants(matching: .any)[DrinkComposerViewAccessibilityID.cutoffWarning]
+    }
 
     private func tile(_ drink: Drink) -> XCUIElement { app.buttons[drink.tileIdentifier] }
     private func choice(_ when: When) -> XCUIElement { app.buttons[when.identifier] }
@@ -134,6 +137,20 @@ struct DrinkComposerRobot: Robot {
     func verifyEstimate(_ text: String, file: StaticString = #filePath, line: UInt = #line) {
         XCTAssertTrue(estimate.waitForExistence(timeout: 5), "No estimate is showing.", file: file, line: line)
         XCTAssertEqual(estimate.label, text, file: file, line: line)
+    }
+
+    /// Checks that the cutoff warning is showing: the chosen drink, at the time chosen, is past its cutoff.
+    func verifyCutoffWarningShowing(file: StaticString = #filePath, line: UInt = #line) {
+        XCTAssertTrue(
+            cutoffWarning.waitForExistence(timeout: 5), "No cutoff warning is showing.", file: file, line: line)
+    }
+
+    /// Checks that the cutoff warning says where its threshold comes from: clinical sleep studies, until the user's
+    /// nights show a trend, as they don't in a UI test that doesn't turn the demo on.
+    func verifyCutoffWarningNamesSleepStudies(file: StaticString = #filePath, line: UInt = #line) {
+        XCTAssertTrue(
+            waitForLabel(of: cutoffWarning) { $0.localizedCaseInsensitiveContains("clinical sleep studies") },
+            "The cutoff warning reads \"\(cutoffWarning.label)\".", file: file, line: line)
     }
 
     /// Checks which "When" choice is selected.

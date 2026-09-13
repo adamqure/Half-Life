@@ -30,6 +30,18 @@ nonisolated struct UITestLaunchConfiguration: Sendable, Equatable {
     /// The profile the UI test asked for, or `nil` outside UI tests.
     let profile: Profile?
 
+    /// The Health data the UI test's app holds, chosen by ``LaunchEnvironmentKey/healthData``. It's empty outside UI
+    /// tests, and when the test chose none (LAUNCH-HEALTH in the Apple Health Card article).
+    let healthData: Set<SimulatedHealthData>
+
+    /// Whether the UI test asked for the simulated language model with ``LaunchEnvironmentKey/languageModel``. It's
+    /// `false` outside UI tests (LAUNCH-LM in the Language Model article).
+    let usesSimulatedLanguageModel: Bool
+
+    /// Whether the UI test asked, with ``LaunchEnvironmentKey/launch``, for the app to stay on its splash screen. It's
+    /// `false` outside UI tests (LAUNCH-SPLASH in the Splash Screen article).
+    let holdsLaunch: Bool
+
     /// Whether a UI test launched the app.
     var isUITest: Bool {
         profile != nil
@@ -44,5 +56,12 @@ nonisolated struct UITestLaunchConfiguration: Sendable, Equatable {
         case LaunchEnvironmentKey.completed: profile = .completed
         default: profile = nil
         }
+        healthData = Set(
+            (environment[LaunchEnvironmentKey.healthData] ?? "")
+                .split(separator: ",")
+                .compactMap { SimulatedHealthData(launchValue: String($0)) })
+        usesSimulatedLanguageModel =
+            environment[LaunchEnvironmentKey.languageModel] == LaunchEnvironmentKey.simulatedLanguageModel
+        holdsLaunch = environment[LaunchEnvironmentKey.launch] == LaunchEnvironmentKey.heldLaunch
     }
 }

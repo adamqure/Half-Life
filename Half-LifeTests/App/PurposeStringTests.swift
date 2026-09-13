@@ -12,18 +12,24 @@
 import Foundation
 import Testing
 
-/// Checks the purpose strings iOS shows when Half-Life asks for access to Health, Siri, or Face ID (PURPOSE-1 to
-/// PURPOSE-3 in the Architecture article, constitution Articles V.3.2 and VII).
+/// Checks the purpose strings iOS shows when Half-Life asks for access to Health or Face ID (PURPOSE-1 to PURPOSE-4
+/// in the Architecture article, constitution Articles V.2, V.3.2, and VII).
 struct PurposeStringTests {
 
-    /// Every purpose string the app declares.
+    /// Every purpose string the app declares, and no others.
     static let keys = [
         "NSFaceIDUsageDescription",
         "NSHealthClinicalHealthRecordsShareUsageDescription",
         "NSHealthShareUsageDescription",
         "NSHealthUpdateUsageDescription",
-        "NSSiriUsageDescription",
     ]
+
+    /// PURPOSE-4: the Info.plist declares no purpose string beyond ``keys``, so the app asks for no access it doesn't
+    /// use (constitution Article V.2).
+    @Test func infoPlistDeclaresNoOtherPurposeString() {
+        let declared = (Bundle.main.infoDictionary ?? [:]).keys.filter { $0.hasSuffix("UsageDescription") }
+        #expect(Set(declared) == Set(Self.keys))
+    }
 
     /// PURPOSE-1: the Info.plist declares the key, which App Store validation and the frameworks require.
     @Test(arguments: keys)

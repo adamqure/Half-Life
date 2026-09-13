@@ -18,4 +18,6 @@ enum CaffeineDecayViewAccessibilityID {
     static let level = "caffeineDecayView.level"
     /// The decay curve.
     static let curve = "caffeineDecayView.curve"
+    /// The times at the curve's two ends.
+    static let timeSpan = "caffeineDecayView.timeSpan"
 }

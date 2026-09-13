@@ -329,7 +329,7 @@ The Level and Curve operations leave out negligible intakes (see "Dropping negli
 
 The curve always holds 1,440 levels, however many intakes are counting. That's about 23 KB at 16 bytes per level. If the size ever becomes a problem, the spacing constant can be widened.
 
-The repository publishes the **active curve**: the window around the current time. Past-day curves, like the Patterns screen's, will read intakes through a separate path to the data source that includes marked ones. That path is designed separately.
+The repository publishes the **active curve**: the window around the current time. Past-day curves, like the Insights tab's, will read intakes through a separate path to the data source that includes marked ones. That path is designed separately.
 
 Because marks are never cleared, a marked intake stays out of the active curve even when a later change would make it count again. The main case is a longer tuned half-life. The error this causes is small. At the default constants, a 200 mg intake is marked 59.86 hours after it's consumed. At that moment it would still hold 0.21 mg under a 6-hour half-life, 0.55 mg under 7 hours, or 1.15 mg under 8 hours, and those amounts keep shrinking.
 
@@ -521,10 +521,10 @@ Any intake is half gone 20,948.07 seconds (5 hours 49 minutes 8 seconds) after i
 
 The half-life is the model's per-user parameter. Everyone starts at 5.5 hours. Later features refine it:
 
-- The onboarding survey (roadmap rank 6) sets an informed starting value.
-- The personal half-life estimator (rank 9) fits it to the user's own data.
+- The onboarding survey (roadmap rank 6) sets an informed starting value, from 3 to 40 hours (<doc:Onboarding>).
+- The personal half-life estimator (rank 9) updates it with the user's own nights, and stores the estimate on the device. The decay repository reads the half-life through ``EstimatedHalfLifeDataSource``, so the curve adopts each estimate automatically (<doc:HalfLifeEstimator>).
 - Settings (rank 21) lets the user override it.
 
-Those features will decide the allowed range and how a changed half-life is stored. The function itself doesn't change: it takes the half-life as an input.
+The function itself doesn't change: it takes the half-life as an input.
 
 The absorption rate could be tuned the same way, per person or per kind of drink, through its data source. Nothing on the roadmap does that yet.

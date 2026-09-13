@@ -21,6 +21,12 @@ struct Half_LifeApp: App {
         AppFeature()
     }
 
+    /// Creates the app, and starts keeping the Home Screen widgets current. It starts here, not from a view, because
+    /// the system can launch the app in the background, with no scene, to log a drink from a widget.
+    init() {
+        store.send(.launched)
+    }
+
     /// The app's single window, hosting ``AppView``.
     var body: some Scene {
         WindowGroup {

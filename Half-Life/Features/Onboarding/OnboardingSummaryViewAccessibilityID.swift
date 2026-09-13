@@ -17,8 +17,6 @@ enum OnboardingSummaryViewAccessibilityID {
     static let content = "onboardingSummaryView.content"
     /// The heading, which names the user when it knows their name.
     static let title = "onboardingSummaryView.title"
-    /// The starting half-life.
-    static let halfLife = "onboardingSummaryView.halfLife"
     /// The bedtime.
     static let bedtime = "onboardingSummaryView.bedtime"
     /// The recommended sleep.

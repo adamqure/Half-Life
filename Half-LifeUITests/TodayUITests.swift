@@ -75,7 +75,7 @@ final class TodayUITests: XCTestCase {
         today.verifyCaffeineLoggedToday(isAbout: before + added)
     }
 
-    /// UI-3: the Today screen shows the caffeine in your system now, and its decay curve.
+    /// UI-3: the Today screen shows the caffeine in your system now, and its decay curve with the times at its ends.
     @MainActor
     func testTodayShowsTheCaffeineInYourSystemNow() throws {
         let app = XCUIApplication()
@@ -83,6 +83,7 @@ final class TodayUITests: XCTestCase {
 
         let today = try app.resolve(TodayRobot.self)
         today.verifyCaffeineInYourSystem()
+        today.verifyCurveTimeSpan()
     }
 
     /// UI-1: launching the app shows the Today screen, with a greeting for the time of day.

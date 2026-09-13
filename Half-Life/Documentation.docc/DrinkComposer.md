@@ -26,7 +26,7 @@ Each prototype element either becomes part of an entity, stays in presentation, 
 | One-tap favourites: Double espresso, Oat flat white, Cold brew | The three drinks, each with its quantity, that the user logs most, derived from the log, with starters until there are three. Nothing extra is stored (<doc:OneTapLog>). |
 | The ring icon on each tile | Replaced by an icon for each drink (see "Iconography") |
 | "Oat" in "Oat flat white" | Cut. Milk doesn't change the caffeine, and the app answers one question: *when*. |
-| The post-cutoff warning ("about 51 mg will still be in you at bedtime") | Not part of these entities. The pre-log cutoff warning (rank 13) reads the curve and the bedtime. |
+| The post-cutoff warning ("about 51 mg will still be in you at bedtime") | Not part of these entities. Built on 2026-09-12 as the composer's cutoff warning ("The cutoff warning" below, and <doc:CaffeineCutoff>). |
 
 The brief limits the drink list: "Don't build … a drink database beyond ~15 common items." The catalog below has 13.
 
@@ -159,7 +159,7 @@ protocol DrinkLogRepository: Sendable {
 }
 ```
 
-- **It publishes the whole log.** Features and use cases narrow it: Today (rank 4) shows today's drinks, one-tap favourites count the most common ones, and Patterns (rank 15) reads weeks at a time.
+- **It publishes the whole log.** Features and use cases narrow it: Today (rank 4) shows today's drinks, one-tap favourites count the most common ones, and the Insights tab (rank 15) reads weeks at a time.
 - **It publishes what the data source holds.** `log(_:)` has the drink data source store the drink. The data source then signals a change, and the repository re-reads its drinks and publishes them. If storing fails, `log(_:)` throws, no change is signalled, and nothing is published. The log never shows a drink that wasn't saved.
 - **It checks every drink with ``DrinkLogRule``** before storing it, using the current time. A drink the rule rejects throws the rule's violation and is never stored. Every entry point gets the same checks, in one place.
 - **Deleting is built, and editing comes later.** The Today screen's history card added `delete(_:)` and `day(containing:in:)` on 2026-09-12 (<doc:TodayScreen>). Undo (rank 20) and retroactive timing (rank 17) add their own methods when they're built (constitution Article III.1).
@@ -246,7 +246,7 @@ A drink is stored once, written in one place, and read by two repositories.
 
 ### DrinkLogDataSource
 
-A Data-layer protocol, ``DrinkLogDataSource``. Its implementation, ``SwiftDataDrinkLogDataSource``, is the only code that touches SwiftData (constitution Article I.14). It keeps the drinks in a store on the device, which syncs to the user's private CloudKit database (Article V.1). It's the intake data source that <doc:CaffeineDecayModel> describes: the decay repository maps the drinks it returns to their intakes.
+A Data-layer protocol, ``DrinkLogDataSource``. Its implementation, ``SwiftDataDrinkLogDataSource``, is the only code that touches SwiftData (constitution Article I.14). It keeps the drinks in a store on the device only, with CloudKit off (see "Privacy and logging"). It's the intake data source that <doc:CaffeineDecayModel> describes: the decay repository maps the drinks it returns to their intakes.
 
 | Operation | What it does |
 |-----------|--------------|
@@ -266,8 +266,9 @@ A Data-layer protocol, ``DrinkLogDataSource``. Its implementation, ``SwiftDataDr
 | SRC-5 | `delete(_:)` removes the drink with the given identifier from the store, marked or not, and keeps the others. The deletion persists. |
 | SRC-6 | Every subscriber to `changes()` gets one signal after each successful `delete(_:)`. |
 | SRC-7 | Deleting a drink that isn't stored changes nothing and signals nothing. |
+| SRC-11 | The device's store stays on the device: its configuration names no CloudKit container. |
 
-`SwiftDataDrinkLogDataSourceTests` covers SRC-1, SRC-3, and SRC-4 against an in-memory store with CloudKit off, and `SwiftDataDrinkLogDataSourceDeleteTests` covers SRC-5 to SRC-7. SRC-2 has no test, because an in-memory SwiftData store can't be made to fail a save. For the same reason, no test makes a deletion fail in the store. The repository's DELETE-2 covers a failed deletion with the fake data source.
+`SwiftDataDrinkLogDataSourceTests` covers SRC-1, SRC-3, and SRC-4 against an in-memory store, and SRC-11 from the device store's configuration, without opening the store. `SwiftDataDrinkLogDataSourceDeleteTests` covers SRC-5 to SRC-7. SRC-2 has no test, because an in-memory SwiftData store can't be made to fail a save. For the same reason, no test makes a deletion fail in the store. The repository's DELETE-2 covers a failed deletion with the fake data source.
 
 ## Presentation
 
@@ -327,13 +328,23 @@ These choices keep the screen passing the accessibility audit (Article VI.4), af
 
 ``AppFeature`` holds the composer in a `@Presents` property, so the sheet is state-driven (Article I.6). The composer closes itself through TCA's `dismiss` dependency.
 
+### The cutoff warning
+
+The owner asked on 2026-09-12 at 23:15 for a warning before a drink that breaks the caffeine cutoff is logged, and for it never to stop the drink being logged. It's roadmap rank 13, built early. The owner approved its wording at 23:28.
+
+- **What it checks.** ``DrinkComposerFeature`` observes ``ObserveCutoffWarningUseCase`` for the chosen drink, quantity, and "When", in the calendar dependency. Each change of drink, quantity, or time observes the new choice's warning instead, and cancels the last. ``CaffeineCutoffRule`` decides (WARN-1 to WARN-5 in <doc:CaffeineCutoff>).
+- **Where it shows.** Between the "When" choices and Add, in the caution colors the save error uses, with a warning symbol. ``CutoffWarningBanner`` draws it, and Add stays enabled.
+- **What it says.** The heading is "After your cutoff". Then either "About 51 mg would still be in you at your 10:30 PM bedtime. Clinical sleep studies support under 40 mg for the average person." or, once the threshold is learned from the user's nights, "…Your time asleep starts to drop above 35 mg." (the owner's change on 2026-09-13, THRESH-5), or, for a drink less than its peak delay before bedtime, "This would still be rising at your 10:30 PM bedtime." The amount rounds up to the whole milligram, so it never shows at or under the threshold it's compared with. The wording follows the Caffeine Cutoff article's confidence language: it names what sleep studies suggest, not what the drink will do to the user's sleep.
+- **Accessibility.** VoiceOver reads the heading and the reason as one element. The symbol is hidden, so the text carries the meaning, and the text isn't only colored (Article VI.3). It wraps at large text sizes.
+- **The tile and the warning.** The "Last cup" tile rounds the cutoff down to the half hour, and the warning checks the exact amount. So a drink a few minutes past the tile's time may not warn. It never warns with an amount under the threshold.
+
 ## Privacy and logging
 
 A logged drink is health data. Its type, quantity, amount, and time all come down to a caffeine intake.
 
-- It's stored once, by the drink data source, in a SwiftData store on the device. The store syncs to the user's own private CloudKit database, which the developer can't read (constitution Article V.1). The same record carries the intake's negligible mark. The Architecture article's "Data and privacy" table lists it.
-- The sync is configured, and the rest of the CloudKit work belongs to CloudKit backup (roadmap rank 23): confirming the container in the developer account, deploying the schema to Production, push-driven sync, testing on a device signed in to iCloud, and the App Store privacy label.
-- The store keeps iOS's default protection class, complete until first unlock (`NSFileProtectionCompleteUntilFirstUserAuthentication`). The owner chose it on 2026-09-11, as the weaker class that Article V.4 allows for background access. Once the device has been unlocked since it started up, CloudKit imports and Siri can read the store while the device is locked. Before that first unlock, the store is unreadable.
+- It's stored once, by the drink data source, in a SwiftData store on the device, and nowhere else. The same record carries the intake's negligible mark. The Architecture article's "Data and privacy" table lists it.
+- **CloudKit sync is deferred.** The owner removed it on 2026-09-13. The store is configured with CloudKit off (SRC-11), and the app no longer has the iCloud and push entitlements or the remote notifications background mode. SwiftData syncs by default whenever the entitlements name an iCloud container, so the configuration turns sync off explicitly. Constitution Article V.1 still allows the drink log to sync to the user's private CloudKit database, so CloudKit backup (roadmap rank 23) can bring it back: the entitlements and background mode, the `.automatic` configuration, the container in the developer account, the schema deployed to Production, testing on a device signed in to iCloud, and the App Store privacy label. `DrinkRecord` still follows CloudKit's model rules, so turning sync on needs no migration.
+- The store keeps iOS's default protection class, complete until first unlock (`NSFileProtectionCompleteUntilFirstUserAuthentication`). The owner chose it on 2026-09-11, as the weaker class that Article V.4 allows for background access. Once the device has been unlocked since it started up, Siri can read the store while the device is locked. Before that first unlock, the store is unreadable.
 - None of its fields is ever logged, at any level (Article XI.6.1). A successful log is a routine health event, so it's logged at `debug` at most. A failed one is logged at `error`, with the error's domain and code and no values (Article XI.7).
 - Siri can run an intent while the device is locked. With the store's default class, the intent can read and write the store once the device has been unlocked since it started up. Whether an intent should also require the device to be unlocked is decided with App Intents (rank 14).
 
@@ -405,7 +416,7 @@ CLOCK-1 to CLOCK-4, the minute stream's requirements, are in the Today Screen ar
 
 ### DrinkComposerFeature
 
-Tested with an exhaustive `TestStore`, with `\.logDrink` and `\.observeLoggedDrinks` built on fake repositories and `\.dismiss` overridden.
+Tested with an exhaustive `TestStore`, with `\.logDrink`, `\.observeLoggedDrinks`, and `\.observeCutoffWarning` built on fake repositories and `\.dismiss` overridden. Tests about something else override the warning with one that sends nothing.
 
 | ID | Requirement |
 |----|-------------|
@@ -421,6 +432,9 @@ Tested with an exhaustive `TestStore`, with `\.logDrink` and `\.observeLoggedDri
 | COMP-10 | The composer opens on one espresso shot. On `task`, it takes the last drink logged, with its quantity, or keeps espresso when nothing has been logged. |
 | COMP-11 | Once the user has chosen a drink or changed its quantity, the drink log no longer replaces the choice. |
 | COMP-12 | When the composer's one-tap row logs a favourite, the composer closes. If the save fails, it stays open, and the row shows the error. |
+| WARNCOMP-1 | `task` observes the cutoff warning for the chosen drink, quantity, and time, in the calendar dependency, and reduces each warning into `State`. |
+| WARNCOMP-2 | Choosing a drink, changing its quantity, or choosing a time observes the new choice's warning. A quantity that can't go lower observes nothing new. |
+| WARNCOMP-3 | A warning never stops Add. |
 
 COMP-8 used to say Add does nothing before a drink is chosen. Now a drink is always chosen, so that case no longer exists.
 
@@ -448,7 +462,7 @@ COMP-8 used to say Add does nothing before a drink is chosen. Now a drink is alw
 | SHOW-4 | Quantities and caffeine per unit name the unit, singular for one: "1 shot", "2 shots". |
 | SHOW-5 | Caffeine is shown in whole milligrams, formatted for the locale, such as "125 mg". |
 
-`DrinkComposerUITests` drives the composer through `DrinkComposerRobot`, which swipes the tiles to reach drinks off screen. The composer opens with exactly one drink chosen and its panel showing, in a sheet shorter than three quarters of the screen. A latte starts at 2 shots and 125 mg, the buttons change the estimate, "When" changes its choice, Close returns to the root screen, one tap on a favourite logs it and closes the composer (ONETAP-UI-2 in <doc:OneTapLog>), and the composer passes the accessibility audit (Article VI.4), except for the two approved checks above.
+`DrinkComposerUITests` drives the composer through `DrinkComposerRobot`, which swipes the tiles to reach drinks off screen. The composer opens with exactly one drink chosen and its panel showing, in a sheet shorter than three quarters of the screen. A latte starts at 2 shots and 125 mg, the buttons change the estimate, "When" changes its choice, Close returns to the root screen, one tap on a favourite logs it and closes the composer (ONETAP-UI-2 in <doc:OneTapLog>), and the composer passes the accessibility audit (Article VI.4), except for the two approved checks above. Nine cups of cold brew now show the cutoff warning at any time of day, the composer passes the same audit with it showing, and Add still logs the drink (WARN-UI).
 
 ## Still to decide
 

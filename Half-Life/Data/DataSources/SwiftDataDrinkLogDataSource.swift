@@ -13,11 +13,12 @@ import Foundation
 import OSLog
 import SwiftData
 
-/// The drink log's storage: a SwiftData store that syncs to the user's private CloudKit database.
+/// The drink log's storage: a SwiftData store on the device, which never syncs.
 ///
 /// It's a model actor, so it runs off the main actor (constitution Article IV.1). It keeps one change stream per
-/// subscriber, and signals each one after every successful store and deletion. The Drink Composer article lists its
-/// requirements, SRC-1 to SRC-7, and the Caffeine Decay Model article lists DATA-1 to DATA-5.
+/// subscriber, and signals each one after every successful store, deletion, and demo replacement. The Drink Composer
+/// article lists its requirements, SRC-1 to SRC-7, the Caffeine Decay Model article lists DATA-1 to DATA-5, and the
+/// Settings article lists SRC-8 to SRC-10.
 @ModelActor
 actor SwiftDataDrinkLogDataSource: DrinkLogDataSource {
     private static let logger = Logger(for: SwiftDataDrinkLogDataSource.self)
@@ -34,11 +35,19 @@ actor SwiftDataDrinkLogDataSource: DrinkLogDataSource {
     /// - Returns: A container for ``DrinkRecord``.
     /// - Throws: An error if the store couldn't be opened.
     static func makeModelContainer(isStoredInMemoryOnly: Bool = false) throws -> ModelContainer {
-        let configuration = ModelConfiguration(
+        try ModelContainer(
+            for: DrinkRecord.self, configurations: makeModelConfiguration(isStoredInMemoryOnly: isStoredInMemoryOnly))
+    }
+
+    /// Describes the drink log's store, without opening it.
+    ///
+    /// - Parameter isStoredInMemoryOnly: Whether the store lives only in memory.
+    /// - Returns: The configuration ``makeModelContainer(isStoredInMemoryOnly:)`` opens.
+    static func makeModelConfiguration(isStoredInMemoryOnly: Bool = false) -> ModelConfiguration {
+        ModelConfiguration(
             schema: Schema([DrinkRecord.self]),
             isStoredInMemoryOnly: isStoredInMemoryOnly,
             cloudKitDatabase: isStoredInMemoryOnly ? .none : .automatic)
-        return try ModelContainer(for: DrinkRecord.self, configurations: configuration)
     }
 
     /// Stores `drink`, unmarked, then signals a change to every subscriber.
@@ -75,6 +84,33 @@ actor SwiftDataDrinkLogDataSource: DrinkLogDataSource {
         } catch {
             modelContext.rollback()
             Self.logFailure("delete a drink", error)
+            throw error
+        }
+        for subscriber in subscribers.values {
+            subscriber.yield()
+        }
+    }
+
+    /// Deletes every demo drink and stores each of `drinks` as a demo drink, in one save, then signals a change to
+    /// every subscriber. When there were no demo drinks and `drinks` is empty, it changes nothing and signals nothing.
+    ///
+    /// - Parameter drinks: The new demo drinks. Each is stored marked demo, whatever its own mark.
+    /// - Throws: The store's error if the change couldn't be saved. Nothing changes or is signalled then.
+    func replaceDemoDrinks(with drinks: [LoggedDrink]) async throws {
+        do {
+            let demoRecords = try modelContext.fetch(
+                FetchDescriptor(predicate: #Predicate<DrinkRecord> { $0.isDemo == true }))
+            guard !demoRecords.isEmpty || !drinks.isEmpty else { return }
+            for record in demoRecords {
+                modelContext.delete(record)
+            }
+            for drink in drinks {
+                modelContext.insert(DrinkRecord(drink, isDemo: true))
+            }
+            try modelContext.save()
+        } catch {
+            modelContext.rollback()
+            Self.logFailure("replace the demo drinks", error)
             throw error
         }
         for subscriber in subscribers.values {
@@ -136,8 +172,8 @@ actor SwiftDataDrinkLogDataSource: DrinkLogDataSource {
         subscribers[id] = nil
     }
 
-    /// Fetches records and maps them to drinks. A record whose type this version doesn't know, such as one synced
-    /// from a newer version, is skipped rather than failing the whole read.
+    /// Fetches records and maps them to drinks. A record whose type this version doesn't know, such as one a newer
+    /// version stored, is skipped rather than failing the whole read.
     private func loggedDrinks(matching descriptor: FetchDescriptor<DrinkRecord>) throws -> [LoggedDrink] {
         let records: [DrinkRecord]
         do {

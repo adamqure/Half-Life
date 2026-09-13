@@ -10,7 +10,7 @@ The owner set its shape on 2026-09-12:
 
 - **It's about the user's usual drink.** The cup it's sized for is the user's most logged drink and quantity, the first of the one-tap favourites. With nothing logged, it's the first starter favourite.
 - **It starts from the caffeine already in the user.** Every drink logged so far counts. So a big morning moves the afternoon's cutoff earlier, and a day can run out of room for another cup.
-- **The threshold is a default for now.** It's how much caffeine can be in the body at bedtime. The personal sensitivity threshold (roadmap rank 22) will learn it from the user's own sleep. Until then it's 40 mg, the value the research below supports. The owner confirmed it on 2026-09-12.
+- **The threshold is the user's own once their nights show it.** It's how much caffeine can be in the body at bedtime. The Sleep screen's caffeine tolerance, the most caffeine at sleep onset before the user's time asleep starts to drop, sets it, within 20 to 80 mg (<doc:Insights>, "Sleep"). Until the nights show one, it's 40 mg, the value the research below supports. The owner confirmed 40 mg on 2026-09-12, and chose on 2026-09-13 that the tolerance replaces it automatically. This is the personal sensitivity threshold, roadmap rank 22, built early at the owner's request.
 - **The tile shows the cutoff itself.** It shows "By 2:30 PM", or "No more today" when another cup would leave too much at bedtime. The owner chose this over the prototype's tile, which shows when the last drink was, against the cutoff (screenshot 07).
 
 The cutoff was first designed as part of onboarding's bedtime step. At 12:18 on 2026-09-12 the owner took it out of onboarding, so it's built here, for the Today screen, instead (<doc:Onboarding>).
@@ -48,7 +48,7 @@ With nothing logged, the standard constants, and a 10:30pm bedtime, the exact cu
 
 ## The sleep threshold
 
-The threshold is the most caffeine the cutoff allows in the body at bedtime: **40 mg**, until the personal sensitivity threshold (rank 22) replaces it with the user's own.
+The threshold is the most caffeine the cutoff allows in the body at bedtime: the user's caffeine tolerance once their nights show one (<doc:Insights>, "Sleep"), and **40 mg** until then. The research below is where the 40 mg comes from.
 
 ### What the research says
 
@@ -91,9 +91,11 @@ People differ widely, so a population default can only be a starting point:
 - **Tolerance:** in habitual users taking 150 mg three times a day, "Neither polysomnography-derived total sleep time, sleep latency, sleep architecture nor subjective sleep quality differed" from placebo (Weibel 2021).
 - **Age:** middle-aged adults are "generally more sensitive to the effects of a high dose of caffeine" (Robillard 2015).
 
+The Sleep screen's caffeine tolerance is the first step: it moves the threshold to where the user's own time asleep starts to drop, once 5 nights on each side show it (<doc:Insights>, "Sleep").
+
 ### How the app talks about it
 
-The threshold comes from studies of other people, mostly small groups of healthy young men. So the app presents the cutoff as a starting point, not a fact about the user. Suitable language: "Sleep studies suggest most people's sleep isn't measurably affected below about 40 mg. We'll adjust this once we see your own sleep." The app avoids "safe" and "quiet enough to sleep through", and never claims a number of minutes of sleep lost (the brief's *Honesty* criterion).
+The threshold comes from studies of other people, mostly small groups of healthy young men. So the app presents the cutoff as a starting point, not a fact about the user. Suitable language: "Sleep studies suggest most people's sleep isn't measurably affected below about 40 mg. We'll adjust this once we see your own sleep." The app avoids "safe" and "quiet enough to sleep through", and never claims a number of minutes of sleep lost (the brief's *Honesty* criterion). Once the user's nights show a trend, the threshold is learned from their time asleep instead, and the app says so wherever it names the number (THRESH-5).
 
 ### Caveats
 
@@ -114,7 +116,8 @@ The threshold comes from studies of other people, mostly small groups of healthy
   It adds two more: the threshold, from ``SleepThresholdDataSource``, and every logged drink, which it runs through ``FavouriteDrinksRule`` for the usual drink.
 - **A subscriber gets the cutoff for the current time as soon as it subscribes.** After that, the repository recalculates at every whole minute and whenever the drink log signals a change. It also recalculates when the bedtime or the half-life changes, because onboarding's data source signals those through the same path.
 - **Each subscriber gets only changes.** The repository remembers the last cutoff it sent each subscriber, and skips an equal one. The cutoff doesn't move from minute to minute, so in practice a new one goes out when a drink is logged, the bedtime changes, or the cutoff passes.
-- **The threshold has its own data source.** ``StandardSleepThresholdDataSource`` always returns ``SleepThreshold/standard``, as the bedtime and half-life data sources did before onboarding stored them. The personal sensitivity threshold replaces it.
+- **The derived values share one read.** The cutoff, the next nights' cutoffs, the composer's warning, and the sleep window (<doc:Insights>) are all calculated from the same inputs, read once for every subscriber, and each subscriber is sent a value only when its value changed.
+- **The threshold has its own data source.** ``PersonalSleepThresholdDataSource`` returns the stored caffeine tolerance, or ``SleepThreshold/standard`` without one. It signals when a tolerance is stored, and the repository then recalculates at once, so the cutoff, the next nights' cutoffs, the composer's warning, and the sleep window all adopt it together (TOLDECAY-1 in <doc:Insights>). ``StandardSleepThresholdDataSource`` stands in where a repository is built without one, as in tests.
 
 ``ObserveCaffeineCutoffUseCase`` streams it, with the user's calendar as its input.
 
@@ -131,7 +134,30 @@ The threshold comes from studies of other people, mostly small groups of healthy
 - **The owner approved the wording** on 2026-09-12: "By 1:00 PM", "No more today", and "Your usual:".
 - **The tile doesn't name the threshold.** The confidence language above belongs with a detail view, or the insight cards (rank 12), rather than a half-width tile. This is the AI's choice, still to be confirmed.
 
+## The pre-log warning
+
+The drink composer warns before a drink that breaks the cutoff is logged, and never stops it being logged (roadmap rank 13). The owner asked for it on 2026-09-12 at 23:15, and approved its wording at 23:28 (<doc:DrinkComposer>).
+
+``CaffeineCutoffRule/warning(_:consumedAt:calendar:)`` checks the drink the composer has chosen, at the time it says the drink was consumed, against the next bedtime at or after that time:
+
+- **Still rising at bedtime.** A drink consumed less than the peak delay before bedtime hasn't peaked by then, however small it is. This is the same rule as the cutoff's, where the cup has to peak by bedtime.
+- **Too much at bedtime.** Otherwise, the rule adds the drink to every intake already logged, and asks ``CaffeineDecayRule`` for the level at bedtime. More than the threshold warns, with that level.
+- **No warning** otherwise.
+
+It checks the exact amount, not the tile's half hour. The tile rounds the cutoff down, so a drink a few minutes past the tile's time can still leave less than the threshold. A warning then would quote an amount under the threshold it warns about. So a drink at the tile's time never warns, and a drink half an hour later always does (WARN-5).
+
+A drink logged earlier than now is checked at its own time, and against the bedtime after it, with every drink logged since.
+
 ## Entities
+
+### CutoffWarning
+
+Why a drink breaks the cutoff.
+
+| Case | Values | Meaning |
+|------|--------|---------|
+| `tooMuchAtBedtime` | `level: CaffeineLevel`, `threshold: SleepThreshold` | The level at bedtime, with the drink, is more than the threshold |
+| `stillRisingAtBedtime` | `bedtime: Date` | The drink is consumed less than the peak delay before this bedtime |
 
 ### SleepThreshold
 
@@ -159,6 +185,8 @@ The most caffeine the cutoff allows in the body at bedtime.
 | THRESH-1 | Until it's personalised, the threshold is 40 mg. |
 | THRESH-2 | A threshold is a positive, finite amount. Anything else isn't created. |
 | THRESH-3 | ``StandardSleepThresholdDataSource`` returns ``SleepThreshold/standard``. |
+| THRESH-4 | ``StandardSleepThresholdDataSource``'s changes finish at once, because its threshold never changes. |
+| THRESH-5 | ``SleepThreshold/standard`` comes from clinical sleep studies, and every other threshold is learned from the user's nights, so a learned 40 mg isn't the standard. |
 
 ### CaffeineCutoffRule
 
@@ -174,6 +202,19 @@ Unit-tested directly. The rule is pure, so its tests need no fakes. They check i
 | CUTOFF-6 | A longer half-life never gives a later cutoff, and a shorter one never gives an earlier one. |
 | CUTOFF-7 | The bedtime is a time of day in the given calendar, and the cutoff rounds to that calendar's half hours. |
 | CUTOFF-8 | The cup is the drink's catalog estimate for its quantity, so a bigger usual drink gives an earlier cutoff. |
+| CUTOFF-9 | The cutoffs for several nights start with tonight's, and each later night's is the cutoff from the moment the bedtime before it has passed, with only the intakes already logged. With nothing logged, every night's cutoff is at the same time of day. Caffeine logged today weighs on tonight's cutoff much more than on tomorrow's. |
+
+### The pre-log warning
+
+Unit-tested directly, against ``CaffeineDecayRule``'s levels and the cutoff itself.
+
+| ID | Requirement |
+|----|-------------|
+| WARN-1 | A drink that leaves at most the threshold at the next bedtime, and peaks by it, gets no warning. |
+| WARN-2 | A drink that leaves more gets `tooMuchAtBedtime`, with the level at bedtime, from every intake logged plus the drink, and the threshold. Caffeine already logged counts. |
+| WARN-3 | A drink consumed less than the peak delay before bedtime gets `stillRisingAtBedtime`, however small it is. |
+| WARN-4 | The bedtime is the next one at or after the drink's time, in the given calendar. |
+| WARN-5 | A drink at its own cutoff gets no warning, and the same drink half an hour later gets one. |
 
 ### CaffeineDecayRepository: the cutoff
 
@@ -185,18 +226,24 @@ Tested against fake data sources and a fake clock. REPO-1 to REPO-10 are in <doc
 | CUTREPO-2 | The drink is the first favourite ``FavouriteDrinksRule`` finds in every logged drink, including drinks marked negligible. With nothing logged, it's the first starter. |
 | CUTREPO-3 | After the drink log signals a change that alters the cutoff, every subscriber gets the new cutoff. |
 | CUTREPO-4 | At each minute the clock streams, a subscriber gets a new cutoff only if it changed, such as when the cutoff passes. |
+| CUTREPO-5 | `upcomingCutoffs(nights:in:)` streams the cutoffs for the next nights, as CUTOFF-9 calculates them, from the same inputs as `cutoff(in:)`. A new subscriber gets them at once, and after that only when a change to the drink log, or a minute, changes them. |
+| WARNREPO-1 | `cutoffWarning(for:secondsAgo:in:)` gives a new subscriber the warning for the drink, consumed `secondsAgo` before the current time, from the same inputs as the cutoff, or `nil` when it fits. |
+| WARNREPO-2 | After a change to the drink log that alters it, the subscriber gets the new warning. |
+| WARNREPO-3 | At each minute the clock streams, a subscriber gets a new warning only if it changed, such as when the drink comes within its peak delay of bedtime. |
 
 ### ObserveCaffeineCutoffUseCase
 
 | ID | Requirement |
 |----|-------------|
 | OBSCUTOFF-1 | It streams every cutoff the repository publishes for the calendar it's given, in order. |
+| OBSWARN-1 | ``ObserveCutoffWarningUseCase`` streams every warning the repository publishes for the drink, how long ago, and the calendar it's given, in order. |
 
 ### Registration
 
 | ID | Requirement |
 |----|-------------|
 | DEP-CUTOFF | `\.observeCaffeineCutoff` holds the app-scoped `\.caffeineDecayRepository`. The preview repository opens an in-memory store, so this test runs inside the serialized `SwiftDataStoreTests`. In tests, using the repository's `cutoff(in:)` or the use case without overriding it reports an issue. |
+| DEP-WARN | `\.observeCutoffWarning` holds the app-scoped `\.caffeineDecayRepository`, and in tests, using it without overriding it reports an issue. Its preview test runs inside `SwiftDataStoreTests`, like DEP-CUTOFF's. |
 
 ### LastCupFeature
 

@@ -94,7 +94,7 @@ struct LocalAuthenticationDataSource: BiometricAuthenticationDataSource {
     func authenticate() async throws {
         let reason = String(
             localized: "Allow Half-Life to check that it's you.",
-            comment: "Touch ID prompt's reason when Half-Life asks to use biometrics. There's no app lock yet.")
+            comment: "Touch ID prompt's reason when Half-Life asks to use biometrics, which the app lock uses.")
         do {
             try await evaluate(reason)
         } catch let error as LAError where Self.answers.contains(error.code) {

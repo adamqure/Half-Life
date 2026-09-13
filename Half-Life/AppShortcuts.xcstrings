@@ -1,0 +1,91 @@
+{
+  "sourceLanguage" : "en",
+  "strings" : {
+    "Ask ${applicationName} a question" : {
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringSet" : {
+            "state" : "new",
+            "values" : [
+              "Ask ${applicationName} a question",
+              "Ask ${applicationName}"
+            ]
+          }
+        }
+      }
+    },
+    "How much caffeine have I had in ${applicationName}" : {
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringSet" : {
+            "state" : "new",
+            "values" : [
+              "How much caffeine have I had in ${applicationName}",
+              "What did I drink today in ${applicationName}"
+            ]
+          }
+        }
+      }
+    },
+    "How much caffeine is in me in ${applicationName}" : {
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringSet" : {
+            "state" : "new",
+            "values" : [
+              "How much caffeine is in me in ${applicationName}",
+              "What's my caffeine level in ${applicationName}"
+            ]
+          }
+        }
+      }
+    },
+    "Log ${drink} in ${applicationName}" : {
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringSet" : {
+            "state" : "new",
+            "values" : [
+              "Log ${drink} in ${applicationName}",
+              "Log a ${drink} in ${applicationName}",
+              "Log a drink in ${applicationName}"
+            ]
+          }
+        }
+      }
+    },
+    "When should I go to sleep in ${applicationName}" : {
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringSet" : {
+            "state" : "new",
+            "values" : [
+              "When should I go to sleep in ${applicationName}",
+              "When can I sleep in ${applicationName}"
+            ]
+          }
+        }
+      }
+    },
+    "When's my last cup in ${applicationName}" : {
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringSet" : {
+            "state" : "new",
+            "values" : [
+              "When's my last cup in ${applicationName}",
+              "When should I stop drinking coffee in ${applicationName}"
+            ]
+          }
+        }
+      }
+    }
+  },
+  "version" : "1.0"
+}

@@ -11,7 +11,7 @@ Half-Life logs with `Logger`, from the `os` framework. Developers read the log l
 | The logging convention (subsystem, categories, levels, privacy) | In effect for all new code. No code logs yet. |
 | `Logger(for:)`, the helper that applies the convention | Built, in `Half-Life/Logging/Logger+HalfLife.swift`, and tested by `LoggerHalfLifeTests`. ``DrinkComposerFeature`` logs failed saves through it. |
 | SwiftLint rules that enforce the convention | In effect (see Enforcement). |
-| The log export in Settings, with unsent crash reports attached | Designed, not built. It ships with Settings (roadmap rank 21). |
+| The log export in Settings, with unsent crash reports attached | Designed, not built. Settings was built on 2026-09-12 without it, because the owner's request didn't include it (<doc:Settings>). |
 | The crash-report prompt on the launch after a crash | In the roadmap's Backlog, designed under Crash reports. |
 
 ## Subsystem and categories
@@ -152,7 +152,7 @@ xcrun simctl spawn booted log stream --level debug \
 
 ## Sending logs with a bug report
 
-Designed, not built. This section is the requirement for the Settings feature (roadmap rank 21).
+Designed, not built. This section is the requirement for adding the log export to Settings (<doc:Settings>).
 
 ### What the user sees
 

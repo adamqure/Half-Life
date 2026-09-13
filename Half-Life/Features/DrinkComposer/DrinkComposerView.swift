@@ -160,6 +160,9 @@ struct DrinkComposerView: View {
             }
             quantityRow
             whenChoices
+            if let warning = store.cutoffWarning {
+                CutoffWarningBanner(warning: warning)
+            }
             if store.saveFailed {
                 saveError
             }

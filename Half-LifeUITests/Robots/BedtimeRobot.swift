@@ -19,7 +19,7 @@ struct BedtimeRobot: Robot {
     /// The app the robot drives.
     let app: XCUIApplication
 
-    private var picker: XCUIElement { app.descendants(matching: .any)[BedtimeViewAccessibilityID.picker] }
+    private var picker: XCUIElement { app.datePickers[BedtimeViewAccessibilityID.picker] }
     private var continueButton: XCUIElement { app.buttons[BedtimeViewAccessibilityID.continueButton] }
     private var content: XCUIElement { app.scrollViews[BedtimeViewAccessibilityID.content] }
 
@@ -28,7 +28,7 @@ struct BedtimeRobot: Robot {
         verifyScrollsOnlyVertically(content, file: file, line: line)
     }
 
-    /// Checks that the step shows a time picker for the bedtime.
+    /// Checks that the step shows the system's time picker for the bedtime.
     func verifyBedtimePicker(file: StaticString = #filePath, line: UInt = #line) {
         require(picker, "The bedtime picker", file: file, line: line)
     }

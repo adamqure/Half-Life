@@ -27,6 +27,8 @@ import ComposableArchitecture
         case bedtime(BedtimeFeature)
         /// Step 5: the permissions.
         case permissions(PermissionsFeature)
+        /// The "Use Siri and Shortcuts" step.
+        case siriShortcuts(SiriShortcutsFeature)
         /// Step 6: the summary.
         case summary(OnboardingSummaryFeature)
     }
@@ -69,9 +71,13 @@ import ComposableArchitecture
                 state.path.append(.bedtime(BedtimeFeature.State()))
                 return .none
             case .path(.element(_, .bedtime(.delegate(.continued)))):
-                state.path.append(.permissions(PermissionsFeature.State()))
+                // Allowing Face ID here also turns the app lock on (the App Lock article's ONB-LOCK).
+                state.path.append(.permissions(PermissionsFeature.State(turnsOnAppLock: true)))
                 return .none
             case .path(.element(_, .permissions(.delegate(.continued)))):
+                state.path.append(.siriShortcuts(SiriShortcutsFeature.State()))
+                return .none
+            case .path(.element(_, .siriShortcuts(.delegate(.continued)))):
                 state.path.append(.summary(OnboardingSummaryFeature.State()))
                 return .none
             case let .path(.element(_, .summary(.delegate(.finished(logFirstCup))))):

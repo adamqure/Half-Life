@@ -18,7 +18,7 @@ import Testing
 /// Checks the drink log's dependency registrations.
 ///
 /// These tests use only the test values. Reading the live or preview values would open a SwiftData store in the test
-/// host, and the live one would reach CloudKit.
+/// host, and the live one would open the device's store.
 struct LogDrinkDependencyTests {
 
     /// A test that logs a drink without overriding `\.logDrink` fails.

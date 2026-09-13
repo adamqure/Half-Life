@@ -36,6 +36,8 @@ struct OnboardingView: View {
                 BedtimeView(store: store)
             case let .permissions(store):
                 PermissionsView(store: store)
+            case let .siriShortcuts(store):
+                SiriShortcutsView(store: store)
             case let .summary(store):
                 OnboardingSummaryView(store: store)
             }
@@ -46,8 +48,10 @@ struct OnboardingView: View {
 
 /// Onboarding's first screen: what Half-Life does, the one way in, and what happens to the user's data.
 ///
+/// Its logo is the brand mark, one cup's decay curve, the same image the splash screen draws.
+///
 /// The prototype's "Continue with Apple" and "Continue with email" are cut, because the brief rules out accounts. Its
-/// footer is reworded to be true: the drink log syncs to the user's private iCloud database (constitution Article V.1).
+/// footer is kept, and true: nothing syncs, so the user's data stays on the device (constitution Article V.1).
 @MainActor
 struct WelcomeView: View {
     /// What Get started does.
@@ -57,9 +61,7 @@ struct WelcomeView: View {
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: Spacing.sectionGap) {
-                Image(systemName: "chart.line.downtrend.xyaxis")
-                    .font(.largeTitle)
-                    .foregroundStyle(Color.textPrimary)
+                Image(.brandMark)
                     .accessibilityHidden(true)
                 VStack(alignment: .leading, spacing: Spacing.sectionHeaderGap) {
                     Text("Half-Life")
@@ -87,15 +89,10 @@ struct WelcomeView: View {
                 OnboardingPrimaryButton(
                     title: Text("Get started"), identifier: WelcomeViewAccessibilityID.getStartedButton,
                     action: getStarted)
-                Text(
-                    """
-                    Your health data stays on this iPhone. Your drink log syncs only to your own iCloud. No account \
-                    needed.
-                    """
-                )
-                .font(.footnote)
-                .foregroundStyle(Color.textPrimary)
-                .multilineTextAlignment(.center)
+                Text("Your caffeine and health data stays on this iPhone. No account needed.")
+                    .font(.footnote)
+                    .foregroundStyle(Color.textPrimary)
+                    .multilineTextAlignment(.center)
             }
             .padding(.horizontal, Spacing.screenMargin)
             .padding(.bottom, Spacing.itemGap)

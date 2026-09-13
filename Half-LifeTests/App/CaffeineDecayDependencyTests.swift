@@ -20,7 +20,7 @@ private struct StoreDidNotOpen: Error {}
 
 /// Checks the decay curve's test registrations (constitution Article I.15). None of these tests opens a store.
 ///
-/// The live values aren't read in tests, because the live data source opens the device's store with CloudKit.
+/// The live values aren't read in tests, because the live data source opens the device's store.
 struct CaffeineDecayDependencyTests {
 
     /// A test that observes the curve without overriding the repository fails.

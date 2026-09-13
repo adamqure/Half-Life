@@ -16,7 +16,7 @@ Every change to this repository must comply with the three governing documents b
 ### Architecture at a glance (constitution Article I is authoritative)
 
 - **Presentation → Domain ← Data.** Domain imports nothing but Swift and Foundation.
-- **Reducers call use cases**, never repositories or data sources.
+- **Reducers, App Intents, and widgets call use cases**, never repositories or data sources. App Intents and widgets are presentation without a reducer (Article I.18).
 - **Use cases** are single-purpose (`<Verb><Noun>UseCase`, conforming to `UseCase` with one `execute(_:)`) and lifetime-scoped to their feature. They hold no state.
 - **Repositories** are app-scoped, stateful sources of truth that expose an `AsyncStream` of their data.
 - **Features observe** repository data through `Observe…UseCase` in a `.run` effect started from `.task { await store.send(.task).finish() }`, and reduce each emitted value into `State`. Don't write repository-owned data into `State` optimistically.
@@ -31,9 +31,10 @@ Only UI and presentation run on the main actor, and they state their isolation e
 
 - **Views, the app, and other UI types:** `@MainActor`, on the line directly above the declaration, even where `View` or `App` would infer it.
 - **`@Reducer` types:** `nonisolated`, written out (`@Reducer nonisolated struct …`), and never `@MainActor`. A reducer reduces `Sendable` state, and TCA runs it on the `@MainActor` store.
+- **App Intents, their entities, the App Shortcuts provider, and `AppEnum`s:** the target's `nonisolated` default, not written out, and never `@MainActor` (Article IV.1.4). Written on a type with `@Parameter` or `@Property` properties, `nonisolated` is a compiler warning.
 - **Domain:** `nonisolated`. **Repositories:** their own actors, off the main actor.
 
-SwiftLint enforces the UI and reducer rules. The evidence comes from scratch copies of the project, tested against TCA 1.26.2 on 2026-09-11:
+SwiftLint enforces the UI, reducer, and App Intent rules. The evidence comes from scratch copies of the project, tested against TCA 1.26.2 on 2026-09-11:
 
 | Target default | Reducer | Result |
 |----------------|---------|--------|
@@ -81,6 +82,7 @@ Work in red → green → refactor cycles:
   - Accessibility identifiers live in `<View>AccessibilityID.swift` next to the view. Its target membership includes **both** `Half-Life` and `Half-LifeUITests`. Don't write identifiers as string literals. Don't try `@testable import Half_Life` from the UI tests: it compiles but fails to link.
   - After launch and after any navigation, the test resolves which expected robot is on screen, or fails.
   - Every robot exposes an accessibility audit (`performAccessibilityAudit()`), and every screen's tests run it.
+  - Widgets, Siri snippets, and App Intents' dialogs have no robot. They're covered by unit tests, previews, and an Accessibility Inspector check (Article I.20).
 - **Tooling:** scripts in `scripts/` are written test-first too, with Python `unittest` tests in `scripts/tests/`. They use only the standard library of the Python 3.9 bundled with Xcode (`/usr/bin/python3`).
 
 ## Product spec
@@ -117,8 +119,8 @@ xcrun xccov view --report --only-targets build/TestResults.xcresult
 xcodebuild test ... -only-testing:Half-LifeTests
 
 # Format (swift-format ships with Xcode), then lint — both must be clean
-xcrun swift-format format --in-place --recursive Half-Life Half-LifeTests Half-LifeUITests
-xcrun swift-format lint --strict --recursive Half-Life Half-LifeTests Half-LifeUITests
+xcrun swift-format format --in-place --recursive Half-Life Half-LifeTests Half-LifeUITests Half-LifeWidgets
+xcrun swift-format lint --strict --recursive Half-Life Half-LifeTests Half-LifeUITests Half-LifeWidgets
 swiftlint lint --strict
 
 # Export AI session transcripts to ai_transcripts/ (before every commit), and test the exporter
@@ -146,10 +148,10 @@ xcodebuild docbuild -project Half-Life.xcodeproj -scheme Half-Life -skipMacroVal
 
 - **Protect privacy** — on device, except the drink log's sync to the user's private CloudKit database; nothing read from HealthKit is synced. HealthKit only through data sources, each reached through a repository, with authorization requested only by the HealthKit authorization data source (V.3.1), no health data in logs, Apple-only analytics (Article V).
 - **Be accessible** — VoiceOver labels on interactive elements, decorative images hidden, Dynamic Type support, no color-only signals (Article VI).
-- **Be localization-ready** — no hard-coded user-facing strings; everything goes through `Half-Life/Localizable.xcstrings`, or through `Half-Life/InfoPlist.xcstrings` for Info.plist text such as purpose strings. `Info.plist` holds only a placeholder for each of those keys, and every shipped language translates them all (Article VII).
+- **Be localization-ready** — no hard-coded user-facing strings; everything goes through `Half-Life/Localizable.xcstrings`, or through `Half-Life/InfoPlist.xcstrings` for Info.plist text such as purpose strings, or through `Half-Life/AppShortcuts.xcstrings` for App Shortcut phrases. `Info.plist` holds only a placeholder for each of those keys, and every shipped language translates them all (Article VII).
 - **Be documented** — `///` DocC comments on every non-`private`/`fileprivate` declaration in the app target, and architecture changes reflected in `Half-Life/Documentation.docc/` in the same change (Article VIII).
 - **Be formatted and lint-clean** — swift-format and SwiftLint with zero violations, no compiler warnings (Article IX).
-- **State isolation explicitly** — `@MainActor` directly above every UI type, `@Reducer nonisolated` on every reducer and never `@MainActor`, and no main-actor code in Domain or Data (Article IV.1).
+- **State isolation explicitly** — `@MainActor` directly above every UI type, `@Reducer nonisolated` on every reducer and never `@MainActor`, never `@MainActor` on an App Intent, its entities, the App Shortcuts provider, or an `AppEnum`, and no main-actor code in Domain or Data (Article IV.1).
 - **Log safely** — only through `Logger(for:)`, never `print`. Use the level that fits (anything a bug report needs goes at `notice` or above), and give every interpolated value an explicit `privacy:`. Never log health values, and log routine health events at `debug` at most, because timestamps reveal when they happened (Article XI, DocC `Logging` article).
 
 ## Code conventions

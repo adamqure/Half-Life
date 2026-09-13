@@ -23,6 +23,18 @@ struct DrinkComposerFeatureTests {
 
     let now = Date(timeIntervalSinceReferenceDate: 0)
 
+    static let utc: Calendar = {
+        var calendar = Calendar(identifier: .gregorian)
+        calendar.timeZone = .gmt
+        return calendar
+    }()
+
+    /// Overrides the cutoff warning with one that sends nothing, in UTC, for tests about something else.
+    static func quietWarnings(_ dependencies: inout DependencyValues) {
+        dependencies.calendar = utc
+        dependencies.observeCutoffWarning = ObserveCutoffWarningUseCase(repository: FakeCaffeineDecayRepository())
+    }
+
     func drink(_ type: DrinkType, quantity: Int, minutesAgo: Double) -> LoggedDrink {
         LoggedDrink(
             type: type, quantity: quantity, milligrams: type.estimatedMilligrams(quantity: quantity),
@@ -47,6 +59,7 @@ struct DrinkComposerFeatureTests {
         } withDependencies: {
             $0.observeLoggedDrinks = ObserveLoggedDrinksUseCase(
                 repository: FakeDrinkLogRepository(drinks: [[older, latest]]))
+            Self.quietWarnings(&$0)
         }
 
         await store.send(.task)
@@ -62,6 +75,7 @@ struct DrinkComposerFeatureTests {
             DrinkComposerFeature()
         } withDependencies: {
             $0.observeLoggedDrinks = ObserveLoggedDrinksUseCase(repository: FakeDrinkLogRepository(drinks: [[]]))
+            Self.quietWarnings(&$0)
         }
 
         await store.send(.task)
@@ -86,6 +100,8 @@ struct DrinkComposerFeatureTests {
     @Test func choosingADrinkStartsAtItsDefaultQuantity() async {
         let store = TestStore(initialState: DrinkComposerFeature.State()) {
             DrinkComposerFeature()
+        } withDependencies: {
+            Self.quietWarnings(&$0)
         }
 
         await store.send(.drinkSelected(.latte)) {
@@ -104,6 +120,8 @@ struct DrinkComposerFeatureTests {
     @Test func stepperChangesTheQuantityButNeverBelowOne() async {
         let store = TestStore(initialState: DrinkComposerFeature.State(selectedDrink: .espresso, quantity: 1)) {
             DrinkComposerFeature()
+        } withDependencies: {
+            Self.quietWarnings(&$0)
         }
 
         await store.send(.quantityIncremented) {
@@ -121,6 +139,8 @@ struct DrinkComposerFeatureTests {
     @Test func choosingWhenSetsHowLongAgo() async {
         let store = TestStore(initialState: DrinkComposerFeature.State()) {
             DrinkComposerFeature()
+        } withDependencies: {
+            Self.quietWarnings(&$0)
         }
 
         await store.send(.consumedWhenSelected(.twoHoursAgo)) {
@@ -209,6 +229,8 @@ struct DrinkComposerFeatureTests {
             initialState: DrinkComposerFeature.State(selectedDrink: .matcha, quantity: 1, saveFailed: true)
         ) {
             DrinkComposerFeature()
+        } withDependencies: {
+            Self.quietWarnings(&$0)
         }
 
         await store.send(.drinkSelected(.greenTea)) {
@@ -266,6 +288,10 @@ struct DrinkComposerFeatureTests {
         #expect(dismissed.value)
     }
 
+}
+
+// The one-tap tests, in an extension that keeps the suite's body within SwiftLint's limit.
+extension DrinkComposerFeatureTests {
     // MARK: - COMP-12: logging a one-tap favourite closes the composer
 
     @Test func loggingAOneTapFavouriteClosesTheComposer() async {

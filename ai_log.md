@@ -2623,3 +2623,2232 @@ This file is the timestamped record of every interaction with AI on the Half-Lif
   - Committed at the owner's request, in one commit with every other session's work in the tree (see Interactions). The other entries in it that say "Not committed" were written before this commit.
   - The check counts only labeled elements. An unlabeled element that overflowed wouldn't fail it by itself, though any text or button inside it would.
   - The simulators `HalfLife-HScroll` (CE3D5DFB-B50A-428F-B3DE-D2DED1F38B13) and `HalfLife-HScroll-SE` (28344535-C19C-43E8-8271-655FCAAFEB3B) are still booted. Delete them with `xcrun simctl delete` when they're no longer useful.
+
+### 2026-09-12 22:10 -0400 — Build the Settings tab and the two-week demo drinks
+
+- **Started:** 2026-09-12 22:10 -0400
+- **Ended:** 2026-09-13 09:33 -0400
+- **Human:** Adam Ure
+- **AI tool / model:** Claude Code / Claude Opus 5
+- **Transcript:** `ai_transcripts/2026-09-12-2206-3c148814.md`
+- **Type:** change, planning
+- **Request:** Add a Settings tab that reviews and edits the onboarding answers, and reviews the notification, Apple Health, and biometric permissions. Also add two weeks of pre-seeded history for a demo user.
+- **Interactions:**
+  - `22:10` Asked for the Settings tab and the demo history, "at a pivot point", ahead of the roadmap's order (ranks 21 and 8).
+  - `22:15` Answered four questions (the clock was read just after):
+    - Settings is a system tab, with Article II.6 amended so robots find tab buttons by label. The AI had recommended UI tests opening the tab through a launch key, which needed no amendment.
+    - Demo drinks go into the real log, marked, and can be removed. The AI had recommended a separate demo user.
+    - The seed holds drinks and a profile.
+    - The answers are edited in a native form. The AI had recommended reusing onboarding's screens.
+  - Between `22:15` and `22:23`, answered two follow-ups: the profile is left alone, because removing the demo couldn't restore an overwritten one, and the seed includes today up to now. The AI recommended both.
+  - A parallel session, half-life-a1 (the half-life estimator), asked at about 22:25 for a deterministic seed with varied timing. The design already met both requests. It later said it reads `LoggedDrink.isDemo` to leave demo drinks out of its fit. The two sessions took turns editing Architecture.md and Documentation.md.
+  - `23:03` half-life-1c relayed that the owner had refined II.6, in that session: each tab's title became a `static let` constant, shared by the view and the robot. The AI changed `AppRobot`, `AppView`, and `AppViewAccessibilityID` to match.
+  - Between `23:07` and `23:13`, the owner paused this session. The tab identifiers didn't have to be static, and no code should hard-code the titles' text. The AI offered two designs, and the owner chose the one it recommended: an `AppTab` enum whose raw values are String Catalog keys, with the catalog also in the UI test target. The AI reworded II.6 to match.
+  - Relayed by half-life-1c, a decision the owner made at 23:10 for the Insights tab: the demo covers 30 days, not 14. The AI applied it without asking again.
+  - Relayed by half-life-3b, a decision the owner made at 22:54: a separate "Use demo Health data" switch in Settings, designed and not built. The Settings article records it.
+  - half-life-e7 started the Face ID app lock (roadmap rank 27) at about 23:20. It adds a section to Settings, and edits several of this task's files. Its identifiers and robot commands for that section were applied by this session, at e7's request, because this session was still testing those files.
+  - At about `23:27`, the owner answered two questions about the accessibility audit:
+    - The native form failed the audit on iOS's own controls. The owner chose to rebuild Settings in the app's style. The AI had recommended keeping the form with a narrow exception.
+    - With a long history, the Today screen's scrolled audit fails contrast. The owner chose the AI's recommendation: investigate for up to about 30 minutes before changing anything. A forked agent investigated in its own copy of the snapshot, on its own simulator.
+  - At about `00:05`, after the time box ran out, the owner chose two of the AI's recommendations. Settings' small secondary text moved to `textPrimary`, and the Today investigation got 20 more minutes. The AI then extended the color change to the permission cards' and demo card's small text, for the same reason.
+  - At `00:10`, the owner asked for Settings to become hierarchical, with each onboarding section as its own submenu. The owner chose Settings' own sections, pushed, which the AI recommended. The owner also chose to make App lock and Demo data submenus, where the AI had recommended keeping them on the root.
+  - At `00:50`, the owner answered two questions from the first UI run of the hierarchy, choosing the AI's recommendation both times:
+    - The Caffeine and your body screen failed its audit at the end of its scroll. There its title sits under the navigation bar's fade. The end-of-scroll audit now ignores contrast there, but only for elements the first audit checked in full.
+    - Unlocking the app always returns to Today, not the tab the user left. It stays as it is, recorded as a follow-up for half-life-e7's app lock.
+  - After the full run ended at 01:16, the AI asked one more question, and the answer came before `09:31`, when the clock was next read. The last red test, the Caffeine and your body audit, comes from a layout bug: Settings' pushed screens leave no room for the tab bar and Log button at the end of their scroll. The owner chose to record it and stop. The AI had recommended a 30-minute box to fix it with system insets, and had offered fixed padding as a third option.
+- **AI contribution:**
+  - **Isolation.** At 22:38 the estimator session's red-phase tests broke the main tree's test build. The AI kept editing in the main tree, but built and tested in a snapshot of HEAD, plus only this task's files, copied in by a script before each run. No peer file was touched.
+  - **Domain, test-first:**
+    - `LoggedDrink.isDemo`, defaulting to `false` (DRINK-3).
+    - `DemoHistoryRule` (DEMO-1 to DEMO-6): a fixed script of local clock times. It first covered 14 days, and after the owner's 23:10 decision it covers 30, 11 of them ending with a cup of 90 mg or more from 3pm on, plus today's drinks up to now.
+    - `AddDemoHistoryUseCase`, `RemoveDemoHistoryUseCase`, and `ObserveDemoHistoryUseCase` (DEMOUSE-1 to DEMOUSE-3), with three new `DrinkLogRepository` requirements.
+  - **Data, test-first:**
+    - `DrinkRecord.isDemo`, which has a default, as CloudKit requires.
+    - `DrinkLogDataSource.replaceDemoDrinks(with:)`, which replaces the demo drinks in one save with one signal (SRC-8 to SRC-10).
+    - `LiveDrinkLogRepository` adds and removes the demo drinks, and streams whether any are in the log (DEMOREPO-1 to DEMOREPO-4).
+    - Registrations for the three use cases (DEP-DEMO).
+  - **Presentation, test-first:**
+    - `SettingsFeature` scopes three features: `ProfileSettingsFeature` (SETPROF-1 to SETPROF-7), `PermissionsFeature` (reused from onboarding), and `DemoHistoryFeature` (SETDEMO-1 to SETDEMO-4).
+    - `AppFeature` runs it (SET-1, SET-2).
+  - **Views:**
+    - `SettingsView` is a native `Form` in its own navigation stack, with `ProfileSettingsSections`, `PermissionSettingsSection`, and `DemoHistorySection`.
+    - The Settings tab joins `AppView`'s tab bar.
+    - The history card labels each demo drink "Demo".
+    - `SettingsViewAccessibilityID` joins the UI test target.
+    - 15 strings were added to the catalog, each with a comment.
+  - **UI tests:** `SettingsRobot`, `AppRobot.openSettings()` and `openToday()`, `TodayRobot.verifyListsADemoDrink()`, and `SettingsUITests` (UI-SET-1 to UI-SET-6).
+  - **Constitution:** Article II.6 gained the tab bar exception, and the amendments table gained its row, at the owner's request.
+  - **Docs:**
+    - A new `Settings` article covers the decisions and what was rejected, the brief's constraints, the demo script, where demo drinks go, the architecture, and the requirements.
+    - `Architecture`, `Documentation`, and `TodayScreen` were updated.
+  - **The rebuild in the app's style**, after the owner's 23:27 decision:
+    - `SettingsView` is a scrolling column on the canvas's solid top color.
+    - `SettingsSection` puts an eyebrow and a note in `textPrimary` on the page, and `SettingsCard` holds the rows.
+    - `SettingsOption` rows replace the switches. SwiftUI wheels replace the age menu and the time picker. The permission cards copy onboarding's.
+    - The name field wraps, as onboarding's does, so Return types a newline. `ProfileSettingsFeature` now takes a newline as the commit (test first, SETPROF-2).
+    - Four catalog keys the rebuild no longer used were removed.
+    - half-life-e7's `AppLockSettingsSection` uses these components. This session wired it into `SettingsView`, at e7's request.
+  - **The hierarchy**, after the owner's 00:10 request:
+    - Navigation is test-first (SET-3 and SET-4 red at 00:20). SET-1 changed, with the reason given: the root no longer runs a permissions section.
+    - `SettingsFeature` holds a `StackState` path with six screens. The root keeps the profile, app lock, and demo sections, for its rows' values.
+    - `SettingsView` is a root list of rows. `SettingsScreen` is the layout the pushed screens share. The screens are `AboutYouSettingsView`, `FactorsSettingsView`, `BedtimeSettingsView`, `PermissionSettingsView`, `AppLockSettingsView` (around e7's section), and `DemoHistorySettingsView`. Each has its own identifier file, in the UI test target, and its own robot.
+    - `Robot+Reveal.swift` holds the scroll-into-view helper the robots share. `SettingsUITests` has one audit test per screen. e7's `AppLockUITests` now opens the App lock screen, at e7's request.
+    - The Caffeine and your body screen is `FactorsSettingsView`, because `HalfLifeFactorsSettingsViewAccessibilityID` broke SwiftLint's 40-character limit on type names.
+  - **The Today audit investigation.** The forked agent ran 6 audits at the end of the scroll, on its own fresh simulator, and all 6 were clean. All 4 failures had been on this session's simulator, so the fault looked like that simulator's state. The agent recommended no fix and no exception.
+    - The final runs used a fresh simulator, `HalfLife-Settings-Fresh`. There the failure came back in the main tree.
+    - A scratch probe then found that the scroll reached the end after one swipe, and that an audit there, after a 3-second settle, found no contrast issues.
+    - So the helper's still-screen wait, two identical screenshots in a row, returned too early on a long screen. It now waits for three identical screenshots in a row, up to 30, which is still a condition rather than a fixed wait (Article II.9).
+    - The probe queried elements directly, outside the robot pattern, and was deleted after its one run.
+  - **Mistakes, corrected before the end:**
+    - In the rebuilt `SettingsView`, the scroll view was the only child of the container carrying the `screen` identifier. SwiftUI gave both identifiers to one element, so the robot never found `content`, and every Settings UI test and e7's `AppLockUITests` failed with "The Settings form didn't appear".
+      - The AI's first fix, a `ZStack` with the page behind the scroll view, didn't work, and the AI told e7 it had before verifying it. e7's rerun failed the same way. The hierarchy e7 captured showed the scroll view still carrying `screen`, because the page color isn't an accessibility element.
+      - The second fix follows the Today screen: the scroll view is the `screen` element, the `content` identifier is gone, and the robot swipes the screen element.
+    - The first Settings article note on the demo Health switch went in the middle of the decisions table and split it. It moved under the table.
+    - The 30-day script table kept a bold cola from the 14-day table, although bold meant a cup of 90 mg or more.
+    - A test built `SaveAboutYouUseCase` with its arguments in the wrong order.
+    - A parameter named `status` shadowed a helper in `PermissionSettingsSection`, which also broke the estimator session's build for a while.
+    - `#require` around an optional `Bool` left five compiler warnings in `LiveDrinkLogRepositoryDemoTests`.
+    - SwiftLint flagged eight long lines in this task's files, and the history card's view went two lines over its body-length limit. At the end, swift-format flagged the root list's rows in `SettingsView` and one line in `AppTabTests`, and reformatted both.
+    - UI-SET-5 first used the plain audit on the Today screen. It failed contrast on the Last Cup tile's time while the screen was still moving. The screen tests now use `auditAccessibilityAboveTheTabBar()`, which waits for a still screen.
+    - The AI's change to `AppLockUITests` for the hierarchy assumed the Settings tab stayed selected under the lock. It doesn't: the lock screen replaces the tab bar, so unlocking rebuilds it on Today. The first UI run failed with "Expected AppLockSettingsRobot, but AppRobot is showing". The recording's last frames showed Today. The test now opens Settings after unlocking, where the pushed App lock screen is still showing.
+    - When the still-screen wait grew to three screenshots, the AI updated the helper's comment and the Settings article, but not `Architecture` or `OneTapLog`, which still said two of 20. Both were corrected with the top-edge change.
+  - **The top of the second audit**, after the owner's 00:50 decision: `auditAccessibilityAboveTheTabBar()` now ignores a contrast issue at the end of the scroll only for an element that reaches above where the content started at rest, and only if the first audit checked it in full. The band comes from the screen's own first text, so it needs no navigation bar query (Article II.6). half-life-1c had the same failure on Insights and the same decision from the owner. It read this change and kept it, rather than adding its own.
+- **Human changes:** The decisions above.
+- **Files:**
+  - Added, in the app:
+    - `Half-Life/Domain/BusinessRules/DemoHistoryRule.swift`
+    - `Half-Life/Domain/UseCases/AddDemoHistoryUseCase.swift`, `RemoveDemoHistoryUseCase.swift`, `ObserveDemoHistoryUseCase.swift`
+    - In `Half-Life/Features/Settings/`: `SettingsFeature.swift`, `ProfileSettingsFeature.swift`, `DemoHistoryFeature.swift`, `SettingsView.swift`, `AboutYouSettingsView.swift`, `FactorsSettingsView.swift`, `BedtimeSettingsView.swift`, `PermissionSettingsView.swift`, `AppLockSettingsView.swift`, `DemoHistorySettingsView.swift`, and each view's `…AccessibilityID.swift`
+    - `Half-Life/Documentation.docc/Settings.md`
+  - Added, in the tests:
+    - `Half-LifeTests/Domain/DemoHistoryRuleTests.swift`, `DemoHistoryUseCaseTests.swift`
+    - `Half-LifeTests/Data/SwiftDataDrinkLogDataSourceDemoTests.swift`, `LiveDrinkLogRepositoryDemoTests.swift`
+    - `Half-LifeTests/App/DemoHistoryDependencyTests.swift`, `AppTabTests.swift`
+    - `Half-LifeTests/Presentation/DemoHistoryFeatureTests.swift`, `ProfileSettingsFeatureTests.swift`, `SettingsFeatureTests.swift`
+    - `Half-LifeUITests/SettingsUITests.swift`
+    - In `Half-LifeUITests/Robots/`: `SettingsRobot.swift`, `AboutYouSettingsRobot.swift`, `FactorsSettingsRobot.swift`, `BedtimeSettingsRobot.swift`, `PermissionSettingsRobot.swift`, `AppLockSettingsRobot.swift`, `DemoHistorySettingsRobot.swift`, `Robot+Reveal.swift`
+  - Modified, in the app:
+    - `Half-Life/Domain/Entities/LoggedDrink.swift`, `Half-Life/Domain/Repositories/DrinkLogRepository.swift`
+    - `Half-Life/Data/DataSources/DrinkLogDataSource.swift`, `SwiftDataDrinkLogDataSource.swift`, `DrinkRecord.swift`, `Half-Life/Data/Repositories/LiveDrinkLogRepository.swift`
+    - `Half-Life/App/Dependencies/DrinkLogDependencies.swift`, `DrinkLogDataSourceDependencies.swift`
+    - `Half-Life/App/AppFeature.swift`, `AppView.swift`, `AppViewAccessibilityID.swift`
+    - `Half-Life/Features/DrinkLogHistory/DrinkLogHistoryView.swift` (the "Demo" label), `Half-Life/Features/Onboarding/PermissionsFeature.swift` (a doc comment)
+    - `Half-Life/Features/Settings/AppLockSettingsSection.swift` (half-life-e7's; its two identifiers only)
+    - `Half-Life/Localizable.xcstrings`, `Half-Life.xcodeproj/project.pbxproj` (the identifier files' and the catalog's UI test membership)
+  - Modified, in the tests:
+    - `Half-LifeTests/Domain/LoggedDrinkTests.swift`, `Half-LifeTests/Fakes/FakeDrinkLogRepository.swift`, `FakeDrinkLogDataSource.swift`
+    - `Half-LifeUITests/Robots/AppRobot.swift`, `Robot.swift`, `Robot+TabBarAudit.swift` (the still-screen wait, and the top of the second audit), `TodayRobot+History.swift`
+    - `Half-LifeUITests/AppLockUITests.swift` (half-life-e7's; the navigation to its screen, at its request, and the step after unlocking)
+  - Modified, in the docs:
+    - `constitution.md` (Article II.6, twice, at the owner's request)
+    - `Half-Life/Documentation.docc/Architecture.md`, `Documentation.md`, `TodayScreen.md`, `Onboarding.md`, `Logging.md`, `OneTapLog.md` (the audit helper's wait and its second audit)
+  - Modified, in the log: `ai_log.md`, `ai_transcripts/`
+  - Deleted: the first build's `ProfileSettingsSections.swift`, `PermissionSettingsSection.swift`, and `DemoHistorySection.swift`, replaced by the screens
+- **Verification:**
+  - All of it ran in copies of the tree on the simulator `HalfLife-Settings-Fresh`, because other sessions' red phases broke the main tree (see Notes). The copy taken at 00:37 left out two of half-life-3b's test files that didn't compile, `LastNightSleepRuleTests.swift` and `HealthKitStepCountChangesTests.swift`.
+  - **Red first.** SET-3 and SET-4 failed at 00:20, before the hierarchy was built. The name commit (SETPROF-2) and the per-screen audits were red before their code too.
+  - Unit tests in the 00:37 copy, 00:38: `** TEST SUCCEEDED **`, 887 tests in 163 suites passed, including SET-1 to SET-4, with 78 known issues (the unimplemented-dependency checks).
+  - First UI run of the hierarchy, `SettingsUITests` and `AppLockUITests`, 00:39 to 00:45: 12 of 14 passed. The two failures are under "Mistakes" and "The top of the second audit". Both were diagnosed from the result bundle's screenshots and recording, and fixed.
+  - Full unit and UI run with coverage, in the 00:37 copy with this task's later files, 00:56 to 01:16: 941 tests. 896 passed, 44 were expected failures (the known unimplemented-dependency checks), and 1 failed: `testCaffeineAndYourBodyPassesTheAccessibilityAudit`, in its second audit (see Notes). `AppLockUITests`, the other Settings tests, and `TodayUITests`' audit passed.
+  - Coverage: `Half-Life.app` is at **94.14%** (11875/12614), from that run.
+  - `testCaffeineAndYourBodyPassesTheAccessibilityAudit` ran three more times after the full run, and failed all three, so the failure isn't intermittent. Each time, XCTest's element screenshot showed "I'm pregnant", clearly readable. A probe in the scratch copy only printed each issue's frame, and found two issues at the end of the scroll:
+    - The title, at y 37–119. The top rule ignored it, as intended.
+    - The half-life card's text, "A starting estimate from what you chose…", at y 713–751. It's still in the tab bar's fade, which starts at y 693. This is the failure.
+    
+    The screen scrolled 202 pt, and its last content never cleared the bar (see Notes). half-life-3b's full UI run, on a copy from about 01:03, failed it the same way. The test stays red, at the owner's choice, and the probe was never in the main tree.
+  - swift-format lint `--strict` and SwiftLint `--strict` on this task's files, at 00:39 and after each later edit: clean.
+  - `xcodebuild docbuild` in the 00:37 copy with this task's later files, 00:56: `BUILD DOCUMENTATION SUCCEEDED`. Its warnings are in half-life-3b's in-progress `HealthSummary.swift` and `LastNightSleep.swift`, in the CustomDump package, and on `Architecture.md` line 288. That last one names `LastSevenDaysView`, which the main tree has but the 00:37 copy doesn't. None are in this task's lines. The build for testing had no compiler warnings from the sources.
+- **Notes:**
+  - Not committed.
+  - The final verification ran in a copy of the tree taken at 00:37, with this task's later files copied in. Other sessions' red phases broke the main tree: first its test target, and at 00:53 its app target. So this work hasn't been built in the main tree since then. Run the full suite there once those sessions are green.
+  - half-life-e7 wasn't reachable at the end. This session changed two things in its `AppLockUITests`: the test opens its screen through the Settings root, and it opens Settings again after unlocking. Its `AppLockSettingsSection` still puts an "App lock" eyebrow under the App lock screen's own "App lock" title. That repeated heading is for e7 or the owner to settle.
+  - Follow-up for the app lock, at the owner's 00:50 choice: unlocking returns to Today, not the tab the user left.
+  - Open layout bug, found in the audit's screenshots: at the end of its scroll, Caffeine and your body's medical note ("Half-Life isn't medical advice…") stays under the Log button and the tab bar, where it can't be read. It sat in the same place in all five failure screenshots, so the scroll view seems not to leave room for the bar on Settings' pushed screens. It's why the Caffeine and your body audit is red: its second audit, at the end of the scroll, finds the half-life card's text still in the bar's fade. The owner chose to record it and stop. The cause isn't found. `TodayView` and `SettingsScreen` build their scroll views the same way, except that Settings' is inside a `NavigationStack`. The other pushed screens are short enough that it doesn't show. half-life-1c reports the same layout on Insights, also in a `NavigationStack`.
+  - At about 01:00, half-life-3b added its demo Health switch to the Demo data screen, after this session freed the Settings files. At this session's suggestion, the path's `demoHistory(DemoHistoryFeature)` became `demoData(DemoDataFeature)`, which runs `DemoHistoryFeature` and 3b's `DemoHealthDataFeature`. The pushed screen gets its store from the path, not from the root. 3b updated SET-3 and SET-4 for the new case. At its request, this session updated the Settings article in six places. This entry's verification copy predates those edits, so 3b's own runs cover them.
+  - At 00:39, swift-format flagged three files of other sessions: `CutoffReminderFeature.swift:116`, `DemoHealthDataSourcesTests.swift:95`, and `LastNightSleepRuleTests.swift:67`. SwiftLint flagged the last two. This session didn't touch them.
+  - The simulator `HalfLife-Settings-Fresh` (6FB49880-4E74-4B76-8E4B-CE9567B9009F) is still there. Delete it with `xcrun simctl delete` when it's no longer useful.
+
+### 2026-09-12 22:13 -0400 — Design and build the personal half-life estimator
+
+- **Started:** 2026-09-12 22:13 -0400
+- **Ended:** 2026-09-12 23:54 -0400 (without a full test run; see Verification)
+- **Human:** Adam Ure
+- **AI tool / model:** Claude Code / Claude Opus 5
+- **Transcript:** `ai_transcripts/2026-09-12-2213-cc37a791.md`
+- **Type:** planning, question, change
+- **Request:** Design the architecture for the personal half-life estimator (roadmap rank 9). Explain what's known about the body's response to caffeine, and whether sleep, steps, and resting heart rate from Apple Health, plus the onboarding survey, can estimate the user's half-life. Then build it.
+- **Interactions:**
+  - `22:13` The owner asked for the estimator's architecture and for the physiology behind it.
+  - `22:25` The owner decided: the fit explains a combined sleep score; the curve adopts the estimate automatically, through a data source; the estimate is stored and recalculated every week; pregnancy and contraception aren't read from Health. (The clock was read when the answer arrived.)
+  - `22:27` To three follow-up questions, the owner chose: also recalculate at once when the survey's factors change; 14 nights before the data can move the estimate; no UI showing the estimate in this change.
+  - `23:01` The AI found that the approved Apple Health card design (`AppleHealthCard.md`, not built) planned its own `SleepNightRule`, with noon-to-noon nights, and asked. The owner chose one rule serving both designs.
+  - `23:04` Meanwhile, the card's session (half-life-3b, dedc597d) had rewritten its design around the AI's rule, with a separate `LastNightSleepRule` that shares its session code. The AI asked again, and the owner chose to keep the card's new plan, so nothing was merged or refactored.
+  - `23:34` The owner interrupted the wait for a full test run to ask whether anything was missing, and confirmed the decay repository uses the estimate. (Time from the session file. The clock wasn't read when the question arrived.)
+  - `23:46` The owner asked the AI to fix the Onboarding article.
+- **AI contribution:**
+  - **Design.** Health data can't measure a half-life. Sleep reflects it only indirectly, mixed with the user's sensitivity to caffeine, and steps and resting heart rate don't reflect it at all. So the estimator is a Bayesian update of `HalfLifePriorRule`'s starting value: 121 candidates from 1 to 100 hours, a log-normal prior with a spread of 0.4, and a conjugate Bayesian regression of a standardized disruption score (time awake minus deep sleep) on the standardized caffeine at sleep onset, with weekend, steps, and resting heart rate beside it. Caffeine's coefficient is constrained to be positive. Standardizing the caffeine means only variety in timing can move the estimate. Without it, the estimate is exactly the prior.
+  - **Built, test-first.** Domain: `SleepNight`, `HalfLifeEstimate`, `SleepNightRule`, `HalfLifeEstimationRule` (with an `Inputs` struct, following `CaffeineCutoffRule`), `HalfLifeEstimateRepository`, `ObserveHalfLifeEstimateUseCase`, and `RefreshHalfLifeEstimateUseCase`. Data: `LiveHalfLifeEstimateRepository`, `HalfLifeEstimateDataSource`, `FileHalfLifeEstimateDataSource` (`NSFileProtectionComplete`, left out of iCloud backups), `EstimatedHalfLifeDataSource`, which serves the decay model the estimate when it started from the current survey and the profile's half-life otherwise, and `UnavailableHealthDataSource` for previews and UI tests. Wiring in `HalfLifeEstimateDependencies.swift`, and `CaffeineDecayDependencies.swift` now reads the half-life through `EstimatedHalfLifeDataSource`. `CaffeineDecayFeature`'s `task` refreshes the estimate.
+  - **Found during the build, and fixed:**
+    - The first night rule joined only stretches of sleep, so a night with more than an hour awake split into two nights that each looked undisturbed. The repository test's fixture caught it (21 nights instead of 20). A new failing test, `aLongAwakeningDoesntSplitTheNight`, came first, then the fix: recorded time awake holds a session together.
+    - Drinks from before the user started logging would make the first nights look caffeine-free, so a night counts only after 2 days of logged drinks. This was added during the rule's red phase. The not-yet-run tests changed with it, to include a week of drinks before the first night.
+  - **Checked the claims.** A throwaway simulation, deleted after one run, measured how far the estimate moves: with a strong effect, 28 nights recover a true 8 hours to about 7.2; with the noise the AI assumed for real nights, 90 nights move it only from 5.5 to about 5.9, with its range still about 90% as wide. The three studies cited from memory (Drake 2013, Gardiner 2023, Rétey 2007) were checked by web search. The earlier reply's "about 11 minutes less deep sleep" wasn't confirmed, so it was withdrawn and isn't in the docs.
+  - **Docs.** New `HalfLifeEstimator` article (physiology, method, simulation, requirements NIGHT-1 to NIGHT-6, EST-1 to EST-8, ESTREPO-1 to ESTREPO-8, ESTFILE-1 to ESTFILE-4, ESTSRC-1 to ESTSRC-3, NOHEALTH-1, DECAY-5, and sources with PMIDs). Updated `Architecture` (feature, use case, rule, repository, data source, and stored-data rows), `Documentation` (Topics), `CaffeineDecayModel` ("Tuning the half-life"), and `SleepData`, `StepCount`, and `RestingHeartRate` (which repository reads them).
+  - **Coordination.** Told half-life-d8 (Settings, demo drinks) before and after editing `Architecture.md` and `Documentation.md`, and asked for a deterministic demo seed with varied timing, which it already was. Agreed with half-life-3b how `LastNightSleepRule` will share `SleepNightRule`'s sessions.
+  - **What's missing (answer at 23:34).** Confirmed from the code that `LiveCaffeineDecayRepository` reads the half-life through `EstimatedHalfLifeDataSource` into `CaffeineKinetics` for the curve, the status, and the cutoff, and recalculates on its change signal. Listed the gaps: no full test run or coverage yet; the fit assumes one half-life across its 90 days, so a survey change partway through mixes nights from before and after it; nothing shows the estimate; a week's wait after Health access is granted later; the demo shows only the survey's half-life; the Onboarding article was out of date; and the log entry wasn't final.
+  - **Onboarding article.** Brought four places up to date: the prototype's "about ten days" row, the multipliers paragraph (the estimator starts from the prior and updates it), the note that the estimator and an override would "decide" how they combine with the prior (the decay model now reads through `EstimatedHalfLifeDataSource`), and the "Still to decide" item on what the summary says about refinement. Other sessions' uncommitted edits elsewhere in the file, for app lock and the cutoff reminder, were left as they were.
+- **Human changes:** The seven decisions in Interactions, and the request to fix the Onboarding article.
+- **Files:**
+  - Added: `Half-Life/Domain/Entities/SleepNight.swift`, `HalfLifeEstimate.swift`; `Half-Life/Domain/BusinessRules/SleepNightRule.swift`, `HalfLifeEstimationRule.swift`; `Half-Life/Domain/Repositories/HalfLifeEstimateRepository.swift`; `Half-Life/Domain/UseCases/ObserveHalfLifeEstimateUseCase.swift`, `RefreshHalfLifeEstimateUseCase.swift`; `Half-Life/Data/DataSources/HalfLifeEstimateDataSource.swift`, `FileHalfLifeEstimateDataSource.swift`, `EstimatedHalfLifeDataSource.swift`, `UnavailableHealthDataSource.swift`; `Half-Life/Data/Repositories/LiveHalfLifeEstimateRepository.swift`; `Half-Life/App/Dependencies/HalfLifeEstimateDependencies.swift`; `Half-Life/Documentation.docc/HalfLifeEstimator.md`.
+  - Added tests: `Half-LifeTests/Domain/SleepNightRuleTests.swift`, `HalfLifeEstimationRuleTests.swift`, `HalfLifeEstimateUseCaseTests.swift`; `Half-LifeTests/Data/LiveHalfLifeEstimateRepositoryTests.swift`, `FileHalfLifeEstimateDataSourceTests.swift`, `EstimatedHalfLifeDataSourceTests.swift`, `UnavailableHealthDataSourceTests.swift`; `Half-LifeTests/App/HalfLifeEstimateDependencyTests.swift`; fakes `FakeSleepDataSource`, `FakeStepCountDataSource`, `FakeRestingHeartRateDataSource`, `FakeHalfLifeEstimateDataSource`, and `FakeHalfLifeEstimateRepository`.
+  - Modified: `Half-Life/App/Dependencies/CaffeineDecayDependencies.swift`, `Half-Life/Features/CaffeineDecay/CaffeineDecayFeature.swift`, `Half-LifeTests/Presentation/CaffeineDecayFeatureTests.swift`, `TodayFeatureTests.swift`; the `Architecture`, `Documentation`, `CaffeineDecayModel`, `SleepData`, `StepCount`, `RestingHeartRate`, and `Onboarding` articles; `ai_log.md`.
+- **Verification:**
+  - **Red first, with one gap.** The two rules' tests failed to compile before the rules existed (`cannot find 'SleepNight' in scope`), and the night-splitting test failed for the expected reason before its fix. The data layer's and repository's red run couldn't be confirmed: at 22:49 the build failed only in half-life-d8's in-progress `PermissionSettingsSection.swift`, so those tests were first compiled alongside their implementation. Their first run then failed on the AI's own test code (an actor's `fileURL` read from outside the actor) and on the night-splitting bug above.
+  - The estimator's suites and the affected feature suites (`SleepNightRuleTests`, `HalfLifeEstimationRuleTests`, `LiveHalfLifeEstimateRepositoryTests`, the three data source suites, the use case and dependency suites, `SwiftDataStoreTests`, `CaffeineDecayFeatureTests`, and `TodayFeatureTests`), 23:12: 116 tests in 23 suites passed, with the 9 expected known issues.
+  - **Full unit and UI run with coverage: not done.** The first attempt, at 23:13, failed to link: another session added a test for `CaffeineCutoffRule.cutoffs(_:nights:now:calendar:)` at 23:12:03 and the function itself at 23:13:16, and the build compiled the rule in between. The second, at about 23:15, failed to compile on another session's red-phase tests for `upcomingCutoffs`, and the unit target also had the app lock work's red-phase tests. A background job waiting for the tree to build was stopped at 23:34, when the owner interrupted. So the coverage number isn't known, and neither is whether every test passes with this change in.
+  - swift-format `--strict` and SwiftLint `--strict` on every file this task touched: clean. Across the whole tree, both report one line-length violation, in another session's uncommitted `Half-LifeTests/Data/LiveLanguageModelRepositoryTests.swift`.
+  - `xcodebuild docbuild`, at 23:12 and again after the Onboarding fixes, between the clock readings at 23:46 and 23:54: `BUILD DOCUMENTATION SUCCEEDED`, with no warnings from Half-Life's catalog or sources.
+- **Notes:**
+  - Not committed. The main tree also holds other sessions' uncommitted work.
+  - The fit assumes the half-life didn't change during its 90 days. Handling a survey change partway through would need the profile to record when the answers changed. That's a design change the owner hasn't decided on.
+  - Nothing shows the estimate yet, so the curve can change without the user seeing why. Showing the half-life with its range and number of nights is left to uncertainty rendering (rank 16) or Settings (rank 21).
+  - The demo shows only the survey's half-life until demo sleep exists (the Apple Health card's demo data sources).
+  - The simulator `HalfLife-Estimator` (408C33EE-D43E-4685-99EF-BC70116E529D) is still booted. Delete it with `xcrun simctl delete` when it's no longer useful.
+
+### 2026-09-12 22:26 -0400 — Draft the Foundation Models layer and brainstorm its tools
+
+- **Started:** 2026-09-12 22:26 -0400 (the AI's first clock reading after the prompt)
+- **Ended:** 2026-09-12 22:55 -0400
+- **Human:** Adam Ure
+- **AI tool / model:** Claude Code / Claude Opus 5
+- **Transcript:** `ai_transcripts/2026-09-12-2224-5493e14a.md`
+- **Type:** planning
+- **Request:** Draft the architecture for the Foundation Models layer (roadmap rank 11): a data source that talks to the on-device model, in its own directory with its tools, where the tools read data sources to feed the session. Then brainstorm every tool it needs.
+- **Interactions:**
+  - `22:26` The owner asked for the draft and the tool brainstorm.
+  - `22:30` The AI finished the first draft.
+  - `22:47` The owner decided five things:
+    - Tools read the repositories.
+    - Tools are read-only, except one that logs a drink through `LogDrinkUseCase`.
+    - The names are `LanguageModelDataSource` and `FoundationModelLanguageModelDataSource`.
+    - Every feature that uses the model is hidden when the model is unavailable.
+    - Each session processes a single instruction, because the app isn't a chatbot. Nothing from a session is persisted.
+  - `22:55` The owner kept the singular `FoundationModelLanguageModelDataSource`, and decided that only App Intents instructions get the log tool.
+- **AI contribution:**
+  - **Read first.** The AI read the Architecture article, the repository and data source protocols, the key entities, the roadmap, and the half-life estimator design from 22:13. It checked the `Tool` protocol, `SystemLanguageModel.Availability`, `contextSize`, `tokenCount(for:)`, and `GenerationError` in the iOS 26.5 SDK's `FoundationModels.swiftinterface`.
+  - **Raised a conflict with the constitution.** Having tools read data sources directly conflicts with Article V.3.5, which says each HealthKit data source is reached only through repositories. It also conflicts with Article I.10, which says repositories execute business rules. The tools would have to re-run `CaffeineDecayRule` and the other rules, so the model's numbers could drift from the ones on screen. The AI recommended that the tools read the Domain repository protocols instead. Tools reading data sources directly would need both articles amended.
+  - **Drafted the architecture.** A `LanguageModelDataSource` protocol and a `FoundationModelsLanguageModelDataSource` implementation, in `Data/DataSources/FoundationModels/` with `Tools/` and `Generable/` subfolders. `LiveAssistantRepository` would sit in front of it. The draft's principles:
+    - Rules calculate and the model only phrases.
+    - Tools return compact, pre-formatted facts with how much data backs them, because the context window is small.
+    - Tools only read. Drinks are logged through guided generation and `LogDrinkUseCase`.
+    - The app works fully when Apple Intelligence is unavailable.
+    - Prompts, answers, and tool input and output are never logged.
+    - The conversation is held in memory only.
+  - **Brainstormed tools.** 16 candidates, each marked by whether its repository exists today, needs a small addition, or waits on a later roadmap item (ranks 7, 9, 12, 15). Drink parsing and insight copy were kept as guided generation, not tools.
+  - **Revised the draft after the owner's decisions.**
+    - Each instruction gets a fresh session and fresh tools, which are discarded after the one response. The use case the log tool holds therefore lives for a single instruction, which keeps Article I.8. With no transcript, the repository holds only the availability.
+    - The AI checked the SDK: `SystemLanguageModel` is `Sendable` but not `Observable`, so nothing reports an availability change. The data source re-reads availability when the app becomes active.
+    - The log tool's arguments mirror `LogDrinkUseCase.Input`. The drink is a `@Generable` enum that mirrors `DrinkType`, because Domain can't import FoundationModels. The tool returns what was logged, and reports a `DrinkLogRule` violation back to the model instead of throwing.
+    - Renamed `LiveAssistantRepository` to `LiveLanguageModelRepository`, because the app isn't a chatbot.
+  - **Flagged:**
+    - The owner's `FoundationModel…` is singular. The framework is `FoundationModels`, and the naming convention (`<Framework><Noun>DataSource`) gives the plural.
+    - The Insights design (22:43) has tonight's window fall back to a template sentence. Under the owner's rule, that sentence is hidden.
+- **Human changes:** The owner decided that tools read the repositories, that they're read-only except for one log tool, the names, that model features are hidden when the model is unavailable, and that sessions are single-instruction and never persisted. The AI's recommendations were template copy when the model is unavailable and read-only tools with no log tool. The owner rejected both. The owner kept the singular name over the framework's plural, and limited the log tool to App Intents instructions.
+- **Files:** `ai_log.md`
+- **Verification:** N/A (design only, no code)
+- **Notes:** Not committed. The context window size and Apple's guidance on how many tools to give a session come from the AI's memory and weren't checked this session. Measure them with `contextSize` and `tokenCount(for:)` before the tool set is fixed. Next: write the design into a DocC article with testable requirements.
+
+### 2026-09-12 22:29 -0400 — Design the Today screen's Apple Health card
+
+- **Started:** 2026-09-12 22:29 -0400
+- **Ended:** 2026-09-12 23:58 -0400
+- **Human:** Adam Ure
+- **AI tool / model:** Claude Code / Claude Opus 5
+- **Transcript:** `ai_transcripts/2026-09-12-2227-dedc597d.md`
+- **Type:** planning, change (documentation)
+- **Request:** Design the last Today screen component: the Apple Health card. It shows only when there's Health data to display, and is hidden otherwise, because HealthKit is opt-in.
+- **Interactions:**
+  - `22:29` The owner asked for the design.
+  - `~22:31` (from when the AI read it, while reading the code) The owner added that Health can return any subset of sleep, steps, and resting heart rate, or none of them.
+  - `22:50` The owner decided:
+    - resting heart rate is today's reading only, hidden until one exists;
+    - time in bed is labeled as such, with a note that it isn't sleep, and is used in analysis only alongside sleep data;
+    - the card goes at the bottom, under the history card;
+    - a mocked Health data source provides demo data, switched by a feature flag.
+  - `22:54` The owner chose, from the AI's questions, a Settings toggle as the flag, and to write the design into DocC before building.
+  - `23:10` The owner extended the demo data from 14 days to 30. Peer session half-life-1c relayed this decision; the AI didn't see it itself. 1c first gave the time as 23:14, then corrected it to 23:10.
+- **AI contribution:**
+  - **Read first.** The AI read the Today screen, its DocC article, the sleep, step count, and resting heart rate data sources and their articles, the permissions repository, the HealthKit authorization data source, the Design System's data colors, the UI-test launch configuration, and prototype screenshots 05 and 09.
+  - **Proposed design.** A `HealthSummary` entity in which each metric is optional: last night's sleep, today's steps, and today's resting heart rate. The card shows only the metrics that have values, and is hidden when none does. It never shows 0 or a dash for a missing metric, because HealthKit doesn't reveal a denial.
+  - **Proposed architecture.** `SleepNightRule`, the night rule the Sleep Data article left open, and the same rule the half-life estimator design proposes, so the two designs need to share one definition. Also `HealthDataRepository` with `LiveHealthDataRepository` over the three data sources, the authorization data source, and the clock; `ObserveHealthSummaryUseCase`; and a `HealthSummaryFeature` scoped into `TodayFeature`.
+  - **Proposed refresh.** Observer-query `changes()` on the step count and resting heart rate data sources, like the one sleep already has. Reads happen only once Health access is `requested`.
+  - **Flagged:**
+    - A hidden card has no view to start its `.task` from, so the observation has to start from a view that's always present.
+    - Reviewers without Health data, and the simulator, never see the card.
+    - The data colors as text on `surfaceMuted` need a contrast check. The AI's hand calculation gives `dataSleepText` about 4.25:1, below 4.5:1.
+  - **Asked the owner to decide:** resting heart rate's day, whether time in bed counts when no tracker records stages, the card's position, and seeded demo Health data.
+  - **Asked two follow-up questions** after the owner's decisions: which kind of feature flag, and whether to build now or document first.
+  - **Wrote the design into DocC.** A new Apple Health Card article covers the owner's decisions, the entities, and the rule. It also covers:
+    - demo sleep, step, and resting heart rate data sources, scripted to match the demo drinks' late-cup days;
+    - a file-backed flag data source behind a "Use demo Health data" toggle in Settings;
+    - `HealthDataRepository`, its use cases, and `HealthSummaryFeature` with `DemoHealthDataFeature`;
+    - the card's layout, colors, VoiceOver text, and identifiers;
+    - a `healthData` launch key for UI tests;
+    - privacy and logging, testable requirements, and what's still open.
+  - **Updated the other articles.** Added STEPS-6 to STEPS-8 and RHR-6 to RHR-8 for change streams on the step count and resting heart rate data sources. Added the card's row and TODAY-5 to the Today Screen article. Pointed the Sleep Data article's open questions at the new designs.
+  - **Revised the night rule mid-task.** The first draft defined its own noon-to-noon `SleepNightRule` and `SleepNight`. While the AI was writing, the half-life estimator's session built a different `SleepNightRule`: sessions, stages required, time in bed ignored. Its NIGHT-* requirement IDs also collided with the draft's. The AI replaced the draft with `LastNightSleepRule` and `LastNightSleep` (LASTNIGHT-1 to LASTNIGHT-7):
+    - it reuses the built rule's sessions and 3-hour threshold;
+    - it also counts sleep recorded without stages;
+    - it falls back to time in bed only when no sleep was recorded.
+- **Human changes:** The owner made the decisions above. The AI recommended each option the owner chose.
+- **Files:** `Half-Life/Documentation.docc/AppleHealthCard.md` (added), `Half-Life/Documentation.docc/Documentation.md`, `Half-Life/Documentation.docc/TodayScreen.md`, `Half-Life/Documentation.docc/SleepData.md`, `Half-Life/Documentation.docc/StepCount.md`, `Half-Life/Documentation.docc/RestingHeartRate.md`, `ai_log.md`
+- **Verification:** `xcodebuild docbuild` succeeded with no warnings from the app target. The only warnings come from Point-Free's packages. No code changed, so no tests were run.
+- **Notes:**
+  - Not committed.
+  - When Apple Watch writes the day's resting heart rate sample is from the AI's memory and wasn't checked; verify it on a device.
+  - The contrast figures are hand calculations, to be confirmed by `ColorTokenTests`.
+  - Building the card needs two changes in other sessions' files:
+    - `SleepNightRule`'s private session grouping and union made internal, in the estimator's file;
+    - a demo Health toggle and a decision row in the Settings article, which the Settings session owns.
+  - The AI told peer session half-life-1c about both, and 1c said neither was its own. The AI passed the Settings item to half-life-d8, which owns Settings. d8 replied that it will add a line to the Settings article about the demo Health switch, which supersedes that article's "drinks only" decision for Health data.
+  - The estimator's session, half-life-a1, then got in touch. It reported that the owner chose this plan at 23:04, so `SleepNightRule` stays as built and `LastNightSleepRule` reuses its sessions. The AI didn't see that decision itself. a1 also pointed out that `SleepNight` has no time-asleep field, so the AI reworded LASTNIGHT-2 to share the rule's measurement instead. The AI handed the Sleep Data, Step Count, and Resting Heart Rate articles back to a1 to update.
+  - half-life-1c's Insights design plans to read Health through the same `HealthDataRepository`, and needs 30 nights of history. The demo script then covered 15 nights, and the AI told 1c. After the owner's 23:10 decision, the AI changed the article's demo data and DEMOHEALTH-1 to 30 days, and removed the fixed count of late-cup days from DEMOHEALTH-2, so demo sleep follows whichever days the drink script ends late. half-life-d8 is updating the drink script. `docbuild` was clean afterwards.
+  - After half-life-1c built the Insights tab (the renamed Patterns screen), it asked the AI to rename two mentions in the Apple Health Card article. The AI renamed both, linked the first to the Insights article, and `docbuild` stayed clean.
+
+### 2026-09-12 22:43 -0400 — Design the Insights tab (formerly Patterns)
+
+- **Started:** 2026-09-12 22:43 -0400
+- **Ended:** 2026-09-12 22:56 -0400
+- **Human:** Adam Ure
+- **AI tool / model:** Claude Code / Claude Opus 5
+- **Transcript:** `ai_transcripts/2026-09-12-2243-db11f64a.md` (not yet exported; the name is the exporter's expected one)
+- **Type:** planning
+- **Request:** Design the Patterns tab (roadmap rank 15), renamed Insights, without the prototype's 7D/30D/90D picker. It has four parts: a dismissible, optional Foundation Models analysis ("Feel right?"); tonight's best sleep window on a 6pm–4am line chart, starting when caffeine falls below the sleep threshold, with a model-written summary; the last 7 days of sleep against caffeine, with a selectable day that defaults to today; and a list comparing caffeine with deep sleep, time to fall asleep, and daily steps, where each row hides without Health data and the list hides with none. Screenshots for the list's detail screens will follow.
+- **Interactions:**
+  - `22:43` The owner described the four parts and the rename. They believed the threshold default was 45 mg.
+  - `22:53` The owner decided:
+    - The window starts when caffeine clears, not at the later of that and bedtime (the AI's recommendation).
+    - The window lasts 90 minutes, one sleep cycle.
+    - The chart extends past 4am when caffeine clears later.
+    - A dismissal lasts until the facts change. "Yes" keeps the card and hides only the feedback buttons.
+    - The comparison list uses the last 30 days.
+    - The list gets a resting heart rate row.
+    - Robots find the tab button by its label, from a constant defined in the app's source, instead of the AI's recommended launch setting.
+    - Demo Health data comes from the Today Health card design's feature-flagged custom data source.
+  - `22:56` The owner answered the two open questions:
+    - When caffeine clears before the desired bedtime, the card says so, and the window starts at the bedtime. This refines the 22:53 answer, so the window starts at the later of the two.
+    - Card 1 stores every answer, "Yes" included, to help with generating the model's text.
+  - `~23:10` (the AI's first clock reading after the answer) The owner decided that the demo data covers 30 days, not 14, over the AI's recommendation to keep 14. The AI relayed it to half-life-d8, for the demo drink script, and half-life-3b, for the demo Health script. Both messages gave the time as 23:14 before the AI checked the clock, and a correction to 23:10 followed.
+- **AI contribution:**
+  - **Read first.** The AI read the roadmap, prototype screenshots 12 and 13, the sleep threshold entity and data source, `SleepNight` and `SleepNightRule`, `HalfLifeEstimationRule`, the health data source protocols, the decay and drink log repository protocols, `AppView`, the Architecture, Caffeine Cutoff, and Caffeine Decay Model articles, and the three design entries logged since 22:13.
+  - **Corrected a premise.** The threshold default is 40 mg, not 45 mg: `SleepThreshold.standard`, confirmed by the owner on 2026-09-12 in the Caffeine Cutoff article. It already comes from `SleepThresholdDataSource`, which the personal sensitivity threshold (rank 22) replaces.
+  - **Proposed design.** The rules calculate each card's facts, and the model only phrases them. Tonight's window goes on `CaffeineDecayRepository`, next to the cutoff, so the window and the Last Cup tile use the same threshold. The 7-day card and the comparison list read all drinks, including the ones marked negligible, and share the Health repository the Today card's design proposes. The comparisons split nights by whether caffeine at sleep onset was above the threshold, and their confidence wording depends on how many nights back them, replacing the prototype's "Strong link". The analysis card is labelled as written on device and hidden when Apple Intelligence is unavailable. Tonight's window falls back to a template sentence.
+  - **Flagged:**
+    - The prototype's "costs you 41 min of deep sleep" breaks the Caffeine Cutoff article's rule against claiming minutes of sleep lost.
+    - The system tab bar's buttons carry no accessibility identifiers, so a robot can't switch to the new tab (Article II.6).
+    - Without seeded Health data, reviewers and the simulator see only tonight's window and the caffeine half of the 7-day card.
+    - HealthKit may not record time to fall asleep for Apple Watch-only users. This is from memory and unverified.
+    - The brief names heart rate, which the list omits.
+    - The rename touches the roadmap and several DocC articles.
+  - **Asked the owner to decide:** the window's start when caffeine clears before bedtime, the window's length, what the chart shows when caffeine clears after 4am, what "Feel right?" stores and how long a dismissal lasts, the comparison list's period, whether to add a resting heart rate row, how UI tests reach the tab, and seeded Health data.
+- **Human changes:** Made the decisions listed under Interactions (22:53 and 22:56).
+- **Files:** `ai_log.md`
+- **Verification:** N/A (design only, no code)
+- **Notes:**
+  - Not committed.
+  - **Constitution conflict, raised, then resolved.** Article II.6 says robots never locate elements by label, and another session had already added an exception for the tab bar's buttons, for the Settings tab. The owner's requirement that the label come from the app's source needed that exception refined. The owner asked for it at 23:02, and it's the next entry.
+  - **Card 1's answers stay on the device.** Stored answers can shape the on-device model's prompts. Under Articles V.1 and XI.8, they can't reach the team, because only the drink log syncs and logs leave only in a bug report the user sends. The AI asked the owner whether "for our understanding" meant anything more.
+  - The Foundation Models layer's open decisions (22:26 entry) block the analysis card. The list's detail screens wait for the owner's screenshots.
+  - **Alignment with the Apple Health card design.** Session half-life-3b's `AppleHealthCard.md` (uncommitted, design only) records the owner's 22:54 decisions: demo Health data sources behind a Settings switch, stored on the device and off by default, and time in bed used in analysis only alongside sleep. Insights reads Health through the same `HealthDataRepository`, which needs new operations for nightly and daily history. Today it streams only today's summary. The demo covered 14 nights. The owner extended it to 30 at about 23:10, so card 4 gets a full 30 days in demo mode. The drink script and the Health script belong to other sessions. The demo's time in bed makes time to fall asleep computable. Pairing each day with the night that follows it should use `LastNightSleepRule`'s noon boundary.
+
+### 2026-09-12 23:01 -0400 — Build the cutoff reminder: a notification at the caffeine cutoff
+
+- **Started:** 2026-09-12 23:01 -0400
+- **Ended:** 2026-09-13 00:43 -0400
+- **Human:** Adam Ure
+- **AI tool / model:** Claude Code / Claude Opus 5
+- **Transcript:** `ai_transcripts/2026-09-12-2258-2dd43bee.md` and `ai_transcripts/2026-09-12-2258-680ecfe9.md`. These are the session's files from before and after a restart, not yet exported. The names are the exporter's, from each file's first timestamp.
+- **Type:** change, planning
+- **Request:** Send a local notification at the user's caffeine cutoff. Recalculate it when more caffeine is logged. When there's no caffeine in the body, assume the user's most frequent drink.
+- **Interactions:**
+  - `23:01` The owner asked for a local notification at the cutoff. It's recalculated when more caffeine is logged, and assumes the most frequent drink when there's no caffeine in the body.
+  - `23:04` The owner chose to schedule the next seven nights. The wording names the drink and the bedtime, with no caffeine amount.
+  - `23:07` The owner said notifications should be triggered from a data source. The time comes from the session transcript, because no clock was read then.
+  - `23:10` The AI asked what that meant. The owner chose a view-less feature that sends the command through a use case and a repository to a data source. The alternative was a repository that reschedules itself.
+  - `23:14` The owner also asked for the drink composer's cutoff warning, which is logged as the next entry. The time comes from the transcript. The AI's clock read 23:15.
+  - `23:54` The owner reported an error, "no type called CutoffWarning", during the decay repository refactor (below). The time comes from the transcript.
+- **AI contribution:**
+  - **The math already existed.** `CaffeineCutoffRule` already sized the cutoff for the most-logged drink, and counted the caffeine already logged. With nothing logged, it uses the first starter. So the reminder reuses it.
+  - **Tests first, then built:**
+    - CUTOFF-9: `CaffeineCutoffRule.cutoffs(_:nights:now:calendar:)`. Each later night's cutoff is calculated from the moment the bedtime before it has passed. With nothing logged, every night's cutoff falls at the same time of day.
+    - CUTREPO-5: `upcomingCutoffs(nights:in:)` on `CaffeineDecayRepository`.
+    - **Domain:** `CutoffReminder`, `CutoffReminderRepository`, `ObserveUpcomingCutoffsUseCase`, and `ScheduleCutoffRemindersUseCase`.
+    - **Data:**
+      - `CutoffReminderDataSource`.
+      - `UserNotificationsReminderDataSource`, the only code that touches `UNUserNotificationCenter`'s requests. Its triggers are in a fixed GMT calendar, and its identifiers start with `cutoffReminder.`, so other requests are left alone.
+      - `LiveCutoffReminderRepository`. It schedules only while notifications are allowed, and only the reminders still to come.
+      - `SimulatedCutoffReminderDataSource`, for UI tests and previews.
+    - **Presentation:** `CutoffReminderFeature`, with no view. It's scoped under `AppFeature` and started by its own `.task` in `AppView`. It writes the approved text, and reschedules when the cutoffs change, or when the notification permission changes.
+    - **Registrations:** `\.cutoffReminderRepository`, `\.scheduleCutoffReminders`, and `\.observeUpcomingCutoffs`.
+    - **String Catalog:** the notification's body, added by hand because the build didn't extract it. The "Last cup" comment now also covers the notification's title.
+  - **Docs:**
+    - A new Cutoff Reminder article, linked from the catalog's landing page.
+    - CUTOFF-9 and CUTREPO-5 in the Caffeine Cutoff article.
+    - The Architecture article's feature, use case, rule, repository, and data source rows.
+    - The Onboarding article's notes that notification permission had no feature.
+  - **Red:**
+    - The rule's and repository's red was a compile failure ("has no member 'cutoffs'", "has no member 'upcomingCutoffs'").
+    - The reducer and the root's routing failed at runtime against stubs, with 13 failures.
+    - The registration and simulated data source tests' red was a compile failure the AI couldn't observe on its own, because another session's in-progress change had broken the build at the time. Other sessions' red-phase files blocked the shared test target several times during the task, and so did this task's own.
+  - **Coordination.** The AI worked alongside half-life-1c (Insights), half-life-d8 (tab titles and Settings), and half-life-e7 (the app lock), on shared files and each other's transient build breaks. The four decay repository files passed back and forth with half-life-1c. At half-life-1c's request, the AI also split `LiveCaffeineDecayRepository`, which both sessions' streams had pushed over SwiftLint's file and type length limits. The split is recorded in the next entry.
+  - **Mistakes, corrected before the end:**
+    - A test named a local constant `warning`, which shadowed the helper `warning(...)` it called. It was renamed.
+    - A scripted edit to `CaffeineDecayDependencies.swift` failed partway. For a few minutes, the protocol required `cutoffWarning` and the unimplemented test repository didn't have it. That's likely the error the owner saw at 23:54. It was fixed with the next edit.
+- **Human changes:** The owner chose the seven-night horizon, the wording, and the feature-driven design.
+- **Files:** Added `Half-Life/Domain/Entities/CutoffReminder.swift`, `Half-Life/Domain/Repositories/CutoffReminderRepository.swift`, `Half-Life/Domain/UseCases/ObserveUpcomingCutoffsUseCase.swift`, `Half-Life/Domain/UseCases/ScheduleCutoffRemindersUseCase.swift`, `Half-Life/Data/DataSources/CutoffReminderDataSource.swift`, `Half-Life/Data/DataSources/UserNotificationsReminderDataSource.swift`, `Half-Life/Data/Repositories/LiveCutoffReminderRepository.swift`, `Half-Life/App/Dependencies/CutoffReminderDependencies.swift`, `Half-Life/App/UITesting/SimulatedCutoffReminderDataSource.swift`, `Half-Life/Features/CutoffReminder/CutoffReminderFeature.swift`, `Half-Life/Documentation.docc/CutoffReminder.md`, `Half-LifeTests/Domain/CutoffReminderUseCaseTests.swift`, `Half-LifeTests/Data/UserNotificationsReminderDataSourceTests.swift`, `Half-LifeTests/Data/LiveCutoffReminderRepositoryTests.swift`, `Half-LifeTests/Presentation/CutoffReminderFeatureTests.swift`, `Half-LifeTests/Presentation/AppFeatureCutoffReminderTests.swift`, `Half-LifeTests/App/CutoffReminderDependencyTests.swift`, `Half-LifeTests/Fakes/FakeCutoffReminderRepository.swift`, and `Half-LifeTests/Fakes/FakeCutoffReminderDataSource.swift`. Modified `Half-Life/Domain/BusinessRules/CaffeineCutoffRule.swift`, `Half-Life/Domain/Repositories/CaffeineDecayRepository.swift`, `Half-Life/Data/Repositories/LiveCaffeineDecayRepository.swift`, `Half-Life/App/Dependencies/CaffeineDecayDependencies.swift`, `Half-Life/App/AppFeature.swift`, `Half-Life/App/AppView.swift`, `Half-Life/Localizable.xcstrings`, `Half-Life/Documentation.docc/CaffeineCutoff.md`, `Architecture.md`, `Onboarding.md`, and `Documentation.md` in the same catalog, `Half-LifeTests/Domain/CaffeineCutoffRuleTests.swift`, `Half-LifeTests/Data/LiveCaffeineDecayRepositoryCutoffTests.swift`, `Half-LifeTests/Fakes/FakeCaffeineDecayRepository.swift`, and `ai_log.md`. Several of the modified files also carry other sessions' uncommitted changes.
+- **Verification:**
+  - **This task's suites pass:** `CaffeineCutoffRuleTests` (CUTOFF-9), `LiveCaffeineDecayRepositoryCutoffTests` (CUTREPO-5), `CutoffReminderUseCaseTests`, `UserNotificationsReminderDataSourceTests`, `LiveCutoffReminderRepositoryTests`, `CutoffReminderFeatureTests`, `AppFeatureCutoffReminderTests`, and `CutoffReminderDependencyTests`. So do the Last Cup, `AppFeature`, and `AppFeatureOnboarding` suites, as regression checks.
+  - **Full run with coverage.** The run went from 00:21 to 00:40, and compiled at 00:21: 869 unit tests in 156 suites, and 51 UI tests. It had four failures, none in this task's code:
+    - Two `SettingsFeatureTests` tests, and `SettingsUITests`' audit. half-life-d8 says its Settings split was in its red phase when the run compiled, and that they pass in its later build.
+    - `TodayUITests.testTodayScreenPassesAccessibilityAudit`, with "Dynamic Type font sizes are partially unsupported". No Today file changed during this task, and it adds nothing to the Today screen. A rerun at 00:41 couldn't compile, because of another session's red-phase fake (`FakeDemoHealthDataFlagDataSource`). The test passed in half-life-d8's full run, from 00:56 to 01:16, on a copy of the tree from 00:37. The One-Tap Log article records this failure as a known intermittent one, about once in 25 runs, which the owner chose on 2026-09-12 to record and leave.
+  - **Coverage:** `Half-Life.app`, 94.14% (11,244 of 11,944 lines).
+  - **Lint and docs:** swift-format and SwiftLint, strict, are clean on every file this task changed. `docbuild` gives no warnings from the app's catalog.
+  - **Not checked:** a reminder appearing at the cutoff on a device. That's a manual check.
+- **Notes:**
+  - **Honesty of the wording.** As approved, the body says "still clears" and "caffeine will still be in you". That's less precise than the Caffeine Cutoff article's confidence language, and the Cutoff Reminder article records it. The AI raised it for the owner's final decision.
+  - **The drink's name.** The body uses the catalog's capitalized name ("A Latte, 2 shots, …"), where the approved preview wrote "a latte".
+  - **When it reschedules.** Only while the app runs. A permission changed in the Settings app is noticed at the next refresh or reschedule.
+  - **Tapping it** opens the app where it was. Opening the composer would need a notification delegate, which isn't built.
+  - **Order.** Built ahead of roadmap ranks 10 to 18, at the owner's request.
+  - **Not committed.**
+
+### 2026-09-12 23:02 -0400 — Refine Article II.6: tab titles come from the app's source
+
+- **Started:** 2026-09-12 23:02 -0400
+- **Ended:** 2026-09-12 23:04 -0400
+- **Human:** Adam Ure
+- **AI tool / model:** Claude Code / Claude Opus 5
+- **Transcript:** `ai_transcripts/2026-09-12-2243-db11f64a.md` (not yet exported; the name is the exporter's expected one)
+- **Type:** change
+- **Request:** Amend Article II.6 so the UI test runner can tap tabs by their labels, with each label defined in the app's source rather than written in the test suite.
+- **Interactions:**
+  - `23:02` The owner asked for the amendment: "There is no reason our ui test runner shouldn't be able to tap on tabs."
+- **AI contribution:**
+  - **Found an existing amendment.** Another session had already added an uncommitted II.6 exception on 2026-09-12, for the Settings tab. It lets the root screen's robot find the tab bar's buttons by their labels, because iOS gives them no identifier. It didn't say where the labels are defined, and `AppRobot.swift` writes `"Today"` and `"Settings"` as string literals.
+  - **Refined that exception** instead of adding a second one. Each tab's title is a `static let` constant in the root view's `<View>AccessibilityID` file, shared with the UI test target (II.7). The constant holds the title in the development language, which is also its String Catalog key. The view builds the tab from the constant, the robot finds the button with it, and neither writes the title as a literal. The UI tests run the app in the development language, so the labels match.
+  - **Recorded the amendment** in the constitution's Amendments table.
+  - **Told the five busy peer sessions**, because `AppRobot`'s literals now need to move to `AppViewAccessibilityID` constants, and the AI doesn't know which session owns the Settings tab. It didn't edit `AppView`, `AppRobot`, or `AppViewAccessibilityID` itself.
+- **Human changes:** Asked for the amendment.
+- **Files:** `constitution.md`, `ai_log.md`
+- **Verification:** N/A (constitution only, no code)
+- **Notes:**
+  - Not committed.
+  - No UI test sets the app's language yet, so they run in the simulator's language. Session half-life-d8, which owns `AppRobot` and the Settings tab, replied that it's making the code comply. It's moving the Today and Settings titles to `AppViewAccessibilityID` constants that `AppView` and `AppRobot` both use, and making the launch helper in `Robot.swift` pass `-AppleLanguages (en)`.
+  - **Superseded before commit.** half-life-d8 reported that at about 23:10, in its session, the owner replaced the `static let` titles. `AppViewAccessibilityID.swift` now has `enum AppTab: String, CaseIterable`. Each raw value is a String Catalog key such as `appView.tab.today`, and `title(in:)` localizes it. `AppRobot` looks the key up in the UI test bundle's copy of `Localizable.xcstrings`, which now belongs to the UI test target. half-life-d8 is rewording II.6 to match, at the owner's request, so this entry's II.6 text and amendments row give way to that wording. Insights will add `case insights = "appView.tab.insights"`.
+
+### 2026-09-12 23:04 -0400 — Write the Language Model article and build the Foundation Models layer
+
+- **Started:** 2026-09-12 23:04 -0400 (the AI's first clock reading after the prompt)
+- **Ended:** 2026-09-12 23:56 -0400
+- **Human:** Adam Ure
+- **AI tool / model:** Claude Code / Claude Opus 5
+- **Transcript:** `ai_transcripts/2026-09-12-2224-5493e14a.md`
+- **Type:** change
+- **Request:** Write the Foundation Models layer's DocC article with testable requirements, then build the layer (roadmap rank 11), following the 22:47 and 22:55 decisions in the entry "Draft the Foundation Models layer and brainstorm its tools".
+- **Interactions:**
+  - `23:04` The owner asked for the article and then the build.
+- **AI contribution:**
+  - **Article.** `Language Model` covers:
+    - the decisions
+    - how an instruction runs
+    - the folder
+    - availability
+    - the standing instructions
+    - the tools, and the tools still to come
+    - privacy and logging, and localization
+    - the entities
+    - requirements LMSRC-1 to LMSRC-3, LMTOOL-1 to LMTOOL-9, LMREPO-1 to LMREPO-5, OBSLM-1, RESPOND-1, and DEP-LM
+    - what's still to decide
+
+    The catalog's index lists it under Architecture.
+  - **Scope.** The AI built five tools:
+    - `getCaffeineStatus`
+    - `getCaffeineCutoff`
+    - `getCaffeineLevelAt`, only up to the 12 hours the curve covers ahead
+    - `getDrinksOnDay`, which marks demo drinks
+    - `logDrink`
+
+    It deferred `simulateDrink`, `getBestSleepTime`, and levels beyond 12 hours. Each needs a new query on `CaffeineDecayRepository`, which the pre-log warning and Insights sessions are adding, and building them here would have collided with those sessions. It told the owner at 22:30 that seven tools could be built. That changed to five when the build was scoped.
+  - **Built test-first:**
+    - **Domain and repository.** `LanguageModelAvailability`, `LanguageModelInstruction` (a prompt, and whether it came from an App Intent or the app), `LanguageModelError`, the `LanguageModelRepository` protocol, `ObserveLanguageModelAvailabilityUseCase`, `RespondToInstructionUseCase`, the `LanguageModelDataSource` protocol, and `LiveLanguageModelRepository`. The repository holds only the availability. It re-reads it at each clock minute, because `SystemLanguageModel` isn't `Observable`, sends it only when it changes, and refuses an instruction while the model is unavailable.
+    - **Data source and tools.** `FoundationModelLanguageModelDataSource`, in `Data/DataSources/FoundationModels/`:
+      - Availability requires both `.available` and `supportsLocale`, each injected so tests don't need Apple Intelligence.
+      - Each instruction gets a new `LanguageModelSession` with new tools. Only `appIntent` instructions get `logDrink`.
+      - A failed response logs its error's domain and code only.
+      - `LanguageModelFormat` gives whole milligrams, and times and days in the calendar's locale and time zone.
+      - `LanguageModelInstructions` holds the standing rules and names the user's language.
+      - `GeneratedDrinkType` is a `@Generable` mirror of `DrinkType`.
+      - The five tools, plus `AsyncStream.firstValue()`.
+    - **Registration.** `LanguageModelDependencies.swift` adds `\.languageModelRepository`, `\.observeLanguageModelAvailability`, and `\.respondToInstruction`. The data source is built from the app-scoped decay, drink log, and current time repositories, so `CaffeineDecayRepositoryKey` changed from private to internal. That was one line in a file another session is also editing.
+  - **Red and green.**
+    - The first red run couldn't build, because another session's unfinished `CaffeineCutoffRuleTests` didn't compile.
+    - The domain, repository, data source, format, and tool tests then ran red together against stubs, at about 23:20, and every failure was an assertion.
+    - **TDD gap:** the DEP-LM registration tests were written before the registration, but never seen failing. Other sessions' unfinished tests kept the test target from building, and the AI wrote the registration while it was blocked.
+  - **Refactors, from SwiftLint:**
+    - Two 13-case switches over the complexity limit became computed properties, following `DrinkPresentation`. `GeneratedDrinkType` lost the `init(_:)` only its test used. LMTOOL-9's test now checks that every mirror maps to a different drink and every drink has one.
+    - The test suite became `LanguageModelDataSourceTests`, and one registration key was shortened, both for the 40-character name limit.
+    - `LiveLanguageModelRepository.dataSource` became `nonisolated let`, so the registration test can read it inside `#require`.
+  - **Architecture article:**
+    - the `FoundationModels/` folder
+    - a pattern, "A data source whose tools read repositories"
+    - the rule for internal repository keys, extended to data sources
+    - rows for the two use cases, the repository, the data source, and the model's in-memory data
+  - **Coordination:**
+    - Told half-life-1c that this session doesn't own the Settings tab or `AppRobot`, and which shared files it touched.
+    - Checked that the App Intents design (23:11) passes Ask Half-Life's words as an `appIntent` instruction, which matches LMSRC-2.
+    - Left half-life-1c's 23:35 message, meant for the app lock session, unanswered.
+- **Human changes:** None in this task. The decisions it follows are recorded in the previous entry.
+- **Files:**
+  - Added:
+    - `Half-Life/Documentation.docc/LanguageModel.md`
+    - `Half-Life/Domain/Entities/LanguageModelAvailability.swift`, `LanguageModelInstruction.swift`, `LanguageModelError.swift`
+    - `Half-Life/Domain/Repositories/LanguageModelRepository.swift`
+    - `Half-Life/Domain/UseCases/ObserveLanguageModelAvailabilityUseCase.swift`, `RespondToInstructionUseCase.swift`
+    - `Half-Life/Data/Repositories/LiveLanguageModelRepository.swift`
+    - `Half-Life/Data/DataSources/FoundationModels/`: `LanguageModelDataSource.swift`, `FoundationModelLanguageModelDataSource.swift`, `LanguageModelFormat.swift`, `LanguageModelInstructions.swift`, `GeneratedDrinkType.swift`, and `Tools/` with `CaffeineStatusTool.swift`, `CaffeineCutoffTool.swift`, `CaffeineLevelTool.swift`, `DrinksOnDayTool.swift`, `LogDrinkTool.swift`, and `AsyncStream+FirstValue.swift`
+    - `Half-Life/App/Dependencies/LanguageModelDependencies.swift`
+    - `Half-LifeTests/Fakes/FakeLanguageModelRepository.swift`, `FakeLanguageModelDataSource.swift`
+    - `Half-LifeTests/Domain/LanguageModelUseCaseTests.swift`
+    - `Half-LifeTests/Data/LiveLanguageModelRepositoryTests.swift`, `LanguageModelDataSourceTests.swift`, `LanguageModelFormatTests.swift`, `LanguageModelToolTests.swift`
+    - `Half-LifeTests/App/LanguageModelDependencyTests.swift`
+  - Modified:
+    - `Half-Life/App/Dependencies/CaffeineDecayDependencies.swift` (one key's visibility)
+    - `Half-Life/Documentation.docc/Architecture.md`, `Documentation.md`
+    - `ai_log.md`
+- **Verification:**
+  - **Why a scratch copy.** In the working tree, the test target doesn't compile. Other sessions' tests for the cutoff reminder, app lock, and device-owner authentication are in their red steps. So tests ran in a copy of the working tree with those sessions' 17 uncompilable test files removed, in the copy only. Some of those files, `OnboardingFeatureTests`, `PermissionsFeatureTests`, and `SleepWindowRuleTests`, broke only because they depend on those sessions' unfinished code.
+  - **In the copy:** the language model suites and the serialized `SwiftDataStoreTests` ran 82 tests in 20 suites. All passed, with 3 known issues: the registration tests' expected `withKnownIssue`.
+  - **Full run with coverage, in the copy, from about 23:36 to 23:55:**
+    - Unit tests: 729 tests in 130 suites passed, with 64 known issues.
+    - UI tests: 5 of 46 failed, all accessibility audits:
+      - "Contrast failed" in `testHistoryPassesAccessibilityAudit` and `testDemoDrinksFillTheLogAndCanBeRemoved`
+      - "Dynamic Type font sizes are partially unsupported" in `testSettingsPassesTheAccessibilityAudit`
+      - "Contrast nearly passed" in `testRootScreenPassesAccessibilityAudit` and `testTodayScreenPassesAccessibilityAudit`
+
+      This task adds no UI, and no feature uses the language model yet, so these screens don't run its code. The screens are the tab bar and Settings, which other sessions are changing. The AI didn't investigate the failures further.
+    - `Half-Life` app target coverage: 93.78% (9,329 of 9,948 lines).
+    - This layer's files: `LiveLanguageModelRepository`, both use cases, `GeneratedDrinkType`, and `AsyncStream+FirstValue` at 100%; `LanguageModelFormat` 98%; `LanguageModelInstructions` 96%; the tools 71% to 89%; `LanguageModelDependencies` 87%; `FoundationModelLanguageModelDataSource` 61%, where the uncovered lines are `respond(to:)` and the default closures that reach the system model.
+    - The copy lacks 17 test files, so the figure is approximate.
+  - **Not tested.** `respond(to:)` isn't unit-tested with the real model, because its output isn't deterministic and it needs Apple Intelligence. Nothing has run the model on a device or simulator yet.
+  - **Lint.** `swift-format lint --strict` and `swiftlint lint --strict` are clean on every file this task added or changed.
+  - **Docs.** `xcodebuild docbuild` succeeded with no warnings from `LanguageModel.md`, the Architecture edits, or this task's sources. The remaining Half-Life warnings are in other sessions' `Insights.md`, `CutoffReminder.swift`, and `ObserveUpcomingCutoffsUseCase.swift`.
+- **Notes:**
+  - Not committed.
+  - Repeat the full run in the working tree once the other sessions' tests compile.
+  - Measure the context window and the tools' token cost with `contextSize` and `tokenCount(for:)`.
+  - The tools' prompt text is English in code, not in the String Catalog, because the user never sees it. The article explains why, and the owner may want to confirm that reading of Article VII.1.
+
+### 2026-09-12 23:11 -0400 — Design App Intents: the architecture, with Apple's documentation
+
+- **Started:** 2026-09-12 23:11 -0400
+- **Ended:** 2026-09-13 00:04 -0400
+- **Human:** Adam Ure
+- **AI tool / model:** Claude Code / Claude Opus 5
+- **Transcript:** `ai_transcripts/2026-09-12-2311-6aabc47d.md` (not yet exported; the name is the exporter's expected one)
+- **Type:** planning, change
+- **Request:** Design App Intents support (roadmap rank 14), so the user can log drinks and get information about their caffeine through Siri. Start with the architecture diagram, and include references to Apple's documentation. After review, the owner decided the open questions and asked for the constitution amendments, the SwiftLint rule, and the Siri entitlement's removal, and for Apple Intelligence support in the design.
+- **Interactions:**
+  - `23:11` The owner asked for the design, starting with the architecture diagram.
+  - `23:22` Peer session half-life-3c, which the owner asked to design widgets alongside this design, asked for the log intent's name and parameter shape. It raised five more points:
+    - A widget button performs its intent in the widget extension's process.
+    - The drink store and two profile files would move to an App Group container.
+    - `Profile.json` and `HalfLifeEstimate.json` would take a weaker protection class.
+    - Drinks logged in another process need to reach the app's repositories.
+    - The widget's timelines need reloading after each log.
+
+    The AI replied with `LogDrinkIntent`'s shape, added `init(drink:quantity:)` for widget buttons, and added decision 10, on the widget's process, to the article.
+  - `23:27` half-life-3c quoted Apple's "Adding interactivity to widgets and Live Activities". A widget's intent runs in the extension's process unless it conforms to `LiveActivityIntent` or one of a few other protocols, in which case it runs in the app's process.
+    - **Its proposal:** `LogDrinkIntent` adopts `LiveActivityIntent` and compiles into both targets. The app stays the only writer of the drink store. The widgets read a snapshot the app writes to an App Group. There's no protection change and no remote-change listener.
+    - **Its request:** leave the article unchanged until the owner decides. The AI agreed.
+    - **The AI's four concerns:**
+      - `LiveActivityIntent` is meant for Live Activities, and whether it needs `NSSupportsLiveActivities` or conflicts with `supportedModes` is unverified.
+      - The App Shortcuts provider stays out of the widget target.
+      - The compilation condition has to cover the dependency property, not just `perform()`.
+      - The snapshot is health data, so it needs a "Data and privacy" row and a documented protection class (Articles V.4 and XI.6).
+  - `23:32` The owner asked what else in the design needs their review. At the same time, half-life-3c relayed the owner's 23:31 decisions. half-life-3c first gave the time as 23:26, then corrected it from its session transcript. The decisions:
+    - Widget logs run in the app: `LogDrinkIntent` adopts `LiveActivityIntent` and compiles into both targets.
+    - Home Screen widgets only.
+    - The small widget always logs the top favourite.
+    - An amendment for widgets as presentation without a reducer.
+
+    The AI moved decision 10 into a "Decided" section of the article, added Apple's widget interactivity and `LiveActivityIntent` pages to its references, and told half-life-3c that its amendment overlaps open decision 1. It then listed for the owner everything still needing review.
+  - `23:40` half-life-3c sent the wording of its widget amendment, Article I.18–20. At the same time, the owner decided the rest:
+    1. Amend the constitution for intents and widgets.
+    2. Add the third String Catalog to Article VII.
+    3. Every intent needs the phone unlocked.
+    4. Without Apple Intelligence, Ask Half-Life prompts to open the app.
+    5. The user can ask anything about their intake.
+    6. The log's reply stays basic.
+    7. A question about sleep time shows the decay graph, and everything else is spoken or written.
+    8. Remove the Siri entitlement if it isn't needed.
+    9. Add the SwiftLint rule.
+    10. Don't limit donations. The owner's words: "It is technically a drink and health data, but I would argue it isn't PHI."
+  - `~23:42` (between the 23:40 and 23:44 clock readings) The owner agreed that nothing is deleted outside the app.
+  - `~23:45` (between the 23:44 and 23:46 clock readings) The owner asked that the intents handle Apple Intelligence too. half-life-3c confirmed it had stopped editing `constitution.md`, and asked that Widgets.md's citations to I.18, I.19, I.20, and VI.4 stay valid.
+  - `~23:57` (with the 23:56 test results) half-life-3c pointed out two places where this entry still said 23:26. The AI corrected them.
+  - `00:04` The owner decided both Apple Intelligence questions: logged drinks aren't indexed in Spotlight, and Siri doesn't read the Today screen yet. The AI recorded both in the article and removed its "Still to decide" section.
+- **AI contribution:**
+  - **Read first.** The AI read the roadmap, the Architecture, Language Model, One-Tap Log, Drink Composer, and Onboarding articles, the recent design entries in this log, the Domain use cases, repositories, and entities the intents would call, the drink log dependency registrations, the entitlements, and the Info.plist.
+  - **Checked the SDK and Apple's documentation.**
+    - In the iOS 26.5 SDK's `AppIntents.swiftinterface`, the AI confirmed `supportedModes` and `IntentModes` (with `openAppWhenRun` deprecated in iOS 26), `IntentAuthenticationPolicy`'s three cases, `SnippetIntent`, and `AppDependency`.
+    - It found a pitfall there. `AppIntent` conforms to `_SupportsAppDependencies`, whose extension declares `typealias Dependency = AppIntents.AppDependency`, so a bare `@Dependency` inside an intent resolves to Apple's wrapper, not swift-dependencies'. Intents must write `@Dependencies.Dependency`.
+    - It fetched Apple's documentation index for the paths it cites, and found that the AppIntentsTesting framework starts in iOS 27, so it can't be used at the iOS 26.5 target.
+  - **Wrote the design** as `Documentation.docc/AppIntents.md`, listed under Features. It opens with the layered architecture diagram and the log, query, and ask flows. The intents are Presentation, in `Half-Life/AppIntents/`. They run in the app's process, not an extension, so they share the app-scoped repositories. They call existing use cases through the reducers' dependency keys, and read a query's first value from each `Observe…` use case, with no new use cases or repository operations. Five intents: log a drink, the caffeine status, the last cup, today's intake, and Ask Half-Life, which passes the user's words to `RespondToInstructionUseCase` as an App Intent instruction and carries the brief's "text the app" bonus. The drink catalog is mirrored as an `AppEnum`. Dialog text is built by a pure, unit-tested formatter. The article also covers isolation, localization, privacy and logging, testing, what's out of scope, and about 30 links to Apple's documentation and WWDC25 sessions.
+  - **Raised two constitution gaps** rather than choosing. Article I.3 covers only reducers, and intents are presentation that isn't a reducer. Article VII.1 names two String Catalogs, and App Shortcut phrases need a third, `AppShortcuts.xcstrings`.
+  - **Asked the owner to decide** ten questions, each with a recommendation: the two gaps, the locked-device policy, Ask Half-Life when Apple Intelligence is unavailable, whether to keep the today's-intake intent, adding the bedtime level to the log's answer, snippets, the SiriKit entitlement, a SwiftLint rule for intents, and, after half-life-3c's message, whether `LogDrinkIntent` may run in the widget extension's process.
+  - **Carried out the owner's decisions (23:40 to 00:01).**
+    - **Amended the constitution, as asked.**
+      - The layer table's Presentation row names App Intents and widgets.
+      - half-life-3c's I.18 and I.20 were widened from widgets to App Intents, keeping their numbers and I.19 as written. An intent is presentation without a reducer. It gets its use cases from the reducers' `DependencyKey`s, answers with the first value of an `Observe…` use case, and runs in the app's process, even from a widget. Siri snippets are tested like widgets, and dialogs aren't screens.
+      - New IV.1.4 makes intents, the shortcuts provider, and `AppEnum`s `nonisolated`. Enforcement moved to IV.1.5, and nothing cited IV.1.4.
+      - VI.4 covers snippets.
+      - New VII.1.3 adds `AppShortcuts.xcstrings`.
+      - Two Amendments rows follow half-life-3c's.
+      - `CLAUDE.md`'s summary bullets were brought in line.
+    - **Added the SwiftLint rule** `app_intent_explicit_nonisolated`, test-first against scratch files. With the rule absent, it caught none of the five bad declarations. Once added, it flagged all five and passed the compliant file, including its comment, string, and `AppIntentError` near-misses.
+    - **Removed the Siri entitlement and `NSSiriUsageDescription`,** after quoting Apple's pages. The entitlement is required only "for iOS or watchOS apps containing Intents app extensions that handle any Siri requests other than shortcut requests". The purpose string is for APIs "that send user data to Siri".
+      - Test-first: `PurposeStringTests` gained PURPOSE-4, "the Info.plist declares no other purpose string", and dropped the Siri key from its list.
+      - Dropping the key removes three parameterized cases. That isn't a weakened test: the requirement changed with the owner's decision, and PURPOSE-4 makes the list exact.
+      - The key was then removed from `Info.plist` and `InfoPlist.xcstrings`, and from the Architecture article's purpose-string table, which also gained PURPOSE-4.
+    - **Rewrote `AppIntents.md`** with every decision.
+      - `GetCaffeineTodayIntent` became `GetCaffeineIntakeIntent`, for any day, through `ObserveDrinkLogDayUseCase`.
+      - The new `GetSleepTimeIntent` answers from `ObserveSleepWindowUseCase`. It shows a result snippet with the Insights card's decay chart, split into a stateless view both use. This answers the brief's "when the optimal time to sleep would be".
+      - Every intent is `requiresLocalDeviceAuthentication`, chosen over `requiresAuthentication` because the owner asked for the phone to be unlocked.
+      - Ask Half-Life calls `continueInForeground(_:alwaysConfirm:)` when Apple Intelligence is unavailable, which the AI confirmed in the iOS 26.5 SDK, with `.foreground(.dynamic)` in `supportedModes`.
+      - The article records the basic log reply, unlimited donations, no deleting outside the app, and the widget's `WIDGET_EXTENSION` condition.
+    - **Researched Apple Intelligence and added its section.** None of Apple's 23 app schema domains covers health, fitness, food, or logging. The Assistant domain only launches a conversational app from the side button, in Japan. So no schema is adopted. The read intents also return transient entities through `ReturnsValue`, for shortcuts and Shortcuts' Apple Intelligence actions. Two new questions went to the owner, each with a recommendation: whether to index drinks in Spotlight (recommended no) and on-screen awareness (recommended not now).
+    - **Coordinated with half-life-3c.** It released `constitution.md` to this session, and the AI sent it the final amendment text.
+- **Human changes:**
+  - At 23:31, through half-life-3c, the owner decided that `LogDrinkIntent` runs in the app's process, even from a widget.
+  - At 23:40, the owner decided the other nine questions and donations, as listed under Interactions. They chose `continueInForeground` over the AI's recommended "needs Apple Intelligence" reply. They kept, and broadened, the intake intent the AI recommended cutting. They kept the log reply basic, against the AI's recommendation to add the bedtime level. They chose a snippet for sleep time only, where the AI had recommended none.
+  - At about 23:42, the owner agreed that nothing is deleted outside the app.
+  - At about 23:45, the owner added Apple Intelligence support to the scope.
+  - At 00:04, the owner decided both Apple Intelligence questions as the AI recommended: no Spotlight indexing of drinks, and no on-screen awareness yet.
+- **Files:**
+  - Added: `Half-Life/Documentation.docc/AppIntents.md`
+  - Documentation: `Half-Life/Documentation.docc/Documentation.md`, `Half-Life/Documentation.docc/Architecture.md` (the layer table, and the purpose strings with PURPOSE-4), `constitution.md`, `CLAUDE.md`
+  - Configuration: `.swiftlint.yml`, `Half-Life/Half-Life.entitlements`, `Half-Life/Info.plist`, `Half-Life/InfoPlist.xcstrings`
+  - Tests: `Half-LifeTests/App/PurposeStringTests.swift`
+  - `ai_log.md`
+- **Verification:**
+  - **`PurposeStringTests`,** run on this session's own simulator, `HalfLife-Intents`, with `-derivedDataPath build/intents` and `-parallel-testing-enabled NO`.
+    - The first red run didn't build, because another session had renamed `LiveCaffeineDecayRepositorySleepWindowTests.swift` mid-build.
+    - The second red run failed as expected: PURPOSE-4 found `NSSiriUsageDescription`, and the other three tests passed with four keys.
+    - After the removal, all four tests passed.
+  - **The SwiftLint rule,** against scratch files: no violations before the rule, and five of five with no false positives after it. `swiftlint lint --strict` on the repo reports two `line_length` errors in `LiveCaffeineDecayRepository.swift`, another session's file, and none in the files this entry touched.
+  - **`swift-format lint --strict`** is clean on `PurposeStringTests.swift`.
+  - **`xcodebuild docbuild`** succeeded with no warnings from the Half-Life catalog, apart from the App Intents metadata processor's note that the app doesn't link `AppIntents` yet.
+  - **Not run:** the full unit and UI suite, and the coverage check. No production Swift changed, only configuration, one test file, and documentation.
+- **Notes:**
+  - Not committed.
+  - **Xcode re-added the key.** An open Xcode window (pid 72464) re-added an empty `"NSSiriUsageDescription" : { }` entry to `InfoPlist.xcstrings` at 23:58, after the AI removed the key. The AI removed it again at 00:01, and the file is valid JSON. Xcode may add it back until it re-reads the catalog, so check the catalog before committing.
+  - **Still not verified against Apple's own pages:**
+    - Every App Shortcut phrase must contain the app's name.
+    - Phrases localize only through `AppShortcuts.xcstrings`.
+    - App Intents' metadata extraction may not read an `AppEnum` conformance declared in an extension.
+    - The exact name of Shortcuts' Apple Intelligence actions.
+  - **Checked at the first build:** whether `Dependencies.Dependency` resolves through TCA's re-export. Whether `LiveActivityIntent` needs `NSSupportsLiveActivities` is half-life-3c's spike.
+  - **Stale in other articles:** the Drink Composer article's line on intents while the device is locked, and the Onboarding article's line on Siri and `NSFileProtectionComplete`, still describe the question as open. The owner has decided it.
+  - Testable requirements come with the build. No design questions remain open.
+
+### 2026-09-12 23:14 -0400 — Build the drink composer's pre-log cutoff warning
+
+- **Started:** 2026-09-12 23:14 -0400. The time comes from the session transcript, and the AI's clock read 23:15.
+- **Ended:** 2026-09-13 00:43 -0400
+- **Human:** Adam Ure
+- **AI tool / model:** Claude Code / Claude Opus 5
+- **Transcript:** `ai_transcripts/2026-09-12-2258-2dd43bee.md` and `ai_transcripts/2026-09-12-2258-680ecfe9.md`. These are the session's files from before and after a restart, not yet exported. The names are the exporter's, from each file's first timestamp.
+- **Type:** change
+- **Request:** Before the user logs a drink from the composer, warn when the chosen drink would break their cutoff. Don't stop them logging it. Show a warning state.
+- **Interactions:**
+  - `23:14` The owner asked for the warning.
+  - `23:28` The owner approved the "amount at bedtime" wording, with its variant for a drink too close to bedtime to peak.
+- **AI contribution:**
+  - **Tests first, then built:**
+    - WARN-1 to WARN-5: `CaffeineCutoffRule.warning(_:consumedAt:calendar:)` and the `CutoffWarning` entity.
+    - WARNREPO-1 to WARNREPO-3: `cutoffWarning(for:secondsAgo:in:)` on `CaffeineDecayRepository`.
+    - OBSWARN-1 and DEP-WARN: `ObserveCutoffWarningUseCase` and `\.observeCutoffWarning`.
+    - WARNCOMP-1 to WARNCOMP-3: `DrinkComposerFeature` observes the warning for each choice of drink, quantity, and time, and never stops Add.
+    - `CutoffWarningBanner`, its accessibility identifier, `DrinkComposerRobot.verifyCutoffWarningShowing()`, and WARN-UI. Nine cups of cold brew at "Now" warn at any time of day under the UI-test profile's default bedtime and half-life. The composer passes its audit with the warning showing, and Add still logs.
+    - Three String Catalog entries.
+  - **Red:**
+    - The rule, the repository, and the reducer had stubs that returned no warning, so their tests failed at runtime. Two of the repository tests failed by hitting the one-minute time limit.
+    - The UI test failed with "No cutoff warning is showing".
+  - **A design choice the AI made without asking.** The warning checks the exact amount at bedtime, not the tile's half hour. With the half hour, a drink just past the tile's time could warn with an amount under the threshold. The amount also rounds up, so it never shows at or under 40 mg. Both are recorded in the Caffeine Cutoff and Drink Composer articles.
+  - **Refactor.** In `LiveCaffeineDecayRepository`, the cutoff, the upcoming cutoffs, the warning, and half-life-1c's sleep window became one `DerivedSubscriber` kind, calculated from one shared read, in an extension. The file is 400 lines, and the actor's body is within its limit. Every decay repository suite stayed green, including half-life-1c's seven sleep-window tests. The first run timed out one of them: the shared read called `drinks()` before `nonNegligibleDrinks()`, and the test waits on the second call. The reads were reordered, and the test is unchanged.
+  - **SwiftLint splits.**
+    - The warning banner moved into its own view, `CutoffWarningBanner`.
+    - The composer's warning tests moved into `DrinkComposerFeatureWarningTests`.
+    - The COMP-12 tests moved into an extension in the same file.
+  - **Docs:**
+    - "The pre-log warning" and its requirements in the Caffeine Cutoff article.
+    - "The cutoff warning" and WARNCOMP-1 to WARNCOMP-3 in the Drink Composer article.
+    - The Architecture article's rows.
+- **Human changes:** The owner approved the wording.
+- **Files:** Added `Half-Life/Domain/Entities/CutoffWarning.swift`, `Half-Life/Domain/UseCases/ObserveCutoffWarningUseCase.swift`, `Half-Life/Features/DrinkComposer/CutoffWarningBanner.swift`, `Half-LifeTests/Domain/CaffeineCutoffWarningTests.swift`, `Half-LifeTests/Data/CaffeineDecayRepositoryWarningTests.swift`, `Half-LifeTests/Domain/ObserveCutoffWarningUseCaseTests.swift`, and `Half-LifeTests/Presentation/DrinkComposerFeatureWarningTests.swift`. Modified `Half-Life/Domain/BusinessRules/CaffeineCutoffRule.swift`, `Half-Life/Domain/Repositories/CaffeineDecayRepository.swift`, `Half-Life/Data/Repositories/LiveCaffeineDecayRepository.swift`, `Half-Life/App/Dependencies/CaffeineDecayDependencies.swift`, `Half-Life/Features/DrinkComposer/DrinkComposerFeature.swift`, `DrinkComposerView.swift` and `DrinkComposerViewAccessibilityID.swift` beside it, `Half-Life/Localizable.xcstrings`, `Half-Life/Documentation.docc/CaffeineCutoff.md`, `DrinkComposer.md`, and `Architecture.md`, `Half-LifeTests/Fakes/FakeCaffeineDecayRepository.swift`, `Half-LifeTests/Presentation/DrinkComposerFeatureTests.swift`, `Half-LifeUITests/DrinkComposerUITests.swift`, `Half-LifeUITests/Robots/DrinkComposerRobot.swift`, and `ai_log.md`.
+- **Verification:**
+  - **This task's suites pass:** `CaffeineCutoffWarningTests`, `CaffeineDecayRepositoryWarningTests`, `ObserveCutoffWarningUseCaseTests`, `DrinkComposerFeatureTests`, and `DrinkComposerFeatureWarningTests`. After the refactor, all 74 tests in the 13 decay repository and cutoff suites pass, including half-life-1c's seven sleep-window tests. All ten `DrinkComposerUITests` pass, including WARN-UI and the composer's audit.
+  - **Full run with coverage.** The run went from 00:21 to 00:40, and compiled at 00:21: 869 unit tests in 156 suites, and 51 UI tests. It had four failures, none in this task's code:
+    - Two `SettingsFeatureTests` tests, and `SettingsUITests`' audit. half-life-d8 says its Settings split was in its red phase when the run compiled, and that they pass in its later build.
+    - `TodayUITests.testTodayScreenPassesAccessibilityAudit`, with "Dynamic Type font sizes are partially unsupported". No Today file changed during this task, and it adds nothing to the Today screen. A rerun at 00:41 couldn't compile, because of another session's red-phase fake (`FakeDemoHealthDataFlagDataSource`). The test passed in half-life-d8's full run, from 00:56 to 01:16, on a copy of the tree from 00:37. The One-Tap Log article records this failure as a known intermittent one, about once in 25 runs, which the owner chose on 2026-09-12 to record and leave.
+  - **Coverage:** `Half-Life.app`, 94.14% (11,244 of 11,944 lines).
+  - **Lint and docs:** swift-format and SwiftLint, strict, are clean on every file this task changed. `docbuild` gives no warnings from the app's catalog.
+- **Notes:**
+  - **The tile and the warning can disagree.** The "Last cup" tile rounds its time down to the half hour, so a drink a few minutes past the tile's time may not warn.
+  - **WARN-UI relies on the defaults.** It depends on the UI-test profile's default bedtime and half-life.
+  - **Not committed.**
+
+### 2026-09-12 23:17 -0400 — Design the Home Screen widgets
+
+- **Started:** 2026-09-12 23:17 -0400
+- **Ended:** 2026-09-12 23:59 -0400
+- **Human:** Adam Ure
+- **AI tool / model:** Claude Code / Claude Opus 5
+- **Transcript:** `ai_transcripts/2026-09-12-2317-91adaa48.md` (not yet exported; the name is the exporter's expected one)
+- **Type:** planning, change (documentation, constitution)
+- **Request:** Design widgets alongside the App Intents design. There are two: a one-tap logging widget, whose buttons call the App Intent to log a drink, and a decay chart widget, which opens the app.
+- **Interactions:**
+  - `23:17` The owner asked for the design.
+  - `23:31` The owner answered the AI's four questions. The time comes from the session transcript (03:31:45 UTC).
+    - Widget logs run in the app's process, through `LiveActivityIntent`. This was the AI's recommendation.
+    - The widgets are on the Home Screen only, in small and medium sizes. This was the AI's recommended baseline, and Lock Screen widgets and a Control Center control were offered as extras.
+    - The constitution is amended, so that widgets are presentation without a reducer, tested without robots. This was the AI's recommendation.
+    - The small One tap widget always logs the top favourite. The AI had recommended a drink the user picks in Edit Widget.
+  - `~23:40` The owner asked half-life-00 to amend the constitution for App Intents as well as widgets. half-life-00 relayed this, and the AI didn't see it. The time is from half-life-00's message.
+- **AI contribution:**
+  - **Read first.** The AI read:
+    - `CLAUDE.md`, the constitution, and the roadmap, where widgets are rank 25;
+    - the One-Tap Log and Architecture articles;
+    - the decay card's view, the decay repository's protocol, and ``CaffeineDecayRule``;
+    - the drink entities, `LogDrinkUseCase`, and the drink store's registration;
+    - the entitlements and the logger;
+    - half-life-00's App Intents article.
+  - **Coordinated with half-life-00, the App Intents session.**
+    - The AI's first message assumed a widget's intent runs in the widget extension. On that basis, it proposed moving the drink store and the profile files to an App Group, weakening their protection class, and having the drink data source listen for other processes' writes.
+    - After checking Apple's documentation, the AI withdrew those proposals and replaced them with the one-writer design below.
+    - It also relayed the owner's decisions and the amendment's wording.
+  - **Checked Apple's documentation.**
+    - "Adding interactivity to widgets and Live Activities": a widget's intent runs in the extension's process unless it sets `openAppWhenRun` or conforms to one of five protocols, `LiveActivityIntent` among them. The widget reloads after `perform()` returns.
+    - `LiveActivityIntent`'s page: the system launches the app's process without opening the app.
+    - `ForegroundContinuableIntent` is deprecated in favour of `supportedModes`.
+    - "Keeping a widget up to date": a reload after an intent doesn't count against the daily budget.
+    - That a write from a widget extension doesn't sync to CloudKit until the app runs comes from community sources, not Apple.
+  - **Proposed the design.**
+    - The app is the only process that writes. `LogDrinkIntent` adopts `LiveActivityIntent`, so the system runs it in the app.
+    - The widgets read a snapshot the app writes to an App Group. It holds the caffeine forecast until the caffeine clears, the bedtime, the favourites, the time of the last cup, and whether onboarding is complete.
+    - The extension is thin, and never reads `Profile.json` or `HalfLifeEstimate.json`, which keep their protection class.
+    - The AI raised four conflicts: Articles I.1 and I.4, Articles II.5–11 and VI.4, coverage of the extension's code, and effort beyond the roadmap's 5 points.
+  - **Wrote `Widgets.md`.** It covers:
+    - the decisions, why the log runs in the app, and how `LogDrinkIntent` compiles into the widget target under `WIDGET_EXTENSION`;
+    - the architecture's three flows, the snapshot and timeline entities and rules, the repositories, data sources, use cases, and the extension target;
+    - both widgets' content, VoiceOver text, Dynamic Type, and redaction while locked;
+    - privacy and logging, including the snapshot's protection class as an Article V.4 exception;
+    - five spike questions to settle on a device before building, testable requirements, and what's still to decide.
+  - **Amended the constitution** after the owner's 23:31 decision, in a dedicated edit.
+    - It added a Widgets subsection to Article I, with I.18 to I.20.
+    - It added a closing sentence to VI.4, and a row to the Amendments table.
+    - At the owner's 23:40 request, half-life-00 then widened I.18 and I.20 to cover App Intents and Siri snippets, and retitled the subsection. It kept I.19 and this entry's row.
+  - **Updated the catalog.** The AI added the snapshot's row to the Architecture article's "Data and privacy" table, marked as designed but not built, and listed Widgets in the catalog's topics.
+  - **Added the locked-phone case.** After half-life-00 reported that the owner requires every intent to run on an unlocked device, the AI noted in `Widgets.md` that a tap on a widget in StandBy while the phone is locked asks the user to unlock first.
+- **Human changes:** The owner made the four decisions above, and chose the unconfigurable small widget over the AI's recommendation.
+- **Files:** `Half-Life/Documentation.docc/Widgets.md` (added), `Half-Life/Documentation.docc/Documentation.md`, `Half-Life/Documentation.docc/Architecture.md`, `constitution.md`, `ai_log.md`
+- **Verification:**
+  - **The first `docbuild` failed** at about 23:43, before generating documentation. At that point the app target didn't compile, because of errors in other sessions' unfinished files, `CutoffWarning.swift` and `LanguageModelError.swift`. This task changed no Swift.
+  - **Rerun at 23:59**, with its own derived data path (`build/DocBuild-3c`), it succeeded. DocC's diagnostics file lists no warnings or errors for the Half-Life catalog, including `Widgets.md`, the Architecture row, and the topics line. The only other warning in the log was the App Intents metadata processor's note that the app doesn't link `AppIntents` yet.
+  - No code changed, so no tests were run.
+- **Notes:**
+  - Not committed.
+  - **An unchecked time.** The AI first told half-life-00 that the owner decided at 23:26, without reading the clock. It corrected this to 23:31 from the session transcript. half-life-00's entry above gave 23:26 in two places. That's its entry, so the AI told half-life-00 rather than editing it, and half-life-00 corrected both to 23:31.
+  - **Not yet verified:**
+    - whether `LiveActivityIntent` needs `NSSupportsLiveActivities` when no Live Activity starts (WSPIKE-2);
+    - whether a background launch runs `Half_LifeApp.init` (WSPIKE-3);
+    - whether App Review accepts `LiveActivityIntent` in an app with no Live Activity;
+    - that `OSLogStore` on iOS reads only the current process, which is from the AI's memory.
+  - **The roadmap is unchanged.** Widgets stay at rank 25. The AI noted that the work likely exceeds their 5 effort points.
+  - **The Architecture tables stay as they are.** Their features, use cases, repositories, and data sources aren't updated, because nothing is built. Only the data row is added.
+  - **A file to split before building.** The drink names and symbols have to move out of `DrinkPresentation.swift`, which also holds the composer's identifiers, before the widget target can share them.
+
+### 2026-09-12 23:18 -0400 — Build the Insights tab and tonight's sleep window
+
+- **Started:** 2026-09-12 23:18 -0400
+- **Ended:** 2026-09-13 00:27 -0400
+- **Human:** Adam Ure
+- **AI tool / model:** Claude Code / Claude Opus 5
+- **Transcript:** `ai_transcripts/2026-09-12-2243-db11f64a.md` (not yet exported; the name is the exporter's expected one)
+- **Type:** change
+- **Request:** Build the Insights tab designed in the 22:43 entry, feature by feature.
+- **Interactions:**
+  - `23:18` The owner asked for the tab to be built, feature by feature.
+- **AI contribution:**
+  - **First slice: the tab, and card 2, tonight's sleep window.** It needs neither Health history nor the language model. Cards 3 and 4 wait on nightly history from `HealthDataRepository`, designed in `AppleHealthCard.md` and not built. Card 1 waits on the language model's insight work.
+  - **Tests first.**
+    - `SleepWindowRuleTests`: SLEEPWIN-1 to SLEEPWIN-9, with example drinks whose clearing times a script checked against the decay model first. The brief's 200 mg at 4pm clears at 5:06am, and the model reproduces the Caffeine Cutoff article's 86.2 mg at 11pm.
+    - `ObserveSleepWindowUseCaseTests` (SWUSE-1) and `SleepWindowDependencyTests` (DEP-SLEEPWIN).
+    - `CaffeineDecayRepositorySleepWindowTests` (SWREPO-1 to SWREPO-4).
+    - `SleepWindowFeatureTests` (SWCARD-1) and `InsightsFeatureTests` (INSIGHTS-1).
+    - `InsightsUITests` (UI-INS-1 to UI-INS-3), with a new `InsightsRobot` and `AppRobot.openInsights()`.
+  - **Red, confirmed.** In the main tree, the UI target failed with "type 'AppTab' has no member 'insights'". Other sessions' red-phase tests kept the unit target from compiling there: app lock's, then cutoff reminders' and the cutoff warning's. So the unit red was confirmed in a scratch copy of the tree, as "cannot find 'SleepWindow'" and "cannot find 'ObserveSleepWindowUseCase'".
+  - **Built.**
+    - `SleepWindow` and `SleepWindowRule`.
+    - `sleepWindow(in:)` on `CaffeineDecayRepository` and `LiveCaffeineDecayRepository`, with deduplicated subscribers recalculated on the same change and minute events as the cutoff.
+    - `ObserveSleepWindowUseCase`, registered as `observeSleepWindow`.
+    - `SleepWindowFeature`, `InsightsFeature`, `SleepWindowView`, and `InsightsView`, with `InsightsViewAccessibilityID`, shared with the UI test target in the project file.
+    - `AppTab.insights`, and the tab, between Today and Settings, in `AppView` and `AppFeature`.
+    - 12 String Catalog entries.
+    - The card's sentence is a localized template. The model's version is still to come.
+  - **Docs.**
+    - A new Insights article, with the owner's decisions and the requirements, linked from the catalog's landing page.
+    - The Architecture article's feature, use case, rule, repository, robot, and navigation entries.
+    - "Patterns" renamed to "Insights" in the One-Tap Log, Caffeine Decay Model, Drink Composer, and Onboarding articles and the roadmap. The Caffeine Cutoff article keeps it, because it quotes the prototype's screen.
+  - **Coordination.**
+    - half-life-e2 lent the four decay repository files, then took them back for its composer warning. It will also split `LiveCaffeineDecayRepository`, which went over SwiftLint's file and type length limits with its `upcomingCutoffs` and this task's stream together. The AI accepted e2's offer to do the split once, for all the streams. The owner wasn't asked.
+    - half-life-d8 cleared the edits to `AppTab`, `AppView`, `AppFeature`, `AppRobot`, and `Robot.swift`.
+    - half-life-3b was asked to rename "Patterns" in `AppleHealthCard.md`.
+  - **Mistakes, corrected before the end:**
+    - For a moment, the protocol had `sleepWindow(in:)` and the live repository didn't, which broke half-life-e2's build. The next edit fixed it.
+    - A repository test was wrong. It assumed that a drink marked negligible 30 hours ago would still change the levels. `CaffeineDecayRule` already drops intakes that are past their peak and under 0.5 mg, so it couldn't. The test now has the fake mark a 7:00am latte, which would still count. The test was new and not committed, and the AI explained the reason before changing it.
+    - The first trimmed copy deleted every unit test, because zsh doesn't split an unquoted variable into words. Its "TEST SUCCEEDED" came from no tests at all. The AI caught it, and the re-run checked the count: 30 tests.
+    - The AI gave half-life-e2 a time, "about 23:57", without reading the clock. The clock read 23:51 a little later, and a correction followed.
+- **Human changes:** None.
+- **Files:**
+  - Added: `Half-Life/Features/Insights/` (`InsightsFeature.swift`, `InsightsView.swift`, `InsightsViewAccessibilityID.swift`, `SleepWindowFeature.swift`, `SleepWindowView.swift`), `Half-Life/Domain/Entities/SleepWindow.swift`, `Half-Life/Domain/BusinessRules/SleepWindowRule.swift`, `Half-Life/Domain/UseCases/ObserveSleepWindowUseCase.swift`, and `Half-Life/Documentation.docc/Insights.md`.
+  - Added tests: `Half-LifeTests/Domain/SleepWindowRuleTests.swift`, `ObserveSleepWindowUseCaseTests.swift`, `Half-LifeTests/App/SleepWindowDependencyTests.swift`, `Half-LifeTests/Data/CaffeineDecayRepositorySleepWindowTests.swift`, `Half-LifeTests/Presentation/SleepWindowFeatureTests.swift`, `InsightsFeatureTests.swift`, `Half-LifeUITests/InsightsUITests.swift`, and `Half-LifeUITests/Robots/InsightsRobot.swift`.
+  - Modified: `Half-Life/App/AppView.swift`, `AppFeature.swift`, `AppViewAccessibilityID.swift`, `Half-Life/App/Dependencies/CaffeineDecayDependencies.swift`, `Half-Life/Domain/Repositories/CaffeineDecayRepository.swift`, `Half-Life/Data/Repositories/LiveCaffeineDecayRepository.swift`, `Half-Life/Localizable.xcstrings`, `Half-Life.xcodeproj/project.pbxproj`, `Half-LifeTests/Fakes/FakeCaffeineDecayRepository.swift`, `Half-LifeUITests/Robots/AppRobot.swift`, and `Robot.swift`.
+  - Modified docs: `Architecture.md`, `Documentation.md`, `OneTapLog.md`, `CaffeineDecayModel.md`, `DrinkComposer.md`, `Onboarding.md`, `roadmap.md`, and `ai_log.md`.
+- **Verification:**
+  - In the scratch copy, trimmed to this task's suites, the fakes, and the shared helpers: 30 tests in 9 suites. One repository test failed, for the reason above. After the fix, all 7 repository tests passed. The other 23 passed on the first run, including both expected known issues.
+  - `InsightsUITests`, in the scratch copy: 3 of 3 passed, including the accessibility audit.
+  - The app target, in the main tree: `BUILD SUCCEEDED`.
+  - swift-format lint `--strict` and SwiftLint `--strict`, on every file this task added or changed apart from `LiveCaffeineDecayRepository.swift`: clean. That file fails `file_length` (441 of 400) and `type_body_length` (290 of 250), shared with `upcomingCutoffs`, and half-life-e2 is splitting it.
+  - At 00:04, half-life-e2 handed the decay files back, split into one kind of subscriber for every stream. It reported all 7 sleep-window repository tests passing.
+  - **Full unit and UI run, in the main tree, 00:07 to 00:25:** `** TEST FAILED **`. 867 unit tests in 155 suites ran. Two failed, both half-life-e2's composer warning, still being built: `DrinkComposerFeatureTests` `taskObservesTheWarningForTheChosenDrink` and `changingTheChoiceObservesItsWarning`. Three UI tests failed:
+    - `DrinkLogHistoryUITests.testHistoryPassesAccessibilityAudit`: "Dynamic Type font sizes are partially unsupported", the intermittent audit failure earlier entries record.
+    - `OnboardingUITests.testEveryStepScrollsOnlyVertically`: "Test crashed with signal term".
+    - `SettingsUITests.testSettingsPassesTheAccessibilityAudit`: "Contrast failed" in the second audit, scrolled to the end, with no element named. The new Insights tab label is drawn like Today's, which passed the same audit before, so it's unlikely to be the cause, but that isn't proven.
+    - A re-run of the three audits at 00:26 didn't build, at another session's unfinished `AppLockSettingsSection.swift`. half-life-d8, which owns Settings, was asked about the contrast failure.
+    - All 3 `InsightsUITests` passed in the full run, including the audit.
+  - **Coverage:** `Half-Life.app` at **94.07%** (11137/11839), from that run. `SleepWindowRule` and `SleepWindowFeature` are at 100%, and `SleepWindowView` is at 97.42%.
+  - **`docbuild`, 00:07:** `BUILD DOCUMENTATION SUCCEEDED`. Its one warning came from App Intents' metadata processor, not from the catalog.
+  - swift-format lint `--strict` and SwiftLint `--strict`, at 00:07, on every file this task touched, including half-life-e2's split `LiveCaffeineDecayRepository.swift`: clean.
+- **Notes:**
+  - Not committed.
+  - Still to decide, from the Insights article: rounding the clearing time, daytime bedtimes, and the model's sentence for the window.
+  - Next: cards 3 and 4 need `HealthDataRepository` with nightly history. Card 1 needs the language model's insight facts.
+  - The simulator `HalfLife-Insights` (4E286973-9774-4320-986F-0916963C4465) is still booted. Delete it with `xcrun simctl delete` when it's no longer useful.
+
+### 2026-09-13 00:23 -0400 — Investigate why no Health data shows on the Today screen
+
+- **Started:** 2026-09-13 00:23 -0400
+- **Ended:** 2026-09-13 00:23 -0400
+- **Human:** Adam Ure
+- **AI tool / model:** Claude Code / Claude Opus 5
+- **Transcript:** `ai_transcripts/2026-09-12-2227-dedc597d.md`
+- **Type:** debugging, question
+- **Request:** Add logging to find the HealthKit errors, because no Health data shows on the Today screen.
+- **Interactions:**
+  - `00:23` The owner asked for logging to find the HealthKit errors behind the missing data.
+  - `~00:23` (read alongside the clock at 00:23) The owner replied "That would explain it", accepting the finding. Logging wasn't added.
+- **AI contribution:**
+  - **Found the cause before adding logging.** The Apple Health card has been designed (`AppleHealthCard.md`) but not built. No code outside the documentation mentions `HealthSummary`, `HealthDataRepository`, or `LastNightSleepRule`, and no commit includes them. Nothing on the Today screen reads HealthKit, so more logging couldn't make data appear.
+  - **Checked that HealthKit access isn't blocked by configuration.** `Half-Life.entitlements` has the HealthKit and background delivery entitlements. `Info.plist` declares the Health purpose strings.
+  - **Found the one live reader.** `HalfLifeEstimateDependencies.swift` wires the three HealthKit data sources into the half-life estimator only, with `UnavailableHealthDataSource` in previews and UI tests. The estimator shows nothing on screen.
+  - **Found existing error logging.** Every HealthKit data source, and the estimator's repository, already logs failures at `error` in subsystem `com.quillanq.Half-Life`, with the error's domain and code. Constitution Article XI.6–7 forbids logging values, counts, or whether a metric was present, which limits what extra logging could show.
+- **Human changes:** None. The owner accepted the finding.
+- **Files:** `ai_log.md`
+- **Verification:** N/A (investigation; no code changed)
+- **Notes:**
+  - Not committed.
+  - The fix is to build the Apple Health card from `AppleHealthCard.md`. The Insights tab's cards 3 and 4 also wait on its `HealthDataRepository`, extended with nightly history.
+
+### 2026-09-13 00:27 -0400 — Build the Today screen's Apple Health card, with demo Health data
+
+- **Started:** 2026-09-13 00:27 -0400 (the clock read at the task's first command, just after the prompt)
+- **Ended:** 2026-09-13 01:35 -0400
+- **Human:** Adam Ure
+- **AI tool / model:** Claude Code / Claude Opus 5
+- **Transcript:** `ai_transcripts/2026-09-12-2227-dedc597d.md`
+- **Type:** change
+- **Request:** Build the Apple Health card designed in `AppleHealthCard.md`, so the owner can validate the HealthKit implementation on a device.
+- **Interactions:**
+  - `00:27` The owner asked for the build. There were no other prompts during it.
+- **AI contribution:**
+  - **Test-first.** The tests for every layer came first, and the implementations were staged in the scratchpad. The red step was a test build that failed on the missing `HealthDataRepository` and `DemoHealthDataFlagDataSource` types. Then the implementations were copied in. One slip: the two small entities, `LastNightSleep` and `HealthSummary`, were written just before their test, `HealthSummaryTests`.
+  - **Domain.** `HealthSummary` and `LastNightSleep`. `LastNightSleepRule`, which reuses `SleepNightRule`'s sessions and union: they're now internal statics, and `isAsleep` is internal, with no change in behavior. `HealthDataRepository`, and the use cases `ObserveHealthSummaryUseCase`, `ObserveDemoHealthDataUseCase`, and `SetDemoHealthDataUseCase`.
+  - **Data.**
+    - `LiveHealthDataRepository`, an actor holding live and demo `Sources`. Live, it reads only once Health access is requested, and re-checks each minute until then. It re-reads on change signals, on a new day, and when the switch turns, and sends only changes.
+    - `changes()` on `StepCountDataSource` and `RestingHeartRateDataSource`, with HealthKit observer queries through `HKHealthStore.observeHalfLife`.
+    - `DemoHealthScript` and three demo data sources: 30 days plus today, with late cups taken from `DemoHistoryRule`.
+    - `FileDemoHealthDataFlagDataSource`, for the switch.
+  - **Presentation.**
+    - `HealthSummaryFeature` and `HealthSummaryView` at the bottom of Today. `TodayView` starts the observation, because a hidden card never runs `.task`.
+    - `DemoHealthDataFeature`, a "Use demo Health data" `SettingsOption` on Settings' Demo data screen, through a new `DemoDataFeature` that half-life-d8 suggested. It became the Settings path case in place of `DemoHistoryFeature`, so SET-3 and SET-4 changed with it.
+    - 15 strings in `Localizable.xcstrings`.
+  - **UI tests.**
+    - A `healthData` launch key, and `SimulatedHealthDataSource` with `RequestedHealthAccessDataSource`.
+    - `TodayRobot+Health.swift`, `turnDemoHealthData(on:)` on `DemoHistorySettingsRobot`, and `HealthCardUITests` (HUI-1 to HUI-6).
+    - The UI test target's membership exception for `HealthSummaryViewAccessibilityID`.
+  - **A bug in two new tests.** In `aChangeSignalReReadsTheSummary` and `anEqualSummaryIsNotSentAgain`, nothing held the repository, so it was deallocated and its listeners stopped. The first failed, and the second passed without proving anything. Both now keep the repository alive, and the second also checks that the signal was followed. The repository itself was fine: the app holds it for its whole life.
+  - **Docs.** `AppleHealthCard.md` is now marked built, with a "What the build changed" section, LAUNCH-HEALTH and SIMHEALTH-1, and which tests cover what. `Architecture.md` gains the folder, the robots, the features, the use cases, the rule, the repository, the data sources, and the data table. `TodayScreen.md`, `SleepData.md`, `StepCount.md`, and `RestingHeartRate.md` say it's built.
+  - **Coordination.** half-life-d8 freed Settings, suggested `DemoDataFeature`, and updated `Settings.md`. half-life-1c is extending `HealthDataRepository` with nightly history for Insights, after this build. The estimator's session had left; it had already agreed to the `SleepNightRule` change. For a minute at 00:53, the main tree didn't compile, while the new files were in but the launch keys they used weren't. This also broke half-life-1c's re-run.
+- **Human changes:** None. The build follows the owner's design decisions of 2026-09-12.
+- **Files:**
+  - **Added, app:** `Half-Life/Domain/Entities/LastNightSleep.swift`, `HealthSummary.swift`; `Half-Life/Domain/BusinessRules/LastNightSleepRule.swift`; `Half-Life/Domain/Repositories/HealthDataRepository.swift`; `Half-Life/Domain/UseCases/ObserveHealthSummaryUseCase.swift`, `ObserveDemoHealthDataUseCase.swift`, `SetDemoHealthDataUseCase.swift`; `Half-Life/Data/DataSources/DemoHealthScript.swift`, `DemoSleepDataSource.swift`, `DemoStepCountDataSource.swift`, `DemoRestingHeartRateDataSource.swift`, `DemoHealthDataFlagDataSource.swift`, `FileDemoHealthDataFlagDataSource.swift`; `Half-Life/Data/Repositories/LiveHealthDataRepository.swift`; `Half-Life/App/Dependencies/HealthDataDependencies.swift`; `Half-Life/App/UITesting/SimulatedHealthDataSource.swift`; `Half-Life/Features/HealthSummary/HealthSummaryFeature.swift`, `HealthSummaryView.swift`, `HealthSummaryViewAccessibilityID.swift`; `Half-Life/Features/Settings/DemoHealthDataFeature.swift`, `DemoDataFeature.swift`.
+  - **Modified, app:** `SleepNightRule.swift`, `StepCountDataSource.swift`, `RestingHeartRateDataSource.swift`, `HealthKitStepCountDataSource.swift`, `HealthKitRestingHeartRateDataSource.swift`, `HKHealthStore+HalfLife.swift`, `LaunchEnvironmentKey.swift`, `UITestLaunchConfiguration.swift`, `TodayFeature.swift`, `TodayView.swift`, `SettingsFeature.swift`, `SettingsView.swift`, `DemoHistorySettingsView.swift`, `DemoHistorySettingsViewAccessibilityID.swift`, `Localizable.xcstrings`, `project.pbxproj`.
+  - **Added, tests:**
+    - Suites: `LastNightSleepRuleTests`, `HealthSummaryTests`, `HealthDataUseCaseTests`, `HealthKitStepCountChangesTests`, `HealthKitRestingHeartRateChangesTests`, `DemoHealthDataSourcesTests`, `FileDemoHealthDataFlagDataSourceTests`, `LiveHealthDataRepositoryTests`, `HealthSummaryFeatureTests`, `DemoHealthDataFeatureTests`, `HealthDataDependencyTests`, `SimulatedHealthDataSourceTests`.
+    - Fakes and helpers: `FakeHealthData`, `FakeDemoHealthDataFlagDataSource`, `FakeHealthDataRepository`, `SteppedClockDataSource`, `Collected`.
+    - UI: `Half-LifeUITests/HealthCardUITests.swift`, `Half-LifeUITests/Robots/TodayRobot+Health.swift`.
+  - **Modified, tests:** `FakeStepCountDataSource.swift`, `FakeRestingHeartRateDataSource.swift`, `UITestLaunchConfigurationTests.swift`, `SettingsFeatureTests.swift`, `ColorTokenTests.swift`, `DemoHistorySettingsRobot.swift`.
+  - **Docs:** `AppleHealthCard.md`, `Architecture.md`, `TodayScreen.md`, `SleepData.md`, `StepCount.md`, `RestingHeartRate.md`, `ai_log.md`.
+- **Verification:**
+  - **Where it ran.** The main tree's test target doesn't compile while the App Intents session's tests reference types that don't exist yet. So the runs used a scratch copy of the tree without those tests, on this task's own simulator, `HalfLife-HealthCard`. The pattern that removed them also removed two language-model test files, `LanguageModelDataSourceTests` and `LanguageModelUseCaseTests`.
+  - **Unit tests, and 8 UI tests:** 951 tests passed, with 0 failures and 47 expected failures (`withKnownIssue`). The UI tests were `HealthCardUITests` (6) and `SettingsUITests`' two Demo data tests.
+  - **Full run, unit and UI tests, in the same copy:** 1,006 tests. 958 passed, 47 were expected failures, and 1 failed: `SettingsUITests.testCaffeineAndYourBodyPassesTheAccessibilityAudit`, on "Contrast failed". This task didn't touch that screen, which half-life-d8 owns, so the AI reported it to that session. half-life-d8 replied that it's a known layout bug, reproducible every run. Settings' pushed screens leave room at the bottom only for the home indicator, not for the tab bar and the log button. d8 reported that the owner chose to record it and leave the test failing; the AI didn't see that decision itself.
+  - **Coverage of the `Half-Life` target, from the full run:** 93.94% (13,230 of 14,084 lines). The copy lacked the App Intents and two language-model test files, and was taken before half-life-1c's sleep history, so the figure for the main tree may differ.
+  - **`docbuild`:** no warnings from the app target.
+  - **Lint:** swift-format lint `--strict` and SwiftLint `--strict` are clean on every file this task added or changed. Project-wide, SwiftLint's only violations are in the App Intents session's files.
+- **Notes:**
+  - Not committed.
+  - The live HealthKit reads can't be unit-tested. They're the owner's manual check on a device: allow Health, then compare the card with the Health app.
+  - The demo switch reaches only the Apple Health card. The estimator still reads live Health.
+
+### 2026-09-13 00:30 -0400 — Build Insights card 3: the last 7 days, with caffeine and sleep
+
+- **Started:** 2026-09-13 00:30 -0400 (the AI's first clock reading after the prompt)
+- **Ended:** 2026-09-13 09:40 -0400, from the session transcript: the build was reported at 01:31, and the last follow-up, below, came at 09:40.
+- **Human:** Adam Ure
+- **AI tool / model:** Claude Code / Claude Opus 5
+- **Transcript:** `ai_transcripts/2026-09-12-2243-db11f64a.md` (not yet exported; the name is the exporter's expected one)
+- **Type:** change, debugging
+- **Request:** Build card 3 of the Insights tab next: the last 7 days of caffeine against sleep, with a selectable day that defaults to today.
+- **Interactions:**
+  - `00:30` The owner asked for card 3 next.
+  - `~00:45` (between the 00:42 test run it arrived with and the 00:49 run, from the result bundles' names) The owner asked whether Insights reads HealthKit yet, because no Health data showed. The AI answered that it doesn't yet. Only caffeine was shown. Sleep waited on `HealthDataRepository`, which half-life-3b was building, and on nightly history, which is this session's work. The simulator has no Health data without the demo switch.
+  - `~00:52` (between the AI's 00:51 and 00:53 clock readings) Asked how the audit should treat the fade at the top of a scrolled screen, the owner chose to ignore it for elements reaching into the top bars' fade, mirroring the tab bar's exception (the AI's recommendation). The rejected options were auditing every scroll position, and dropping Insights' navigation bar. The owner had approved the same rule at 00:50 in half-life-d8's session, for Settings, and d8 had already built it into `Robot+TabBarAudit.swift` at 00:51. So this session changed nothing there.
+- **AI contribution:**
+  - **The caffeine half.**
+    - Tests: `DrinkLogRecentDaysRuleTests` (RECENTRULE-1 to 3), `LiveDrinkLogRepositoryRecentDaysTests` (RECENTREPO-1 to 4), `ObserveDrinkLogWeekUseCaseTests` (WEEKUSE-1), `DrinkLogWeekDependencyTests` (DEP-WEEK), `LastSevenDaysFeatureTests` (WEEKCARD-1 to 3), INSIGHTS-2, and UI-INS-4 to 6.
+    - Red, confirmed in the main tree: "no member 'recentDays'". The UI red was confirmed in a scratch copy: "no member 'weekColumns'".
+    - Built: `DrinkLogDayRule.days(endingOn:count:from:calendar:)`, `DrinkLogRepository.recentDays(_:in:)`, `ObserveDrinkLogWeekUseCase`, `LastSevenDaysFeature`, and `LastSevenDaysView`.
+  - **The sleep half,** once half-life-3b's `HealthDataRepository` was in, at 01:0x.
+    - Tests: `SleepHistoryRuleTests` (SLEEPHIST-1 to 4), `HealthDataRepositorySleepHistoryTests` (SHREPO-1 to 6), `ObserveSleepWeekUseCaseTests` (SLEEPUSE-1), `SleepWeekDependencyTests` (DEP-SLEEPWEEK), WEEKCARD-4, and UI-INS-7 and 8.
+    - Red, confirmed in a scratch copy: "cannot find type 'SleepHistory'".
+    - Built: `SleepHistory`, `SleepHistoryRule` (over `LastNightSleepRule`), `sleepHistory(days:in:)` on the protocol and in a new `LiveHealthDataRepository+SleepHistory.swift`, `ObserveSleepWeekUseCase`, and the card's sleep bars, "Slept" detail, and source line.
+    - In 3b's `LiveHealthDataRepository.swift`, which 3b agreed to, the changes are additive. They are the subscriber store, internal `start()` and `clock`, a `chosenSources` accessor, and three publish calls. The file is 367 lines.
+  - **A bug from the first slice, fixed.** The sleep window's times read "9/12/2026, 10:30 PM – 9/13/2026, 12:00 AM". An interval that crosses midnight adds its dates. UI-INS-2 only checked for "10:30", and the AI hadn't looked at the rendered screen. The robot now checks both times and that no date appears. The check failed with the dated label, then passed after the fix.
+  - **A wrong expectation in a new test, changed first.** At 1am, UI-INS-7 read "4h" for yesterday. The rule read sleep only up to now, so it dropped the simulated night's 3am to 6am. The Today card reads to noon today. SLEEPHIST-4, the AI's own uncommitted test, had expected the read to end at now. It was changed to expect noon today, with the reason given before the change. It failed, and passed once the rule read to noon.
+  - **The audit.**
+    - The Insights audit failed "Contrast failed" on several runs in the scrolled-to-end pass. It passed on the runs after the times fix and d8's top-fade rule, at 01:1x and 01:2x, and with sleep shown (UI-INS-8).
+    - Secondary text on the card computes to 5.8:1.
+    - half-life-d8 found that on Settings' pushed screens, the scroll view leaves room only for the home indicator. The last content never clears the tab bar and log button, which is a layout bug, not an audit rule. It also found that the element screenshots XCTest attaches to these failures can show the wrong element. Insights shows the same layout in the scrolled-to-end screenshot, with the last card's bottom behind the log button.
+  - **A misstatement, corrected.** In a heads-up to half-life-d8, the AI wrote that the owner's top-fade decision covered "60 pt below the navigation bar's bottom edge". The owner's option named no size. 60 pt was the AI's own figure. The AI told d8 the exact wording the owner chose, and that the band's size is ours to measure and to record as the AI's.
+  - **Coordination.** half-life-d8, half-life-3c, and half-life-00 confirmed they weren't editing the drink log files. half-life-3b agreed to the additive changes to its repository and asked for one HealthKit query per history. That's `SleepHistoryRule.range`.
+- **Human changes:** Chose the top-fade audit exception (see Interactions).
+- **Files:**
+  - Added: `Half-Life/Features/Insights/LastSevenDaysFeature.swift` and `LastSevenDaysView.swift`; `Half-Life/Domain/Entities/SleepHistory.swift`; `Half-Life/Domain/BusinessRules/SleepHistoryRule.swift`; `Half-Life/Domain/UseCases/ObserveDrinkLogWeekUseCase.swift` and `ObserveSleepWeekUseCase.swift`; `Half-Life/Data/Repositories/LiveHealthDataRepository+SleepHistory.swift`; and the test files named above.
+  - Modified: `DrinkLogDayRule.swift`, `DrinkLogRepository.swift`, `LiveDrinkLogRepository.swift`, `DrinkLogDependencies.swift`, `HealthDataRepository.swift`, `LiveHealthDataRepository.swift`, `HealthDataDependencies.swift`, `InsightsFeature.swift`, `InsightsView.swift`, `InsightsViewAccessibilityID.swift`, `SleepWindowView.swift`, `Localizable.xcstrings`, `FakeDrinkLogRepository.swift`, `FakeHealthDataRepository.swift`, `InsightsFeatureTests.swift`, `InsightsRobot.swift`, `InsightsUITests.swift`, `Insights.md`, `Architecture.md`, and `ai_log.md`.
+- **Follow-ups the next morning, from peers.**
+  - `09:32` half-life-d8's report above, which the AI recorded in the Insights article.
+  - `09:33` half-life-00 said it would fix the compiler warnings in its App Intents files that had cluttered the documentation build.
+  - `09:40` half-life-00 split the sleep window card's chart into `SleepWindowChart`, which the card and Siri's snippet share. The AI updated the Insights article to say so.
+- **Verification:**
+  - Scratch copies were trimmed to this task's suites and the Insights and Health suites they build on, because other sessions' red-phase tests kept the main tree's unit target from compiling. 98 unit tests in 23 suites passed with the 10 expected known issues, at 01:2x.
+  - `InsightsUITests`: 8 of 8 passed, including both accessibility audits.
+  - `docbuild`, 01:30: `BUILD DOCUMENTATION SUCCEEDED`, with no warnings from the catalog. One compiler warning was this task's, the deprecated `withState` in `LastSevenDaysView`, and it was fixed right after. The other warnings were half-life-00's App Intents code.
+  - swift-format lint `--strict` and SwiftLint `--strict` on every file this task added or changed: clean.
+  - This task never ran the full unit and UI suite, or measured coverage. half-life-e4's full run of a later tree, at about 14:03, passed every unit test and measured 92.90% (see the entry "Card 2's footnote, the cutoff warning's wording, and card 3's week").
+- **Notes:**
+  - Not committed.
+  - The bottom-inset layout bug: at 09:32, half-life-d8 reported that the owner had chosen, in its session, to record Settings' bug and not fix it. So there's no shared fix, and the AI recorded the Insights bug in the Insights article's "Still to decide", for the owner to decide.
+  - Still to confirm, from the Insights article: no sleep bar for a night with only time in bed, the caffeine shown with a note when Health has no sleep, and rounding the sleep window's clearing time.
+  - The audit's flakiness isn't explained. It passed on the last two runs with no audit change of this session's.
+
+### 2026-09-13 00:52 -0400 — Build App Intents
+
+- **Started:** 2026-09-13 00:52 -0400
+- **Ended:** 2026-09-13 10:08 -0400
+- **Human:** Adam Ure
+- **AI tool / model:** Claude Code / Claude Opus 5
+- **Transcript:** `ai_transcripts/2026-09-12-2311-6aabc47d.md` (the same session as the design entry at 23:11; not yet exported)
+- **Type:** change
+- **Request:** Implement the App Intents design (roadmap rank 14), as decided in `AppIntents.md`.
+- **Interactions:**
+  - `00:52` The owner asked for the implementation.
+  - `~01:00` (between the 00:52 clock reading and the 01:09 build) half-life-1c agreed to the AI splitting the sleep window chart out of `SleepWindowView`. It asked the AI to keep its fix to the window's times and the card's identifiers.
+  - `~09:31` (the answer arrived just before the 09:32 clock reading; the question was asked at about 01:15) The owner answered a constitution conflict the build found. `nonisolated` on a type with `@Parameter` or `@Property` properties is a compiler warning, and an error in Swift 6, against Article IX. Article IV.1.4, amended the night before, required `nonisolated` on intents. The owner chose the AI's recommendation: App Intents types take the target's `nonisolated` default, and a SwiftLint rule rejects `@MainActor` on them. half-life-1c had also reported the warnings.
+- **AI contribution:**
+  - **Read first.**
+    - The use cases, entities, and fakes the intents use.
+    - How the screens phrase the same figures.
+    - The iOS 26.5 SDK's AppIntents and `_AppIntents_SwiftUI` interfaces: the `result(value:dialog:view:)` overload, `continueInForeground(_:alwaysConfirm:)`, `IntentDialog`'s initializers, `TransientAppEntity`, and `ReturnsValue`. `ReturnsValue` exposes no value to read back, so tests can't read what `perform()` returns.
+    - That the Language Model layer, and `\.respondToInstruction`, had been built.
+  - **Test-first.**
+    - Red: seven new test suites, `DrinkTypeAppEnumTests`, `IntentDialogFormatTests`, `IntentValuesTests`, `LogDrinkIntentTests`, `CaffeineQueryIntentTests`, `AskHalfLifeIntentTests`, and `HalfLifeShortcutsTests`, with shared values in `AppIntentTesting`. The test target failed to compile, because `IntentDialogFormat` didn't exist.
+    - Green: 43 tests in 7 suites passed.
+  - **Built in `Half-Life/AppIntents/`:**
+    - `DrinkTypeAppEnum`.
+    - `IntentDialogFormat`, which writes every sentence in the screens' words.
+    - `IntentFailure`, whose messages Siri shows.
+    - Four `TransientAppEntity` values: `CaffeineStatusEntity`, `CaffeineCutoffEntity`, `CaffeineIntakeEntity`, and `SleepTimeEntity`.
+    - Six intents: `LogDrinkIntent`, a `LiveActivityIntent` with `init(drink:quantity:)` for the widget; `GetCaffeineStatusIntent`; `GetLastCupIntent`; `GetCaffeineIntakeIntent`, for any day; `GetSleepTimeIntent`, with `SleepTimeSnippetView` and its previews; and `AskHalfLifeIntent`, which calls `continueInForeground` without Apple Intelligence.
+    - `HalfLifeShortcuts`, with six App Shortcuts.
+    - Every intent is `requiresLocalDeviceAuthentication`, and only Ask can bring the app forward.
+    - Intents reach use cases through `@Dependencies.Dependency`, because App Intents' `Dependency` typealias shadows swift-dependencies' inside an intent. Plain `import ComposableArchitecture` resolves the name.
+  - **Split the Insights chart** into `SleepWindowChart`, which the card and the snippet both draw, with half-life-1c's agreement. Its times fix and identifiers were kept.
+  - **Linked AppIntents.framework** in the app target's Frameworks build phase in `project.pbxproj`. Without it, the metadata processor skipped extraction ("No AppIntents.framework dependency found"), and the system would never have seen the intents. After it, the build writes `Metadata.appintents`.
+  - **Catalogs.** A scratch copy of the project was used to export localizations and learn Xcode's catalog formats. An Xcode sync then filled `AppShortcuts.xcstrings` with the six phrase sets, and added the new keys to `Localizable.xcstrings`. The AI added translator comments to 52 of them, inserting only the comment lines. A JSON round trip would have reformatted the shared file, so the script refused to write that way, and its first two attempts wrote nothing.
+  - **Carried out the owner's isolation decision.**
+    - Removed `nonisolated` from the intents, entities, enum, and provider.
+    - Revised constitution IV.1 (the preamble, 4, and 5) and added an Amendments row.
+    - Brought `CLAUDE.md`'s summary in line.
+    - Replaced the SwiftLint rule with `app_intent_main_actor`, test-first on scratch files. The old rule scored 2 and 4 on the new files, where 5 and 0 were right. The new one scores 5 and 0.
+  - **Documentation.** `AppIntents.md` went from design to built, with testable requirements INTENT-ENUM-1 to INTENT-A11Y-1. The Architecture article gained App Intents in its folder tree, and a new App Intents section.
+  - **Coordinated with peers.**
+    - Told half-life-1c about the chart split.
+    - Replied to half-life-1c's warning report.
+    - Reported the Settings audit failure to half-life-d8.
+- **Human changes:** At about 09:31, the owner chose the target's default isolation over writing `nonisolated` only where it compiles.
+- **Files:**
+  - Added: `Half-Life/AppIntents/` (12 files), `Half-Life/AppShortcuts.xcstrings`, `Half-Life/Features/Insights/SleepWindowChart.swift`, and 8 files in `Half-LifeTests/Presentation/`: `AppIntentTesting.swift`, `DrinkTypeAppEnumTests.swift`, `IntentDialogFormatTests.swift`, `IntentValuesTests.swift`, `LogDrinkIntentTests.swift`, `CaffeineQueryIntentTests.swift`, `AskHalfLifeIntentTests.swift`, and `HalfLifeShortcutsTests.swift`
+  - Code and configuration: `Half-Life/Features/Insights/SleepWindowView.swift`, `Half-Life.xcodeproj/project.pbxproj` (AppIntents.framework), `Half-Life/Localizable.xcstrings` (comments), `.swiftlint.yml`
+  - Documentation: `constitution.md`, `CLAUDE.md`, `Half-Life/Documentation.docc/AppIntents.md`, `Half-Life/Documentation.docc/Architecture.md`
+  - `ai_log.md`
+- **Verification:**
+  - **The full unit and UI run** (`-parallel-testing-enabled NO`, simulator HalfLife-Intents, `build/intents-full.xcresult`):
+    - Unit tests: 1,015 tests in 185 suites passed, with 84 known issues, none of them this task's.
+    - UI tests: 66 of 68 passed, including all eight Insights UI tests and their two audits.
+    - Two UI audits failed. `testRootScreenPassesAccessibilityAudit` failed with "Dynamic Type font sizes are partially unsupported", the known intermittent failure in the One-Tap Log article, and passed on rerun. `SettingsUITests.testCaffeineAndYourBodyPassesTheAccessibilityAudit` failed "Contrast failed" in the full run and again on rerun. This task touched no Settings file or robot, and it was reported to half-life-d8, which owns Settings.
+  - **Coverage:** the Half-Life target is at 94.12% (13,847 of 14,712 lines).
+  - **Lint:** `swiftlint lint --strict` on the whole repo, and `swift-format lint --strict` on every file this task added or changed, are clean.
+  - **Build:** the app target has no compiler warnings.
+  - **`xcodebuild docbuild`** succeeded, with no warnings from the Half-Life catalog.
+- **Notes:**
+  - Not committed.
+  - **Before release:** INTENT-A11Y-1, an Accessibility Inspector check of the snippet, isn't done. Siri, Shortcuts, and the Action Button haven't been tried on a device. Unit tests can't run an intent the way the system does.
+  - **Widget target:** when half-life-3c adds the widget target, `LogDrinkIntent` and `DrinkTypeAppEnum` join it, with a `WIDGET_EXTENSION` condition around the dependency and `perform()`.
+  - **The Settings contrast failure is known.** half-life-d8 confirmed it's a layout bug on Settings' pushed screens. The scroll view leaves room only for the home indicator, so the half-life card's text sits in the tab bar's fade at the end of the scroll. The owner chose on the morning of 2026-09-13 to record it and leave the test failing. It's described in the Settings article and in half-life-d8's 2026-09-12 22:10 entry.
+
+### 2026-09-13 10:16 -0400 — Add onboarding's "Use Siri and Shortcuts" step
+
+- **Started:** 2026-09-13 10:16 -0400
+- **Ended:** 2026-09-13 11:25 -0400
+- **Human:** Adam Ure
+- **AI tool / model:** Claude Code / Claude Opus 5
+- **Transcript:** `ai_transcripts/2026-09-12-2311-6aabc47d.md` (the same session as the App Intents entries; not yet exported)
+- **Type:** change, planning
+- **Request:** Set up an onboarding step to enable the shortcuts and allow the Siri commands.
+- **Interactions:**
+  - `10:16` The owner asked for the step.
+  - `~10:17` (the answer arrived before the 10:18 clock reading) The AI explained that there's nothing to enable: App Shortcuts work as soon as the app is installed, and App Intents need no Siri permission. The owner chose a step after Permissions that teaches phrases, and chose Apple's `SiriTipView` for them, with a spike first.
+  - `10:23` The spike, in a scratch copy, found that `SiriTipView` isn't in the accessibility tree at all, by identifier or by its text. It also found that `ShortcutsLink`'s label read " shortcuts", because the app has no `CFBundleDisplayName`. The owner chose phrase rows of the app's own, with `ShortcutsLink` and a display name.
+  - `10:48` The audit failed the Shortcuts button's "Half-Life shortcuts" label for clipped text, even with `.fixedSize()`. The owner chose to keep Apple's button and excuse that one issue, over a button of the app's own that opens only the Shortcuts app's main screen, or no button.
+  - `~11:22` (between the 11:18 and 11:24 clock readings) half-life-3c reported that the onboarding audit failed with "Text clipped" at `Robot.swift:33` in its full run, which finished at 11:21. That line is the plain audit, not this step's excusing audit. The AI reran the test in the main tree, which compiled again, and it passed. The AI told half-life-3c that its failure was a build from before the 10:48 change, or intermittent.
+  - `11:25` half-life-3c confirmed the first explanation. Its run audited `siriShortcutsView.screen`, and the last text it checked was the Shortcuts button's "Half-Life shortcuts" label. Its tests had been compiled before `OnboardingUITests.swift` last changed at 11:10:44, so they still ran the plain audit for this step. It was the known, excused issue, not an intermittent failure.
+- **AI contribution:**
+  - **Checked the SDK first.** The SwiftUI overlay's `SiriTipView(intent:isVisible:)` and `ShortcutsLink(action:)` exist. Nothing requests Siri access for App Intents.
+  - **Two spikes in scratch copies.** They checked whether a robot can find each view by identifier, what their labels are, and what the audit says. The second spike's screenshot was inconclusive: another app was in front.
+  - **Test-first.**
+    - Red: `SiriShortcutsFeatureTests`; `OnboardingFeatureTests`, where the permissions test changed because the owner inserted a step, and a test for the new step was added; `SiriShortcutsRobot`; the onboarding UI walks; and a new UI-ONB-9. The UI target failed to compile.
+    - A second red, run after the step was built: UI-ONB-9 failed only because the Shortcuts button's label was " shortcuts".
+    - Adding `CFBundleDisplayName` turned it green.
+  - **Built:**
+    - `SiriShortcutsFeature`, `SiriShortcutsView` (four phrase cards and `ShortcutsLink`), and `SiriShortcutsViewAccessibilityID`, which joined the UI test target through a membership exception in `project.pbxproj`.
+    - Onboarding's path runs Permissions, then the new step, then the summary, and the steps now read "Step n of 5".
+    - `CFBundleDisplayName` "Half-Life" in `InfoPlist.xcstrings`, with its placeholder in `Info.plist`.
+    - The new step's strings in `Localizable.xcstrings`, with translator comments. Three went in their sorted places and four at the end, without reformatting the file. The step-count key was renamed, keeping its comment.
+    - `auditAccessibilityExcusingTheShortcutsButton()`, which excuses only a text-clipped issue inside the button's frame. The button is found by its identifier.
+  - **Fixed SwiftLint's nesting violation** in the new feature.
+  - **Docs:** the Onboarding article (the flow, "The Siri and Shortcuts step", the Features table, ONB-SIRI-1, UI-ONB-9, and the robots), the Architecture article (a Features row, a Robots row, and the display name), and `AppIntents.md`.
+  - **Coordinated with peers.** Told half-life-3c which shared files this task touched. Told half-life-1c nothing new.
+- **Human changes:** The three choices under Interactions. The owner chose `SiriTipView` over the AI's recommended own rows, then chose own rows after the spike, and chose the audit exception over the AI's recommended own button.
+- **Files:**
+  - Added:
+    - `Half-Life/Features/Onboarding/SiriShortcutsFeature.swift`, `SiriShortcutsView.swift`, and `SiriShortcutsViewAccessibilityID.swift`
+    - `Half-LifeTests/Presentation/SiriShortcutsFeatureTests.swift`
+    - `Half-LifeUITests/Robots/SiriShortcutsRobot.swift`
+  - Changed code and tests: `OnboardingFeature.swift`, `OnboardingView.swift`, `OnboardingStepLayout.swift`, `OnboardingFeatureTests.swift`, `OnboardingUITests.swift`, `Robot.swift` (`Robots.all`)
+  - Changed configuration: `Half-Life/Info.plist`, `Half-Life/InfoPlist.xcstrings`, `Half-Life/Localizable.xcstrings`, `Half-Life.xcodeproj/project.pbxproj`
+  - Changed documentation: `Onboarding.md`, `Architecture.md`, `AppIntents.md`
+  - `ai_log.md`
+- **Verification:**
+  - **Where the tests ran.** Other sessions' unfinished work kept the main tree's test targets from compiling during this task: first an Insights health-data robot, then a `HealthDataKind` fake, then the widget fakes. So the tests ran in scratch copies of the tree, with this task's files. The UI run used a scheme without the unit target.
+  - **Unit tests:** `OnboardingFeatureTests`, `SiriShortcutsFeatureTests`, and `PurposeStringTests` passed, 13 tests in 3 suites.
+  - **Onboarding UI suite:** 10 of 10 passed, including the audit walk, the scroll walks at the default and the largest text size, and UI-ONB-9.
+  - **Lint and formatting:** swift-format `--strict` and SwiftLint `--strict` are clean on this task's files. SwiftLint on the repo shows other sessions' line-length errors, in the widget tests and in `Robots.all`'s line with `HealthDataDetailRobot`.
+  - **`docbuild`** at 10:36 had no warnings from the Half-Life catalog. Documentation edits after it were prose only.
+  - **The audit in the main tree:** at about 11:23, `testEveryStepPassesTheAccessibilityAudit` passed in the main tree, after half-life-3c's widget work compiled.
+  - **Not run:** the full unit and UI run, and coverage, because the main tree's test targets didn't compile during the task.
+- **Notes:**
+  - Not committed.
+  - **To check on a device:** that the Shortcuts button opens Half-Life's page in the Shortcuts app, and whether the label the audit calls clipped looks clipped to a user.
+  - **Keep the phrases in step:** the four phrases on the step must stay in step with `AppShortcuts.xcstrings`.
+  - **Before committing:** run the full suite and the coverage check once the main tree compiles.
+
+### 2026-09-13 10:18 -0400 — Build the Home Screen widgets
+
+- **Started:** 2026-09-13 10:18 -0400
+- **Ended:** 2026-09-13 11:21 -0400
+- **Human:** Adam Ure
+- **AI tool / model:** Claude Code / Claude Opus 5
+- **Transcript:** `ai_transcripts/2026-09-12-2317-91adaa48.md` (not yet exported; the name is the exporter's expected one, and the session continues from the design entry above)
+- **Type:** change
+- **Request:** Build the widgets designed in the "Design the Home Screen widgets" entry, now that the App Intents are built.
+- **Interactions:**
+  - `10:18` The owner asked for the widgets to be built.
+- **AI contribution:**
+  - **Coordinated.** The AI told half-life-00 it would edit `LogDrinkIntent.swift` and the other shared files. half-life-00 agreed, and asked that its intent tests keep passing. The AI also told half-life-00 and half-life-1c when their unfinished code blocked the test build.
+  - **Wrote the tests first.** Swift Testing suites for the snapshot rule (WSNAP), the timeline rule (WTL), the snapshot file (WSDS), both repositories (WSREPO, WTLREPO), the use cases (WUSE), the registrations (WDEP), and `AppFeature`'s `launched` action (WAPP), with fakes for the snapshot data source, the reload data source, and both repositories.
+  - **Confirmed they failed.** The first three red runs never reached the new tests. Other sessions' unfinished code stopped the build each time: half-life-00's `SiriShortcutsRobot`, then `FakeHealthDataRepository`, then half-life-1c's Insights views. The AI made a personal unit-test scheme in `xcuserdata`, which git ignores, so the UI test target couldn't block it. The fourth run failed for the expected reason: the widget types and `keepWidgetsCurrent` didn't exist.
+  - **Built the app side.** `WidgetSnapshot`, `WidgetTimeline`, `WidgetTimelineEntry`, and `WidgetContent`; `WidgetSnapshotRule` and `WidgetTimelineRule`; `WidgetSnapshotRepository` and `LiveWidgetSnapshotRepository`; `WidgetTimelineRepository` and `LiveWidgetTimelineRepository`; `WidgetSnapshotDataSource` and `FileWidgetSnapshotDataSource`; `WidgetReloadDataSource` and `WidgetKitReloadDataSource`; `KeepWidgetsCurrentUseCase` and `ObserveWidgetTimelineUseCase`; and `WidgetDependencies.swift`. `AppFeature` gained `launched`, which `Half_LifeApp.init` sends. The app's entitlements gained the App Group.
+  - **Edited `LogDrinkIntent.swift`,** half-life-00's file, as agreed: under `WIDGET_EXTENSION`, no TCA or OSLog imports, no dependencies, and a `perform()` that throws.
+  - **Built the extension.** `Half-LifeWidgets/`: the bundle, `OneTapWidget` and `CaffeineLevelWidget` with their views, `WidgetSetUpView`, `HalfLifeTimelineProvider` with sample and nothing-logged entries, `WidgetCompositionRoot`, its `Info.plist`, and its entitlements. A script added the target to `project.pbxproj`, embedded it in the app, and gave it a membership exception for the files it shares.
+  - **Changed from the design:**
+    - "Last cup 3:04 PM" became "Latest drink 3:04 PM", because the app's "Last cup" tile is the cutoff. The field is `latestDrinkAt`.
+    - The drink names and symbols weren't moved out of `DrinkPresentation.swift`. The extension shares that file and the composer's identifier file instead, so the composer's files are unchanged.
+    - The forecast starts 12 hours before the current 5-minute mark, runs at least 24 hours, and is capped at 7 days.
+    - `WidgetSnapshotRule.snapshot` takes the `UserProfile`, not the bedtime and onboarding separately, to stay within SwiftLint's five parameters.
+  - **Updated the docs.** `Widgets.md` now describes what's built. The Architecture article gained a Widgets section, table rows, the folder, and `AppFeature`'s use case, and its data row no longer says "not yet built". `.swiftlint.yml` and `CLAUDE.md`'s format commands include `Half-LifeWidgets`.
+- **Human changes:** None.
+- **Files:**
+  - **Added (Half-Life/):** `Domain/Entities/WidgetSnapshot.swift`, `Domain/Entities/WidgetTimeline.swift`, `Domain/BusinessRules/WidgetSnapshotRule.swift`, `Domain/BusinessRules/WidgetTimelineRule.swift`, `Domain/Repositories/WidgetSnapshotRepository.swift`, `Domain/Repositories/WidgetTimelineRepository.swift`, `Domain/UseCases/KeepWidgetsCurrentUseCase.swift`, `Domain/UseCases/ObserveWidgetTimelineUseCase.swift`, `Data/DataSources/WidgetSnapshotDataSource.swift`, `Data/DataSources/FileWidgetSnapshotDataSource.swift`, `Data/DataSources/WidgetReloadDataSource.swift`, `Data/DataSources/WidgetKitReloadDataSource.swift`, `Data/Repositories/LiveWidgetSnapshotRepository.swift`, `Data/Repositories/LiveWidgetTimelineRepository.swift`, `App/Dependencies/WidgetDependencies.swift`
+  - **Added (the extension):** `Half-LifeWidgets/HalfLifeWidgets.swift`, `OneTapWidget.swift`, `CaffeineLevelWidget.swift`, `WidgetSetUpView.swift`, `HalfLifeTimelineProvider.swift`, `WidgetCompositionRoot.swift`, `Info.plist`, `Half-LifeWidgets.entitlements`, and `Documentation.docc/HalfLifeWidgets.md`
+  - **Added (tests):** `Half-LifeTests/Domain/WidgetSnapshotRuleTests.swift`, `WidgetTimelineRuleTests.swift`, `WidgetUseCaseTests.swift`; `Half-LifeTests/Data/FileWidgetSnapshotDataSourceTests.swift`, `LiveWidgetSnapshotRepositoryTests.swift`, `LiveWidgetTimelineRepositoryTests.swift`; `Half-LifeTests/App/WidgetDependencyTests.swift`; `Half-LifeTests/Presentation/AppFeatureWidgetTests.swift`; `Half-LifeTests/Fakes/FakeWidgetSnapshotDataSource.swift`, `FakeWidgetRepositories.swift`
+  - **Modified:** `Half-Life/App/AppFeature.swift`, `Half-Life/Half_LifeApp.swift`, `Half-Life/Half-Life.entitlements`, `Half-Life/AppIntents/LogDrinkIntent.swift`, `Half-Life/Localizable.xcstrings` (5 keys added, 3 comments extended), `Half-Life.xcodeproj/project.pbxproj`, `Half-Life/Documentation.docc/Widgets.md`, `Half-Life/Documentation.docc/Architecture.md`, `.swiftlint.yml`, `CLAUDE.md`, `ai_log.md`
+  - **Not in the repository:** the personal scheme `Half-Life.xcodeproj/xcuserdata/adamure.xcuserdatad/xcschemes/HalfLife-UnitTests-3c.xcscheme`, which git ignores
+- **Verification:**
+  - **Red.** The fourth red run failed for the expected reason, as described above.
+  - **Green.** The new suites, with `LogDrinkIntentTests` and `DrinkTypeAppEnumTests`: 55 tests passed. The 2 known issues are the dependency tests' deliberate ones.
+  - **Full run.** Unit and UI tests, on the AI's own simulator, without parallel testing, finished at 11:21.
+    - Unit tests: 1,082 tests in 200 suites passed, with 88 known issues, all of them deliberate.
+    - UI tests: 74 ran, and 4 failed, all accessibility audits: `OnboardingUITests.testEveryStepPassesTheAccessibilityAudit` (text clipped), `InsightsUITests.testAHealthDataScreenPassesTheAccessibilityAudit` and `testWithSleepInHealthInsightsPassesTheAccessibilityAudit` (contrast), and `SettingsUITests.testCaffeineAndYourBodyPassesTheAccessibilityAudit` (contrast).
+    - This task changed none of those screens. The audits don't name the offending elements, and the tests weren't re-run to rule out intermittent failures. The AI told half-life-00 and half-life-1c.
+    - half-life-1c replied that three are known issues the owner chose to record. The two Insights audits are in `Insights.md`'s "Known issues", recorded at 11:09. Settings' Caffeine and your body is recorded in the Settings article as a layout bug: pushed screens can't scroll their last content clear of the tab bar.
+    - The onboarding audit failed on the Siri and Shortcuts step, at the "Half-Life shortcuts" text inside Apple's `ShortcutsLink`. That's the known issue the owner chose to excuse. `OnboardingUITests.swift` last changed at 11:10:44, after this run compiled its tests. So this run still used the plain audit for that step, not `auditAccessibilityExcusingTheShortcutsButton()`. half-life-00 re-ran the test on the current tree, and it passed.
+    - So none of the four failures comes from this task.
+  - **Coverage.** The `Half-Life` app target is at 94.33% line coverage (14,853 of 15,745 lines).
+  - **Build.** The app, with the extension embedded, builds with no warnings from project files.
+  - **Docs.** `docbuild` gives 0 diagnostics for `Half-Life` and for `Half-LifeWidgets`.
+  - **Lint.** swift-format (`--strict`) and SwiftLint (`--strict`) are clean on every file this task added or changed. SwiftLint still flags `Robot.swift`, which isn't this task's.
+  - **Simulator.** `pluginkit` lists `com.quillanq.Half-Life.Widgets`, embedded in the installed app. No widget was added to a Home Screen or tapped.
+- **Notes:**
+  - Not committed.
+  - **The project file broke for about a minute.** The first run of the target script wrote `Logging/Logger+HalfLife.swift` unquoted, and a `+` needs quotes in a project file. So from about 10:50, no session could open the project. `xcodebuild` reported "Unable to read project", and half-life-1c reported it too. The AI quoted the path, confirmed `xcodebuild -list` read the project, and diffed it against the copy taken just before the script. The diff held only the 198 added lines, and half-life-1c's exception was intact. The AI told half-life-1c and half-life-00.
+  - **The AI's docs check missed the extension.** It first checked `docbuild` by reading only the app target's diagnostics file, and reported it clean. half-life-1c then reported warnings in the new target's documentation. The shared files' doc comments link to app-only symbols, such as ``LogDrinkUseCase`` from `LogDrinkIntent.swift`, and the generated root page was empty. The AI set `DOCC_MINIMUM_ACCESS_LEVEL = public` on the widget target, whose code is all internal, and added a root article in `Half-LifeWidgets/Documentation.docc`. Both targets' diagnostics then read 0, and nobody's doc comments changed.
+  - **Two of the AI's own tests were wrong, and it fixed them.**
+    - `WidgetTimelineRuleTests.content(_:)` nested `#require` inside `#require`, which doesn't compile ("recursive expansion of macro").
+    - `theLevelIsZeroAfterTheForecastEnds` checked entries 6 and 7 instead of 5 and 6. Entry 6 is 100 seconds past the forecast's last sample, so the rule was right to give 0. The fix keeps the same check at the right boundary.
+  - **Not verified:** the five device checks in `Widgets.md` (WSPIKE-1 to WSPIKE-5), apart from WSPIKE-2's compile half, and the Accessibility Inspector check (WA11Y-1). The App Group still has to be registered for a device build.
+  - **Previews.** A `#Preview(as:)` widget preview can't set the text size. The article says the canvas's Dynamic Type variants and WA11Y-1 cover the largest size, where the amended Article I.20 asks for previews "including the largest accessibility text size". The owner may want that wording changed, or a different kind of preview.
+  - **Pre-existing lint.** SwiftLint still flags `Half-LifeUITests/Robots/Robot.swift`'s `Robots.all` line, which isn't this task's.
+
+### 2026-09-13 10:21 -0400 — Build Insights card 4: a button for each kind of Health data, and its navigation
+
+- **Started:** 2026-09-13 10:21 -0400 (the AI's first clock reading after the prompt)
+- **Ended:** 2026-09-13 11:09 -0400
+- **Human:** Adam Ure
+- **AI tool / model:** Claude Code / Claude Opus 5
+- **Transcript:** `ai_transcripts/2026-09-12-2243-db11f64a.md` (not yet exported; the name is the exporter's expected one)
+- **Type:** change, debugging
+- **Request:** Build card 4 as a set of buttons, one for each kind of data the app reads from HealthKit, drifting from the prototype on purpose. Each shows the kind's icon instead of a link strength, and opens its own screen.
+- **Interactions:**
+  - `10:21` The owner asked for card 4.
+  - `~10:22` (between the AI's 10:21 clock reading and its question's answer, the same minute or the next) Asked two questions, the owner chose three buttons, for sleep, steps, and resting heart rate (the AI's recommendation, over four with sleep split in two). For the screens, the owner chose "just setup the navigation" first, and to design each screen's content together afterwards, over the AI's recommended 30-day timing comparison.
+  - `11:09` Given three options for the failing audits (the AI taking over the audit helper, recording both as known issues, or moving on and coming back), the owner chose "Record and move on". The failures are recorded in the Insights article's "Known issues", and the audits stay red.
+- **AI contribution:**
+  - **Tests first.**
+    - `HealthDataAvailabilityRuleTests` (AVAIL-1 to 3), `HealthDataRepositoryAvailabilityTests` (AVREPO-1 to 4), `ObserveAvailableHealthDataUseCaseTests` (AVUSE-1), `AvailableHealthDataDependencyTests` (DEP-AVAIL), `HealthDataListFeatureTests` (HCARD4-1 and 2), and INSIGHTS-3 and 4.
+    - UI-INS-9 to UI-INS-12, with `InsightsRobot+HealthData.swift` and a new `HealthDataDetailRobot`.
+    - The red was confirmed in a scratch copy: "cannot find type 'HealthDataKind'".
+  - **Built.**
+    - `HealthDataKind` and `HealthDataAvailabilityRule`. Sleep counts only when it's sleep, because time in bed alone doesn't. A step count of 0 is a value.
+    - `availableKinds(days:in:)` on `HealthDataRepository`, in `LiveHealthDataRepository+Availability.swift`. It reads sleep once, and steps and resting heart rate from today back, stopping at the first value.
+    - `ObserveAvailableHealthDataUseCase` (30 days), `HealthDataListFeature`, `HealthDataDetailFeature` (no actions yet), and a `Path` with a `StackState` in `InsightsFeature`, as Settings has.
+    - `HealthDataListView`, `HealthDataDetailView`, the identifiers, and 7 strings.
+    - The Insights and Architecture articles.
+  - **Changed in 3b's `LiveHealthDataRepository.swift`, whose session has ended.** Stored subscribers and publish calls, as for the sleep history. Its nested `Sources` type moved into an extension in the same file, because the actor's body reached 255 of SwiftLint's 250 lines. Its API didn't change.
+  - **Mistakes, corrected.**
+    - A script stopped at its third edit, because swift-format had already reformatted the text it looked for. The files it hadn't reached left the app target not compiling, for about 10 minutes. half-life-3c reported it, and was told once it built.
+    - A later edit left a stray `)` in `HealthDataDependencies.swift`, which was fixed at once.
+    - The first version force-unwrapped, which the constitution forbids without a comment. It was replaced before any build.
+    - Four compiler warnings in this session's tests, from main-actor statics read in `Sendable` closures, were fixed.
+    - At about 10:50, the AI's probe couldn't build, because `project.pbxproj` didn't parse. half-life-3c's widget-target script had written a path containing `+` without quotes. The AI told 3c and didn't touch the file. 3c fixed it by 10:51, adding only its `Half-LifeWidgets` target.
+  - **The accessibility audits, investigated.** A probe in a scratch copy of `Robot+TabBarAudit.swift`, never the real file, printed each contrast issue's element and frame.
+    - **On the Insights tab,** the scrolled-to-end pass fails on text just below the navigation bar: the chart's "6:00 PM" at y 149, with the bar's bottom at y 116. The helper's screen marker is the large navigation title, which collapses by 46 pt and stops. So its scroll-to-end, `contentTop`, and `scrolledBy` are all wrong on large-title screens. half-life-d8, whose helper it is, had ended, so the report couldn't be delivered.
+    - **On the new detail screen,** the first pass, at rest, fails on its sentence at y 197. The screenshot shows dark, crisp text. It failed in secondary text on the page gradient, which computes to 4.53:1, and again in primary text, at 10.73:1. So it isn't the color. A scratch-only probe that hid the top scroll-edge effect, at about 10:52, still failed. So that's not the cause either, and the cause is unknown. The AI stopped there, to ask the owner how to proceed.
+- **Human changes:** Chose three buttons, navigation before content, and recording the audit failures rather than fixing them (see Interactions).
+- **Files:**
+  - Added: `Half-Life/Domain/Entities/HealthDataKind.swift`, `Half-Life/Domain/BusinessRules/HealthDataAvailabilityRule.swift`, `Half-Life/Domain/UseCases/ObserveAvailableHealthDataUseCase.swift`, and `Half-Life/Data/Repositories/LiveHealthDataRepository+Availability.swift`.
+  - Added in `Half-Life/Features/Insights/`: `HealthDataListFeature.swift`, `HealthDataListView.swift`, `HealthDataDetailFeature.swift`, `HealthDataDetailView.swift`, `HealthDataDetailViewAccessibilityID.swift`, and `HealthDataKindPresentation.swift`.
+  - Added tests: the test files named above, `Half-LifeUITests/Robots/InsightsRobot+HealthData.swift`, and `HealthDataDetailRobot.swift`.
+  - Modified: `HealthDataRepository.swift`, `LiveHealthDataRepository.swift`, `HealthDataDependencies.swift`, `InsightsFeature.swift`, `InsightsView.swift`, `InsightsViewAccessibilityID.swift`, `Localizable.xcstrings`, `project.pbxproj`, `FakeHealthDataRepository.swift`, `InsightsFeatureTests.swift`, `LastSevenDaysFeatureTests.swift`, `Robot.swift`, `InsightsUITests.swift`, `Insights.md`, `Architecture.md`, and `ai_log.md`.
+- **Verification (so far):**
+  - These ran in scratch copies, trimmed to the Insights and Health suites and without other sessions' red-phase fakes (App Intents' and the widgets').
+    - 98 unit tests in 20 suites passed, with the 8 expected known issues.
+    - Of 13 Insights UI tests, 10 passed, including all the card 4 navigation tests. The three accessibility audits failed on contrast, as above.
+  - swift-format lint `--strict` and SwiftLint `--strict`, on every file this task added or changed: clean.
+  - Not yet: the audits, the full run, coverage, and `docbuild`.
+- **Notes:**
+  - Not committed.
+  - Known issues, recorded at the owner's decision: the audit helper's large-title marker problem, which fails UI-INS-3 and UI-INS-8, and the detail screen's first-pass contrast failure, UI-INS-12, whose cause is unknown. The helper's owner, half-life-d8, had ended.
+  - Not run: the full unit and UI run, coverage, and `docbuild` in the main tree. The main tree's unit target doesn't compile until the App Intents and widget sessions' red-phase tests land, and the three audits stay red, so a full run won't pass.
+
+### 2026-09-13 11:16 -0400 — Design and start Insights card 1, "What we noticed"
+
+- **Started:** 2026-09-13 11:16 -0400
+- **Ended:** 2026-09-13 14:56 -0400, when the owner moved on to card 2's footnote and card 3's week (the next entry). Card 1 is built, with the known audit issue UI-INS-17.
+- **Human:** Adam Ure
+- **AI tool / model:** Claude Code / Claude Opus 5
+- **Transcript:** `ai_transcripts/2026-09-12-2243-db11f64a.md` (not yet exported; the name is the exporter's expected one)
+- **Type:** planning, change
+- **Request:** Work on card 1 of the Insights tab, starting with its design: the optional, dismissible analysis the on-device language model writes.
+- **Interactions:**
+  - `11:16` The owner asked for card 1, design first.
+  - `11:53` (the AI's first clock reading after the answer, which arrived after 11:17) The owner decided:
+    - Caffeine is measured at the sleep onset Health recorded, over the AI's recommended bedtime.
+    - Time asleep is the measure.
+    - A "Not really" wears off when the confidence level changes. The AI had recommended a change in direction or confidence.
+    - The last disliked finding goes into the prompt, so the model knows what kind the user doesn't like. The AI had leaned towards storing the answers only.
+    - The owner asked to review the system and user prompts' wording before they're built.
+  - `12:08` The owner reviewed the draft prompts:
+    - The tool gives only the direction, not the averages.
+    - The limits start at 8 words for the headline and 25 for the sentence.
+    - After a "Not really", the prompt asks for a different approach from the finding the user disagreed with, not a rewrite of it.
+    - The owner asked to remove English-only generation, and to hide the features in unsupported locales. The AI explained that neither needed a change. The rule "Answer in English." was built from the current locale, and the layer's availability already hides the features when the model doesn't support the user's language. The owner's confirmation is pending.
+  - `12:1x` (between the AI's 12:08 and 12:14 clock readings) The owner accepted 15 minutes as the band for "about the same". The owner didn't object to the explanation about language, so nothing changed.
+  - `12:22` Told that the four Insights comparisons defined a caffeine night differently, the owner decided:
+    - One definition for every comparison: caffeine at the sleep onset Health recorded, over the sleep threshold. Steps and heart rate fall back to bedtime on days with no recorded sleep. This was the AI's recommendation, over bedtime, or keeping them different.
+    - half-life-ff's learned tolerance is the app-wide sleep threshold. half-life-ff reports the owner approved it at 12:13 in its session, and the owner confirmed it here.
+    - Card 1 builds on half-life-ff's sleep analysis, not a repository of its own (the AI's recommendation). The AI relayed the definition to half-life-28 and half-life-e4, and proposed to half-life-ff the shape card 1 needs.
+- **AI contribution:**
+  - **Read first.** The Language Model article, and the language model data source, repository, instruction, and use case. `respond(to:)` returns plain text, with no guided generation. The standing rules require every number to come from a tool, and `compareCaffeineTiming` is listed as waiting for the Insights comparisons.
+  - **Proposed the finding.** Over the last 30 days, nights after days with caffeine over the sleep threshold at bedtime are compared with nights under it, using time asleep. A rule works out the facts: the nights in each group, their averages, and a confidence tier from the counts, with no causation claimed. The card is hidden below 5 nights in either group, without sleep data, and while the model is unavailable.
+  - **Proposed the architecture.**
+    - A new `SleepPatternRule`, and a repository that reads the drink log, kinetics, bedtime, and threshold data sources, plus the chosen Health sleep source.
+    - The Health source choice (live, demo, or none) moves into a shared data-layer piece, so it isn't duplicated.
+    - The layer's `compareCaffeineTiming` tool reads that repository.
+    - Guided generation added to the data source, for a headline and a body, through a `@Generable` mirror in Data.
+    - A number check that drops any response with a number the facts don't hold.
+    - A device-only, protected file data source for the "Feel right?" answers.
+  - **Asked the owner to decide:**
+    - bedtime or measured sleep onset
+    - which sleep measure
+    - what counts as the facts changing, for a dismissal
+    - whether past answers shape the prompt
+- **Human changes:** Made the design, prompt, and data decisions above.
+- **Slice A, the finding's rule, built test-first.**
+  - The tests are `SleepPatternRuleTests` (PATTERN-1 to 8). The red was confirmed in a scratch copy, as "cannot find 'SleepPattern'".
+  - Then came `SleepPattern` and `SleepPatternRule`, which reuse `SleepNightRule`'s internal `sessions(of:)` and `unionLength(of:within:)`.
+  - The approved design, and PATTERN-1 to 8, are in the Insights article's "What we noticed" section.
+- **Coordination.** Three new sessions are building card 4's detail screens, as the owner assigned this morning: half-life-e4 has Steps, half-life-28 has Resting heart rate, and half-life-ff has Sleep. half-life-28 asked everyone to hold the four Health files it was editing.
+  - half-life-e4 suggested reusing its `StepsComparisonRule.isLateCup`, 90 mg or more from 3pm. The AI declined, because the owner chose caffeine at sleep onset for card 1, and raised the difference with the owner.
+- **Plan changed by the owner's decisions.** The Health-source refactor and card 1's own repository are dropped. `SleepPatternRule`'s night-finding duplicates half-life-ff's `SleepToleranceRule`, so once ff's analysis lands, card 1 keeps only the step that turns the analysis into the finding. PATTERN-1 to 3, 6, and 7 move to ff's rule, and the reason will be given before any of those tests are removed.
+- **Slice C's first parts, test-first, which don't wait on half-life-ff.**
+  - The tests: `InsightNumberRuleTests` (NUMCHECK-1 to 4), `InsightFeedbackRuleTests` (FEEDBACK-1 to 4), `FileInsightFeedbackDataSourceTests` (FEEDSTORE-1 to 5), `LiveInsightFeedbackRepositoryTests` (FEEDREPO-1 to 3), `InsightFeedbackUseCaseTests` (FEEDUSE-1 and 2), and `InsightFeedbackDependencyTests` (DEP-FEEDBACK). The red was confirmed in a scratch copy.
+  - Then came `InsightFeedback`, `InsightNumberRule`, `InsightFeedbackRule`, `InsightFeedbackRepository` with `LiveInsightFeedbackRepository`, `FileInsightFeedbackDataSource`, the two use cases, and their registration. That's a temporary file under UI tests and previews.
+  - half-life-28 relayed, at about 12:3x, that the owner confirmed to it one shared rule and stream for a caffeine night: caffeine at recorded onset, with a bedtime fallback. It would be published by half-life-ff's `SleepToleranceRepository` and read by the Sleep, Steps, and Resting heart rate screens. Card 1 keeps reading ff's `SleepCaffeineAnalysis`, because it needs each night's time asleep and only nights with a recorded onset. The AI asked that those nights be built with the same shared rule, so the numbers agree.
+  - half-life-ff settled its analysis's shape for card 1: `SleepCaffeineAnalysis`, through `ObserveSleepCaffeineAnalysisUseCase`. Its nights count only after 2 days of logged drinks, so the tool will word its uncounted nights as "no sleep was recorded, or no drinks were logged before them yet", to stay true.
+- **Slice B, the finding from half-life-ff's analysis, built test-first.** By `12:38`, half-life-ff's `SleepCaffeineAnalysis`, `SleepToleranceRule`, `SleepToleranceRepository`, and their registration had landed.
+  - Before changing its tests, the AI told the owner why. What a night is, its caffeine at onset, and the sleep read range move to half-life-ff's rule, under TOL-1 to TOL-10. The tests weren't wrong: the owner's decision moved the behavior they checked.
+  - The new `SleepPatternRuleTests` (PATTERN-1 to 6) build analyses directly. The red was confirmed in a scratch copy, as "extraneous argument label 'from:'". That copy left out half-life-e4's unfinished `StepsDetailFeature.swift` and `StepsDetailView.swift`, which didn't compile yet. A `zip` of mixed number literals in the test also timed out the type checker, so its cases got an explicit type.
+  - `SleepPatternRule.pattern(from:)` now takes the analysis's comparison of time asleep, and its threshold. Without a comparison, it counts the nights by their caffeine at onset, and they're too few.
+  - `SleepPattern.nightsWithoutSleep` became `uncountedNights`, because a night also goes uncounted before 2 days of logged drinks.
+- **Slice C, the model, first batch, built test-first.**
+  - By `12:51`, the AI had changed where `compareCaffeineTiming` gets its finding. It was going to read half-life-ff's repository, whose registration is private. Instead, the card's feature passes the finding it holds with the request, as an `InsightRequest`, and the tool reports that.
+    - So the model's words can't disagree with the card, and the model layer never reads ff's repository.
+    - The AI had asked half-life-ff to make its key internal, then withdrew the request.
+    - This departs from the Language Model article's decision that tools read repositories, so the AI will raise it with the owner.
+  - The tests are `InsightLanguageModelTests` (LMTOOL-10 and 11, LMSRC-4 to 6). The red was confirmed in a scratch copy, as missing `CaffeineTimingTool`, `InsightRequest`, `GeneratedInsight`, `Insight`, `insightText`, `insightPrompt`, and `insightTools(for:)`.
+  - Then came `Insight`, `InsightRequest`, `CaffeineTimingTool`, and `GeneratedInsight`. Also added: the instructions' `insightText(locale:)` and `insightPrompt(disagreement:)`, the format's `shortDay(_:)` and `count(_:)`, and the data source's `insightTools(for:)`.
+  - 23 tests in 3 suites passed at 12:48, with the language model's data source and format tests. That scratch copy stubbed the body of half-life-ff's `SleepCaffeineChart`, which timed out the type checker in the main tree. half-life-e4 reported that, and ff knew.
+  - The second batch covers the repository's `writeInsight(_:)` with the number check, `LanguageModelError.ungrounded`, `WriteInsightUseCase`, and `\.writeInsight`. Its tests and fakes are written first.
+- **Slice C, second batch, built test-first.**
+  - The tests are `LiveLanguageModelRepositoryInsightTests` (LMREPO-6 to 9), `WriteInsightUseCaseTests` (WRITE-1), and two new checks in `LanguageModelDependencyTests` (DEP-LM). The two language model fakes were extended too.
+  - The red was confirmed in a scratch copy, as "cannot find type 'WrittenInsight'".
+  - Then came:
+    - the data source's `writeInsight(_:)` and `WrittenInsight`
+    - the Foundation Models implementation, with guided generation into `GeneratedInsight`
+    - the repository's `writeInsight(_:)`, which executes `InsightNumberRule`
+    - `LanguageModelError.ungrounded`, `WriteInsightUseCase`, and `\.writeInsight`
+  - 43 tests in 10 suites passed at 12:53. The 4 known issues are the dependency tests' expected `reportIssue` calls.
+  - half-life-ff and half-life-e4 reported that the tree's targets didn't build while these red tests waited for their code. The AI apologized, and from now on lands tests in the tree together with their code, as they do.
+- **The owner's two answers, built.**
+  - `compareCaffeineTiming` reading the request is now a row in the Language Model article's decisions, and its two open items are gone.
+  - **The total nights, test-first.** The test gained a "Nights counted: 23." line. Its red was confirmed at 13:05, from its log's file time, in a scratch copy only, so the shared tree kept building. Then the test and the tool's new line landed together.
+    - The first run after that failed one test, `theToolLeavesOutUncountedNightsWhenThereAreNone`. It checked that no line held the word "counted", and the new line does. The behavior it guards didn't change: with every night counted, there's no line about uncounted nights. So the AI narrowed the check to that line's wording, "isn't counted" and "aren't counted", and said why before changing it.
+    - 32 tests in 5 suites passed at 13:08.
+  - The Insights article's sample tool text, and LMTOOL-10, include the total.
+- **Coordination.**
+  - A red run failed on a missing `HealthDataDetailViewAccessibilityID.swift`. The copy was taken just before `project.pbxproj` caught up, at 13:04.
+  - half-life-28 said half-life-ff retired card 4's generic detail screen once each kind had its own, and is updating the lines that name it. The AI left those lines to ff, and told it that INSIGHTS-4 and the UI-INS-12 known issue name the old screen too.
+- **Slice D's design.** By `14:03`, the owner had answered two questions, each time choosing the AI's recommendation:
+  - **One use case runs both rules.** `ObserveInsightCardUseCase` combines the Sleep screen's analysis, the "Feel right?" answers, and the model's availability. It runs `SleepPatternRule` and `InsightFeedbackRule`, and streams what the card shows. Like the resting heart rate comparison, it's an exception the owner approved, so the reducer holds no business rule. The alternative was a pattern stream on half-life-ff's repository.
+  - **The model under UI tests.** It's unavailable, so tests are deterministic, unless a new launch key swaps in a simulated model. That model writes a fixed insight from the tool's own facts. This closes the Language Model article's open UI-test item.
+  - half-life-ff reported that the demo gives card 1 a finding. With both demo switches on, its analysis has a tolerance, a comparison of time asleep, and about 27 nights.
+  - No feature reads the clock; only `SystemClockDataSource` does. So `RecordInsightFeedbackUseCase` will take the answer and get its time from `CurrentTimeRepository`, as `LogDrinkUseCase` does. FEEDUSE-2's input changes with it. The test wasn't wrong; the clock rule moves the timestamp into the use case.
+- **Slice D, first batch, built test-first.**
+  - The tests were staged in the scratchpad, not the tree: `ObserveInsightCardUseCaseTests` (CARD-1 to 6), the new FEEDUSE-2 in `InsightFeedbackUseCaseTests`, and DEP-CARD in `InsightFeedbackDependencyTests`. The red was confirmed at 14:06, from the log's file time, in a scratch copy, as "cannot find type 'InsightCard'".
+  - Then came:
+    - `InsightCard`
+    - `ObserveInsightCardUseCase`, which merges three streams and executes both rules
+    - `RecordInsightFeedbackUseCase`, which now takes the answer and reads its time from `CurrentTimeRepository`
+    - `\.observeInsightCard`, and `\.recordInsightFeedback` built with the current time repository
+  - `LanguageModelRepositoryKey` became internal, as half-life-ff's key did for the same reason.
+  - The tests landed in the tree with that code. 22 tests in 7 suites passed at 14:09. The 10 known issues are the dependency tests' expected `reportIssue` calls.
+  - Lint was clean once one registration line was rewrapped. Swift-format run from the scratchpad didn't find the project's configuration, so staged files are linted after they land.
+  - The Insights article gained CARD-1 to 6, DEP-CARD, and the new FEEDUSE-2. The Architecture article gained the use case's row, and names it as the rules' executor.
+- **Slice D, second batch, built test-first.**
+  - The tests were staged in the scratchpad: `WhatWeNoticedFeatureTests` (NOTICED-1 to 7), and INSIGHTS-7 added to a copy of `InsightsFeatureTests`. The red was confirmed at 14:13, from the log's file time, in a scratch copy, as "cannot find 'WhatWeNoticedFeature'".
+  - The first red also caught a mistake in the test: the `@MainActor` suite's helpers were used as default arguments, so they're `nonisolated` now.
+  - Then came `WhatWeNoticedFeature` and its place in `InsightsFeature`.
+    - It writes the insight once for each request, and drops an insight written for an earlier one.
+    - It records "Feel right?" answers, and follows the answers' stream rather than hiding itself.
+  - The new test file landed with the code. The scope test was re-inserted into the current `InsightsFeatureTests.swift` rather than copied over it, so a peer's edit wouldn't be lost.
+  - 16 tests in 2 suites passed at 14:15, and lint was clean.
+- **Slice D, third batch: the simulated model and the view.**
+  - **The simulated model, test-first.**
+    - The tests were staged: `SimulatedLanguageModelDataSourceTests` (SIMLM-1 to 3 and DEP-LM-UI), and LAUNCH-LM in a copy of `UITestLaunchConfigurationTests`. The red was confirmed as "cannot find type 'SimulatedLanguageModelDataSource'".
+    - Then came `LaunchEnvironmentKey.languageModel`, `UITestLaunchConfiguration.usesSimulatedLanguageModel`, `SimulatedLanguageModelDataSource`, and `LanguageModelRepositoryKey.makeLiveValue(configuration:)`.
+    - The first green run after landing didn't compile. The test's `#expect(text.contains(where: \.isNumber))` made the macro think the call could throw. That broke the shared test target for about a minute, until a closure replaced it. Then 20 tests in 6 suites passed.
+  - **The view, test-first through UI tests.**
+    - The card's identifiers were added to `InsightsViewAccessibilityID`, and `InsightsRobot+WhatWeNoticed.swift` and `WhatWeNoticedUITests` (UI-INS-13 to 17) were staged.
+    - At 14:28, the red was confirmed in a scratch copy. The four tests that expect the card failed waiting for it, and UI-INS-16, with no model, passed.
+    - Then came `WhatWeNoticedView`, placed first on the tab with its task started by `InsightsView`, and seven catalog keys.
+      - The catalog isn't in any one sort order, since sessions have added keys, so each key was inserted before the first key sorting after it. The write was checked to change nothing else.
+    - At 14:34, 4 of 5 passed: the finding with its demo label, "Yes" keeping it without the question, "Not really" hiding it, and no card without the model.
+    - UI-INS-17, the audit, failed on "Dynamic Type font sizes are partially unsupported". A probe in a scratch copy only, at 14:37, printed the one issue's element: the "Not really" button. The system's `.bordered` style doesn't let its label grow. Every other button in the app is `.plain` with its own label, so the answers are being rebuilt that way.
+  - half-life-e4 reported a full run of its scratch copy at about 14:03. All 1,273 unit tests passed. 5 of 80 UI tests failed, all known audit issues. Coverage was 92.90%.
+- **The answer buttons and the audit.**
+  - At 14:41, `.plain` buttons with wrapping titles still failed. The probe at 14:43 flagged "Not really" again: beside the question in a `ViewThatFits`, its title was measured at its ideal width and couldn't wrap.
+  - So "Feel right?" went on its own line, with each answer half the card's width. At 14:47, the first audit, which checks the card, passed.
+  - The second audit still failed. The probe at 14:49 showed it flags only the sleep window card's chart labels, "6:00 PM" and "4:00 AM", its footnote, and one issue with no element, at y 818 to 879.
+    - This is the known Insights audit issue. The shared helper tracks the collapsing large title, stops scrolling too soon, and leaves that card in the tab bar's fade, which now covers more of it because card 1 sits above it.
+    - The owner had chosen at 11:09 to record these audits and move on, so UI-INS-17 joins UI-INS-3 and UI-INS-8 in the Insights article's "Known issues". The AI didn't rework half-life-d8's helper.
+  - The other four card UI tests pass: UI-INS-13 to 16.
+- **Documentation, slice D.**
+  - The Language Model article gained a "UI tests" section, recording the owner's decision, with LAUNCH-LM, SIMLM-1 to 3, and DEP-LM-UI. Its open UI-test item is gone.
+  - The Insights article gained:
+    - UI-INS-13 to 17
+    - the card's identifiers
+    - slice 4 as built
+    - card 1's status and overview row as built
+    - UI-INS-17 in "Known issues"
+  - The Architecture article gained `SimulatedLanguageModelDataSource`'s row, and the language model repository's row names it.
+- **Final run.** At 15:00, a fresh scratch copy that stubs half-life-ff's chart ran every unit test, and the Insights and "What we noticed" UI tests.
+  - 1,299 unit tests in 237 suites passed. The 106 known issues are the expected `reportIssue` checks.
+  - 16 of the 18 UI tests passed. The 2 failures are the known audit issues, UI-INS-8 and UI-INS-17. UI-INS-3 passed this time.
+  - Coverage from that run was 72.80%. That isn't the required check, because it ran 18 of the roughly 80 UI tests. half-life-e4's full run at about 14:03 measured 92.90%. A full run follows the owner's next two changes.
+- **Checks so far.**
+  - DocC built at 14:53 with no warning from the app, in a scratch copy that stubs half-life-ff's chart.
+  - SwiftLint is clean across the tree. swift-format flags `LogDrinkIntent.swift` (18), `CutoffReminderFeature.swift` (1), and `SleepToleranceRuleTests.swift` (2), none of them card 1's. The AI told half-life-ff about its file.
+  - half-life-ff asked whether card 1 quotes the Sleep screen's sentences, which it's rewording. It doesn't.
+- **Documentation.**
+  - The Language Model article gained:
+    - "Writing an insight"
+    - `compareCaffeineTiming`'s row, and a note that it reads the request
+    - the entities, and the privacy and logging lines
+    - LMSRC-4 to 6, LMTOOL-10 and 11, LMREPO-6 to 9, WRITE-1, and the widened DEP-LM
+    - two open items for the owner
+  - The Architecture article gained `WriteInsightUseCase`'s row and `InsightNumberRule`'s executor, and its repository and data source rows now cover insights.
+  - The Insights article gained card 1's status and slices. half-life-28's new "Resting heart rate" section, which landed at the same time, is intact.
+- **Questions for the owner.** `13:04` The owner answered both, each time choosing the AI's recommendation:
+  - Keep `compareCaffeineTiming` reading the request. It's recorded as an owner decision in the Language Model article.
+  - Add the total to the tool, as a "Nights counted" line, so the model copies the sum rather than calculating it.
+  - Should `compareCaffeineTiming` keep reading the request instead of a repository?
+  - Should the tool's approved text gain the total nights? The rules ask the model to say how many nights, and a sum the tool didn't give fails the number check.
+- **Files:**
+  - Added: `Half-Life/Domain/Entities/SleepPattern.swift`, `Half-Life/Domain/BusinessRules/SleepPatternRule.swift`, and `Half-LifeTests/Domain/SleepPatternRuleTests.swift`.
+  - Added: `Half-Life/Domain/Entities/InsightFeedback.swift`, `Half-Life/Domain/BusinessRules/InsightNumberRule.swift`, `InsightFeedbackRule.swift`, `Half-Life/Domain/Repositories/InsightFeedbackRepository.swift`, and `Half-Life/Domain/UseCases/ObserveInsightFeedbackUseCase.swift` and `RecordInsightFeedbackUseCase.swift`.
+  - Added: `Half-Life/Data/DataSources/InsightFeedbackDataSource.swift`, `FileInsightFeedbackDataSource.swift`, `Half-Life/Data/Repositories/LiveInsightFeedbackRepository.swift`, and `Half-Life/App/Dependencies/InsightFeedbackDependencies.swift`.
+  - Added tests: the six files named above, `FakeInsightFeedbackDataSource.swift`, and `FakeInsightFeedbackRepository.swift`.
+  - Modified (the owner's answers): `CaffeineTimingTool.swift`, `InsightLanguageModelTests.swift`, `LanguageModel.md`, and `Insights.md`.
+  - Added (slice D, view): `Half-Life/Features/Insights/WhatWeNoticedView.swift`, `Half-Life/App/UITesting/SimulatedLanguageModelDataSource.swift`, `Half-LifeTests/App/SimulatedLanguageModelDataSourceTests.swift`, `Half-LifeUITests/WhatWeNoticedUITests.swift`, and `Half-LifeUITests/Robots/InsightsRobot+WhatWeNoticed.swift`. Modified: `InsightsView.swift`, `InsightsViewAccessibilityID.swift`, `LaunchEnvironmentKey.swift`, `UITestLaunchConfiguration.swift`, `LanguageModelDependencies.swift`, `UITestLaunchConfigurationTests.swift`, and `Localizable.xcstrings`.
+  - Added (slice D, feature): `Half-Life/Features/Insights/WhatWeNoticedFeature.swift` and `Half-LifeTests/Presentation/WhatWeNoticedFeatureTests.swift`. Modified: `InsightsFeature.swift` and `InsightsFeatureTests.swift`.
+  - Added (slice D): `Half-Life/Domain/Entities/InsightCard.swift` and `Half-Life/Domain/UseCases/ObserveInsightCardUseCase.swift`, and `Half-LifeTests/Domain/ObserveInsightCardUseCaseTests.swift`. Modified: `RecordInsightFeedbackUseCase.swift`, `InsightFeedbackDependencies.swift`, `LanguageModelDependencies.swift`, `InsightFeedbackUseCaseTests.swift`, and `InsightFeedbackDependencyTests.swift`.
+  - Added (slice C): `Half-Life/Domain/Entities/Insight.swift` and `InsightRequest.swift`, `Half-Life/Domain/UseCases/WriteInsightUseCase.swift`, `Half-Life/Data/DataSources/FoundationModels/GeneratedInsight.swift`, and `Tools/CaffeineTimingTool.swift`. Tests: `InsightLanguageModelTests.swift`, `LiveLanguageModelRepositoryInsightTests.swift`, and `WriteInsightUseCaseTests.swift`.
+  - Modified (slice C):
+    - `LanguageModelDataSource.swift`, `FoundationModelLanguageModelDataSource.swift`, `LanguageModelInstructions.swift`, and `LanguageModelFormat.swift`
+    - `LanguageModelRepository.swift`, `LiveLanguageModelRepository.swift`, `LanguageModelError.swift`, and `LanguageModelDependencies.swift`
+    - `FakeLanguageModelDataSource.swift`, `FakeLanguageModelRepository.swift`, and `LanguageModelDependencyTests.swift`
+    - `LanguageModel.md`
+  - Modified: `SleepPattern.swift`, `SleepPatternRule.swift`, and `SleepPatternRuleTests.swift` (slice B), plus `Insights.md`, `Architecture.md`, and `ai_log.md`.
+- **Verification:**
+  - **Slice C:** the whole unit test target ran in a scratch copy, and 1,264 tests in 228 suites passed at 13:01.
+    - The 99 known issues are the expected `reportIssue` checks.
+    - The copy stubbed the body of half-life-ff's `SleepCaffeineChart`, and left out half-life-e4's unfinished Steps screen.
+  - **Unit-only coverage of card 1's files:**
+    - 100%: `SleepPatternRule`, `InsightNumberRule`, `InsightFeedbackRule`, `LiveLanguageModelRepository`, and the use cases
+    - 89%: `CaffeineTimingTool`
+    - 97% to 98%: the instructions and the format
+    - 47%: `FoundationModelLanguageModelDataSource`, whose sessions need the real model
+  - **The app target's coverage** was 52.14% from unit tests alone. The required 80% check needs the full run with UI tests, which other sessions' unfinished code blocks.
+  - **DocC** built with no warning from this work. Its 30 app warnings name half-life-28's and half-life-e4's unfinished types.
+  - **Lint** was clean on every changed file.
+  - **Slice B: 28 tests in 7 suites passed at 12:41, slice B and the feedback batch, in a scratch copy with only those suites. The 2 known issues are the dependency tests' expected `reportIssue` calls. swift-format and SwiftLint were clean on the changed files. Before that, 31 tests in 8 suites passed at 12:3x, the feedback batch and slice A, in a scratch copy with only those suites. Lint was clean after four doc comments were rewrapped. Earlier, slice A: in a scratch copy with only its test suite: 9 tests passed, at 12:2x. swift-format lint `--strict` and SwiftLint `--strict` on its three files: clean. Two failed builds before that came from other sessions' changes landing mid-edit, `bedtimeCaffeine` and `restingHeartRates`. Both were fixed within a minute.
+- **Notes:** Not committed. UI tests will need a simulated language model, which the Language Model article lists as open. Measuring caffeine at the recorded sleep onset leaves out nights with no sleep recorded. The disliked finding's headline and sentence are stored with the answer, on the device only, so they can go into the next prompt.
+
+### 2026-09-13 11:16 -0400 — Build Insights' resting heart rate screen, and the tab's shared caffeine nights
+
+- **Started:** 2026-09-13 11:16 -0400
+- **Ended:** 2026-09-13 13:40 -0400
+- **Human:** Adam Ure
+- **AI tool / model:** Claude Code / Claude Opus 5
+- **Transcript:** `ai_transcripts/2026-09-13-1116-b9e80aec.md`
+- **Type:** change, planning, debugging
+- **Request:** Build the screen behind the third button on the Insights tab's Health data card (resting heart rate), which is shown when Health data exists. Its content was still to be designed with the owner.
+- **Interactions:**
+  - `11:16` The owner asked for "the 3rd submenu on the insights tab given that health data exists". The AI read it as the resting heart rate button, the third of sleep, steps, and resting heart rate, and said so in its first question.
+  - `12:03` The owner answered four design questions, each with the AI's recommendation. (1) Compare the next day's resting heart rate after nights with caffeine over the sleep threshold at bedtime against the other nights, over 30 days. The alternatives were a cup after the cutoff, or the day's total. (2) A headline difference, the two groups' averages, and a 30-day dot chart, over two averages alone or a scatter plot. (3) Confidence against the user's own spread: at least 5 days per group, and a "pattern" only beyond twice the standard error. The alternatives were a fixed 2 bpm, or no verdict. (4) A use case that combines two repositories' streams and executes the rule, over the Health repository reading the caffeine data, or a new repository.
+  - `12:30` half-life-1c relayed a decision the owner made in its session at about 12:20: one definition of a caffeine night for every Insights comparison. It's caffeine at the recorded sleep onset, falling back to the bedtime. The AI asked the owner to confirm it here rather than act on the relay. The owner confirmed the switch, and chose one shared stream, published by half-life-ff's SleepToleranceRepository, over a shared rule with separate streams.
+  - `13:07` The screen's accessibility audit failed only after scrolling to the end. Given the choice of recording it, investigating further, or fixing the Insights screens' bottom inset, the owner chose to record it as a known issue (the AI's recommendation).
+- **AI contribution:**
+  - **Design research.**
+    - Read the Insights article, the Health data repository and its extensions, the decay repository, and the demo script.
+    - Simulated the demo data in a scratch Python script before the owner chose. Under the bedtime split, 22 of 30 nights were over 40 mg, and the next day's resting heart rate was 2 bpm higher, beyond twice its standard error. Under the onset rule adopted later, it was 2.5 to 3.1 bpm at thresholds of 40 to 60 mg.
+  - **First design, built test-first.** Red was confirmed before each piece of code.
+    - `BedtimeCaffeineRule` (BEDCAF-1 to 4) and `RestingHeartRateComparisonRule` (RHRCOMP-1 to 7): 21 tests.
+    - A `bedtimeCaffeine` stream on the decay repository (BEDREPO-1 to 4).
+    - `HealthDataRepository.restingHeartRates`, in `LiveHealthDataRepository+RestingHeartRate.swift` (RHRREPO-1 to 6).
+  - **Reworked after the 12:30 decision.**
+    - Reverted every `bedtimeCaffeine` edit to the four decay files, which half-life-ff was waiting to edit, and deleted its tests.
+    - Folded `BedtimeCaffeineRule` into the shared `CaffeineNightRule` (CNIGHT-1 to 7), with `CaffeineNight` and `CaffeineNightHistory`. `isCaffeineNight` was added at half-life-e4's request, so no consumer writes its own comparison.
+    - Moved the comparison rule onto the caffeine nights. half-life-ff publishes them from SleepToleranceRepository (`caffeineNights(days:in:)`), feeding its recognised nights' onsets through the rule.
+  - **The use case and the screen,** test-first.
+    - `ObserveRestingHeartRateComparisonUseCase` (RHRUSE-1 to 3) merges the two repositories' streams, executes the rule on the latest of each, and sends only changes.
+    - `\.observeRestingHeartRateComparison` (DEP-RHRCOMP).
+    - `HeartRateDetailFeature` (RHRSCREEN-1), and the `.restingHeartRate` Path case and route (INSIGHTS-5).
+    - `HeartRateDetailView`: a headline, the two groups, a filled/hollow dot chart, and a footnote.
+    - `HeartRateDetailRobot` and `HeartRateDetailUITests` (UI-RHR-1 to 3).
+    - 20 String Catalog keys with translator comments, inserted as text, so Xcode's formatting was kept.
+  - **The audit, investigated.**
+    - Two probe UI tests, in a scratch copy only, isolated the failure. At rest, the audit passed. At the end of the scroll, the full audit timed out after 15 seconds. One audit type at a time, the contrast check flagged the footnote, which sat on the page gradient.
+    - After half-life-ff found that long text straight on the gradient fails and text on a card passes, the footnote moved onto a card, at about 13:25. The rerun at 13:38 no longer timed out, and the footnote passed. One issue remains: "Contrast nearly passed" on the chart card's "THE LAST 30 DAYS" eyebrow.
+  - **Mistakes, corrected.**
+    - swift-format run in the scratchpad couldn't find the repository's config, so six landed files had 2-space indentation until they were re-formatted in the tree. The first attempt to re-format silently did nothing, because zsh doesn't split an unquoted variable into words.
+    - Several type names broke SwiftLint's 40-character `type_name`. Test suites were renamed, the screen's types became `HeartRateDetail…`, and the dependency key became `HeartRateComparisonUseCaseKey`. `HeartRateDetailView` passed `type_body_length` once its chart and footnote moved into an extension.
+    - The mirror's list of peer files to drop went stale once half-life-e4 landed its Steps screen, and the first full run didn't build.
+  - **Coordination.**
+    - Agreed file ownership with half-life-ff (Sleep), half-life-e4 (Steps), and half-life-1c (card 1), with announce-before-editing on the four Health files, which the AI held and released.
+    - Tested in a mirror of the tree that drops peers' red-phase files, because the main tree's test target rarely compiled.
+- **Human changes:** Chose the comparison, layout, confidence rule, and architecture at 12:03; the shared caffeine night and its single stream at 12:30; and recording the audit failure at 13:07 (see Interactions).
+- **Files:**
+  - Added: `Half-Life/Domain/Entities/CaffeineNight.swift`, `RestingHeartRateHistory.swift`, and `RestingHeartRateComparison.swift`; `Half-Life/Domain/BusinessRules/CaffeineNightRule.swift` and `RestingHeartRateComparisonRule.swift`; `Half-Life/Domain/UseCases/ObserveRestingHeartRateComparisonUseCase.swift`; `Half-Life/Data/Repositories/LiveHealthDataRepository+RestingHeartRate.swift`; and `Half-Life/Features/Insights/HeartRateDetailFeature.swift`, `HeartRateDetailView.swift`, and `HeartRateDetailViewAccessibilityID.swift`.
+  - Added tests: `Half-LifeTests/Domain/CaffeineNightRuleTests.swift`, `RestingHeartRateComparisonRuleTests.swift`, and `ObserveHeartRateComparisonTests.swift`; `Half-LifeTests/Data/HealthDataRepositoryHeartRateTests.swift`; `Half-LifeTests/App/HeartRateComparisonDependencyTests.swift`; `Half-LifeTests/Presentation/HeartRateDetailFeatureTests.swift`; `Half-LifeUITests/HeartRateDetailUITests.swift`; and `Half-LifeUITests/Robots/HeartRateDetailRobot.swift`.
+  - Modified: `HealthDataRepository.swift`, `LiveHealthDataRepository.swift`, `HealthDataDependencies.swift`, `InsightsFeature.swift`, `InsightsView.swift`, `FakeHealthDataRepository.swift`, `InsightsFeatureTests.swift` (the resting heart rate lines moved from INSIGHTS-4 to INSIGHTS-5, because that button now pushes its own screen), `Robot.swift` (`Robots.all`), `project.pbxproj` (the identifier file's UI-test membership), `Localizable.xcstrings`, `Insights.md`, `Architecture.md`, and `ai_log.md`.
+  - Added, then removed within the task: the decay repository's `bedtimeCaffeine` stream and its tests, `BedtimeCaffeineRule`, `BedtimeCaffeineHistory`, and their tests.
+- **Verification:**
+  - **The full unit and UI run.** It ran in a scratch mirror of the tree taken at about 13:08, on the AI's own simulator, HalfLife-RHR, with `-parallel-testing-enabled NO`. The mirror drops other sessions' test files that don't compile.
+    - Unit: 1,273 tests in 233 suites, with 102 known issues and one unexpected failure. The failure was half-life-1c's `InsightLanguageModelTests.theToolLeavesOutUncountedNightsWhenThereAreNone`, its brief red, which 1c reports green since 13:08.
+    - UI: 69 of 80 passed. All 11 failures are accessibility audits. One is this screen's UI-RHR-2, in the snapshot from before the footnote's card. The other 10 are on screens this task didn't change: Today, the root, the drink history, Today with the Health card, the Insights tab (twice), the Sleep screen (before half-life-ff's fix), Settings (twice), and the Steps screen.
+  - **Coverage:** the Half-Life target is at 92.94% (17,532 of 18,864 lines).
+  - **This task's suites,** in the mirror:
+    - Unit: 46 tests in 7 suites passed: CaffeineNightRuleTests, RestingHeartRateComparisonRuleTests, HealthDataRepositoryHeartRateTests, ObserveHeartRateComparisonTests, HeartRateComparisonDependencyTests, HeartRateDetailFeatureTests, and InsightsFeatureTests. The earlier repository and rule runs had 81 and 32 tests passing.
+    - UI: UI-RHR-1 and UI-RHR-3 pass. UI-RHR-2 fails, as the known issue describes.
+  - **Lint:** `swift-format lint --strict` and `swiftlint lint --strict` on every file this task added or changed: clean.
+  - **Docs:** `xcodebuild docbuild` succeeded. No warnings came from this task's files or articles. 4 came from half-life-e4's Steps files, and the rest from package dependencies.
+- **Notes:**
+  - Not committed.
+  - **Known issue:** UI-RHR-2 still fails after scrolling to the end, on one "Contrast nearly passed", as recorded in the Insights article.
+  - **For the owner to confirm:** the 1 bpm floor on a pattern is the AI's addition. The screen shows whole bpm, so a smaller difference would read "+0 bpm".
+  - **Why `HeartRateDetail…`:** `RestingHeartRateDetailViewAccessibilityID` is 41 characters, one over SwiftLint's `type_name` limit.
+  - **Not done:** Accessibility Inspector hasn't been run on the screen, and it hasn't been tried on a device with real Health data.
+
+### 2026-09-13 11:16 -0400 — Build the Insights tab's Sleep screen, with a caffeine tolerance that sets the sleep threshold
+
+- **Started:** 2026-09-13 11:16 -0400 (the AI's first clock reading after the prompt)
+- **Ended:** 2026-09-13 13:46 -0400
+- **Human:** Adam Ure
+- **AI tool / model:** Claude Code / Claude Opus 5
+- **Transcript:** `ai_transcripts/2026-09-13-1116-e5ff84bf.md`
+- **Type:** change, planning, debugging
+- **Request:** Work on the first screen under the Insights tab's "Against your caffeine" card, the Sleep screen, given Health data from HealthKit.
+- **Interactions:** (times from the session transcript)
+  - `11:16` The owner asked for the first Insights submenu, given HealthKit data.
+  - `12:00` Answered four design questions. In place of the AI's options for how to split the nights, asked for two analyses: time asleep against the caffeine in the body at sleep start, giving a "caffeine tolerance" that drives the cutoff and the charts' threshold in place of the default (named as 45 mg; it's 40 mg in the app), and the time to fall asleep against the caffeine before sleep. Chose both measures, 5 nights in each group, and a scatter chart (the AI's recommendations for the last two).
+  - `12:12` Chose the tolerance's definition, where time asleep starts to drop, over the literal best level (which is almost always about 0 mg); limits of 20 to 80 mg either way; automatic adoption; and the demo's nights setting it. All four were the AI's recommendations.
+  - `~12:30` (relayed by half-life-28, from its own session; not typed in this one) The owner decided that one repository, this task's, publishes one "caffeine night" stream that every Insights comparison reads. half-life-1c relayed at about 12:2x that card 1 builds on this task's analysis.
+- **AI contribution:**
+  - **Design.** Read the sleep data model, the estimator, and the confidence rules, and asked two rounds of questions. Flagged that the tolerance is roadmap rank 22, "Personal sensitivity threshold", pulled forward, and the 45 mg vs 40 mg difference. The roadmap wasn't re-ranked.
+  - **Tests first.** Red was confirmed in scratch copies of the tree, because other sessions' red code often stopped the main tree's test build. The tests: `SleepToleranceRuleTests` (TOL-1 to TOL-11), `FileSleepToleranceDataSourceTests` (TOLFILE-1 to 4), `PersonalSleepThresholdDataSourceTests` (TOLSRC-1 to 3, THRESH-4), `LiveSleepToleranceRepositoryTests` (TOLREPO-1 to 7), `CaffeineNightsRepositoryTests` (TOLREPO-8 to 11), `CaffeineDecayRepositoryThresholdTests` (TOLDECAY-1, red at runtime), `SleepToleranceUseCaseTests` (TOLUSE-1 to 3), `SleepToleranceDependencyTests` (DEP-TOL), `AppFeatureSleepToleranceTests` (TOLAPP-1), `SleepDetailFeatureTests` (SLEEPSCREEN-1 to 3), and INSIGHTS-4 retargeted. `DemoSleepToleranceTests` (DEMOTOL-1) passed at once: it characterizes the demo, which already had a drop to find. UI-INS-11 and UI-INS-12 were retargeted to the new screen after the view was written, so they weren't red first.
+  - **Built.**
+    - Domain: `SleepTolerance`, `SleepCaffeineAnalysis` (with `SleepCaffeineNight` and `SleepComparison`), `SleepToleranceRule` (the nights, a hockey-stick fit for the tolerance, the comparisons, and every night's onset for `CaffeineNightRule`), `SleepToleranceRepository`, `ObserveSleepCaffeineAnalysisUseCase`, `ObserveCaffeineNightsUseCase`, and `KeepSleepToleranceCurrentUseCase`.
+    - Data: `SleepToleranceDataSource`, `FileSleepToleranceDataSource` (`SleepTolerance.json`, complete protection, left out of backups), `PersonalSleepThresholdDataSource`, a change signal on `SleepThresholdDataSource`, and `LiveSleepToleranceRepository` with two extension files. `LiveCaffeineDecayRepository` now recalculates when the threshold changes.
+    - App: `SleepToleranceDependencies.swift`, a shared `DemoHealthDataFlagDataSourceKey` in `HealthDataDependencies.swift`, the decay repository's personal threshold, and `AppFeature` keeping the tolerance current from launch.
+    - Presentation: `SleepDetailFeature`, `SleepDetailView`, `SleepDetailViewAccessibilityID`, `SleepCaffeineChart`, and the `.sleep` path case, route, and destination. UI tests: `SleepDetailRobot`, and UI-INS-11 and UI-INS-12 on the Sleep screen. 19 strings in the catalog.
+    - Docs: a "Sleep" section and its requirements in the Insights article, and updates to the Architecture and Caffeine Cutoff articles.
+  - **Coordinated** with half-life-e4 (Steps), half-life-28 (Resting heart rate), and half-life-1c (card 1). 28 wrote `CaffeineNightRule`, and this task published its stream. The repository key was made internal for 28's and e4's use cases, and the fake repository gained a `caffeineNights` closure. Once all three kinds routed to their own screens, with e4's and 28's agreement, this task deleted the generic `HealthDataDetail` screen, its robot, its route, `comingNext`, and its 3 catalog keys.
+  - **Found the cause of UI-INS-12's unexplained audit failure.** A probe of the audit helper, in a scratch copy only, printed the failing element: long body text straight on the page gradient fails the contrast audit wherever it sits, even in primary text. Text on a card's surface passes. The Sleep screen's footnote moved onto a card, and 28 applied the same fix to its screen.
+  - **Mistakes, corrected.**
+    - Red test files sat in the main tree for about 10 minutes each, around 12:30 and 12:50, and stopped other sessions' unit builds until their code landed. After that, red was confirmed only in scratch copies.
+    - A chart expression too complex to type-check, then an axis label of the wrong type, broke the main tree's app build for several minutes. e4 reported it.
+    - A missing `import OSLog` in the storage extension broke the build for about a minute.
+    - A doc edit left a 180-character line in `HealthDataDependencies.swift`. e4 reported it.
+    - A regex swallowed a line break in `Robots.all`, and a script that stopped partway left the generic screen half-deleted for about a minute.
+    - The first "no time in bed" note also showed with no nights at all, where it was untrue. It now shows only when there are nights, none with time in bed.
+- **Human changes:** The design decisions above.
+- **Files:**
+  - Added in `Half-Life/`: `Domain/Entities/SleepTolerance.swift`, `Domain/Entities/SleepCaffeineAnalysis.swift`, `Domain/BusinessRules/SleepToleranceRule.swift`, `Domain/Repositories/SleepToleranceRepository.swift`, `Domain/UseCases/ObserveSleepCaffeineAnalysisUseCase.swift`, `Domain/UseCases/ObserveCaffeineNightsUseCase.swift`, `Domain/UseCases/KeepSleepToleranceCurrentUseCase.swift`, `Data/DataSources/SleepToleranceDataSource.swift`, `Data/DataSources/FileSleepToleranceDataSource.swift`, `Data/DataSources/PersonalSleepThresholdDataSource.swift`, `Data/Repositories/LiveSleepToleranceRepository.swift`, `Data/Repositories/LiveSleepToleranceRepository+CaffeineNights.swift`, `Data/Repositories/LiveSleepToleranceRepository+Storage.swift`, `App/Dependencies/SleepToleranceDependencies.swift`, and in `Features/Insights/`: `SleepDetailFeature.swift`, `SleepDetailView.swift`, `SleepDetailViewAccessibilityID.swift`, and `SleepCaffeineChart.swift`.
+  - Added tests: the test files named above, `Half-LifeTests/Fakes/FakeSleepToleranceDataSource.swift`, `FakeSleepToleranceRepository.swift`, and `Half-LifeUITests/Robots/SleepDetailRobot.swift`.
+  - Deleted: `Half-Life/Features/Insights/HealthDataDetailFeature.swift`, `HealthDataDetailView.swift`, `HealthDataDetailViewAccessibilityID.swift`, and `Half-LifeUITests/Robots/HealthDataDetailRobot.swift`.
+  - Modified: `SleepThresholdDataSource.swift`, `StandardSleepThresholdDataSource.swift`, `LiveCaffeineDecayRepository.swift`, `CaffeineDecayDependencies.swift`, `HealthDataDependencies.swift`, `AppFeature.swift`, `InsightsFeature.swift`, `InsightsView.swift`, `HealthDataKindPresentation.swift`, `Localizable.xcstrings`, `project.pbxproj`, `FakeSleepThresholdDataSource.swift`, `AppFeatureWidgetTests.swift`, `InsightsFeatureTests.swift`, `InsightsUITests.swift`, `Robot.swift`, `Insights.md`, `Architecture.md`, `CaffeineCutoff.md`, and `ai_log.md`.
+- **Verification:**
+  - A full run in a scratch copy of the main tree, taken at 13:14:
+    - Unit: 1273 tests in 233 suites passed, with 102 known issues, the dependency tests' deliberate checks across the app.
+    - UI: 80 tests, 75 passed and 5 failed, all accessibility audits of other screens: UI-INS-8 and UI-RHR-2, recorded known issues; the Steps screen's, half-life-e4's work in progress; and the Today screen with the Health card (HUI-6) and Settings' "Caffeine and your body", which aren't recorded. This task changes none of those screens, and under UI tests the threshold stays at 40 mg, so the failures weren't investigated.
+    - Coverage of the `Half-Life` target: 92.93% (17565 of 18901 lines).
+  - The Sleep screen's UI-INS-11 and UI-INS-12 passed in the full run, and again at 13:45, after the last view change.
+  - swift-format lint `--strict` and SwiftLint `--strict`: clean on every file this task added or changed.
+  - `docbuild`: succeeded, with no warnings from the app's sources or catalog. The Point-Free packages' own documentation warnings remain.
+- **Notes:**
+  - Not committed.
+  - Still to decide, recorded in the Insights article: a minimum drop for the tolerance, how often it moves (it follows every change, where the estimate recalculates weekly), and that the time to fall asleep needs time in bed, which an Apple Watch alone usually doesn't record. These are the AI's choices, still to be confirmed.
+  - The roadmap's rank 22 is built early, at the owner's request. `roadmap.md` is unchanged, because only the owner re-ranks it.
+
+### 2026-09-13 14:12 -0400 — Document how the widgets behave, after the owner reported unlogged drinks
+
+- **Started:** 2026-09-13 14:12 -0400
+- **Ended:** 2026-09-13 15:00 -0400
+- **Human:** Adam Ure
+- **AI tool / model:** Claude Code / Claude Opus 5
+- **Transcript:** `ai_transcripts/2026-09-12-2317-91adaa48.md` (not yet exported; the name is the exporter's expected one)
+- **Type:** debugging, change (documentation)
+- **Request:** The owner reported that the One tap widget's buttons don't add drinks to the log, and asked for a sequence diagram of how the widgets behave.
+- **Interactions:**
+  - `14:12` The owner reported the fault and asked for the sequence diagram.
+  - `14:22` The owner said they'll test on a physical device, after the AI pointed out that widget intents are unreliable on the simulator.
+  - `14:57` The owner confirmed that One tap logs drinks on a physical device, and closed out the widgets as a task.
+- **AI contribution:**
+  - **Checked the code path.** `SwiftDataDrinkLogDataSource.store` saves each drink explicitly, so an autosave lost in a background launch isn't the cause. The app's `Info.plist` doesn't declare `NSSupportsLiveActivities`.
+  - **Searched Apple's developer forums.** It found reports of widget intents whose `perform()` never runs:
+    - when the app is alive in the background (thread 732771, unanswered);
+    - on iOS 18, until the intent adopts `LiveActivityIntent`, a fix reported for Live Activities (thread 758784);
+    - on the simulator (thread 735159).
+  - **Documented the sequences.** A "How the widgets behave" section in `Widgets.md` has three diagrams: a widget drawing, a tap as designed, and a tap lost in the widget extension. A table lists each place a tap can fail, A to G, with what the user sees and how to tell. The article's status now records the owner's report as undiagnosed.
+  - **Named its own weakness.** If the system performs `LogDrinkIntent` in the extension, the extension's copy, from the previous entry, throws without logging anything. That fits the report and can't be seen in Console. The AI suggested a `notice`-level log line there, and asked where the tap happened: a device or the simulator, and with Half-Life running, suspended, or force-quit.
+  - **Recorded the resolution.** The fault was the simulator, failure point C. `Widgets.md`'s status now says the widgets work on a device. WSPIKE-1 is answered yes, though the app states tried weren't recorded. WSPIKE-2 is answered "it seems not", as an inference: drinks are logged although the app doesn't declare `NSSupportsLiveActivities`, and the extension's copy of the intent can't log them. The AI also saved a memory: test widget taps on a device, not the simulator.
+- **Human changes:** The owner tested on a physical device and found the widgets work. The owner closed the task.
+- **Files:** `Half-Life/Documentation.docc/Widgets.md`, `ai_log.md`
+- **Verification:** `docbuild` gave 0 diagnostics for `Half-Life` and for `Half-LifeWidgets`, after each change to the article. The owner tested on a physical device. Documentation only, so no tests were run.
+- **Notes:**
+  - Not committed.
+  - Resolved: the report came from the simulator. No code changed.
+  - **Still open for the widgets:** WSPIKE-3 to WSPIKE-5, and the Accessibility Inspector check (WA11Y-1). The suggested log line in the extension's `perform()` wasn't added. It's no longer needed to diagnose this report, but the failure it would expose is still silent.
+
+### 2026-09-13 11:16 -0400 — Build the Insights tab's Steps screen: steps on the day after a caffeine night
+
+- **Started:** 2026-09-13 11:16 -0400
+- **Ended:** 2026-09-13 14:33 -0400
+- **Human:** Adam Ure
+- **AI tool / model:** Claude Code / Claude Opus 5 (session half-life-e4)
+- **Transcript:** `ai_transcripts/2026-09-13-1116-fd9690cb.md`
+- **Type:** change, planning, debugging
+- **Request:** Work on the second screen the Insights tab's Health data card opens, given that HealthKit data exists: the Steps screen, whose content the card 4 session left to be designed with the owner.
+- **Interactions:**
+  - `11:16` The owner asked for the second submenu of the Insights view, given Health data exists. The AI identified it as the Steps screen, the second of `HealthDataKind`'s cases.
+  - `12:03` (the AI's clock reading right after the answers) The AI asked four design questions, with the demo's numbers worked out from its scripts: late-cup days averaged 8,568 steps against 8,509, the day after a late cup 8,941 (10 days) against 8,321, and daily caffeine against steps gave r = 0.08. The owner chose all four recommendations. Compare the steps on the day after a late cup (90 mg or more from 3pm) with the other days. Show a verdict and a 30-day strip. Name a difference only beyond twice its standard error, with at least 5 days on each side. Keep the demo's steps with no link to caffeine.
+  - `12:12` The AI asked where the comparison is calculated, because `ObserveTimeOfDayUseCase` was then the only owner-approved use case that executes a rule. The owner chose a use case that combines the two repositories' streams.
+  - `12:23` half-life-1c relayed a decision the owner made in its session: every Insights comparison uses one "caffeine night", caffeine at the recorded sleep onset, or at bedtime without recorded sleep, over the sleep threshold. It reversed the 12:03 late-cup choice, so the AI confirmed with the owner directly, and the owner chose the unified caffeine night.
+  - `14:01` Given the diagnosis of the Steps screen's failing accessibility audit, the owner chose to record it as a known issue, over widening the shared audit helper's top exception or changing the layout.
+- **AI contribution:**
+  - **Tests first.** Each layer's tests were written and seen failing for the expected reason ("cannot find type…", "no member 'stepHistory'", "no member 'observeStepsComparison'") before its code, in scratch copies of the tree.
+    - `StepsComparisonRuleTests` (STEPSRULE-1 to 6), `HealthDataRepositoryStepHistoryTests` (STEPSREPO-1 to 6), `ObserveStepsComparisonUseCaseTests` (STEPSUSE-1 to 3), `StepsComparisonDependencyTests` (DEP-STEPS), `StepsDetailFeatureTests` (STEPSCARD-1), and `InsightsFeatureStepsTests` (INSIGHTS-6).
+    - `StepsDetailUITests` (UI-STEPS-1 to 3) with a new `StepsDetailRobot`. These weren't run before the screen existed, so their red wasn't observed.
+  - **Built.**
+    - `StepHistory`, and `HealthDataRepository/stepHistory(days:in:)`: the steps of each whole day before today, in `LiveHealthDataRepository+StepHistory.swift`, published on the summary's events and only when it changes.
+    - `StepsComparison` and `StepsComparisonRule`: each side's average and day count, and a verdict of too few days, no clear difference, or that many fewer or more steps, from Welch's standard error.
+    - `ObserveStepsComparisonUseCase`, which combines `SleepToleranceRepository/caffeineNights(days:in:)` (half-life-ff's) with the step history, the same way half-life-28's resting heart rate use case does.
+    - `StepsDetailFeature`, `StepsDetailView`, and `StepsDetailViewAccessibilityID`. The chart marks each day after a caffeine night with a moon symbol as well as color, and says what a caffeine night is with the threshold's amount.
+    - The `.steps` Path case, route, and destination, and 23 strings, with the catalog's first plural substitution, checked in the compiled `Localizable.stringsdict`.
+    - The Insights article's Steps section and requirements, the Architecture article's rows, and one wording, in four places, for the three owner-approved use cases that execute a business rule.
+  - **Coordinated** with half-life-28 (resting heart rate), half-life-ff (sleep), and half-life-1c (card 1) over every shared file. It held the four Health files while 28 edited them, announced each shared edit, and applied each through a script that re-read the file and checked its anchors. It retargeted the generic screen's tests (INSIGHTS-4, UI-INS-12) to sleep, and once all three kinds had their own screens, it suggested ff delete the generic screen, which ff did. It also fixed a detached doc comment in `InsightsFeature.Path`.
+  - **Debugged the audit.** A probe in a scratch copy of `Robot+TabBarAudit.swift` showed that the screen passes at rest, and that at the end of the scroll only the text just under the navigation bar fails, in its scroll-edge fade. The helper's top exception stops about 50 points short of the fade. The finding is recorded in the Insights article's Known issues, and shared with half-life-28, whose remaining failure fits it.
+  - **Mistakes, corrected.**
+    - At about 12:38, `StepsDetailFeature.swift` landed with a dependency key that didn't exist yet, and broke the app target in the main tree for every session. half-life-ff reported it. The AI parked its unbuildable files and red tests in its scratchpad within minutes, and from then on ran red and green only in scratch copies.
+    - The first swift-format run on the parked files used the default 2-space style, because they sat outside the repository. They were reformatted with the repository's `.swift-format`.
+    - The late-cup rule, its tests, a demo-data test, and the first use case tests were written for the 12:03 design, and were replaced after the 12:23 decision. The two stale test files were deleted before any commit.
+- **Human changes:** Chose the comparison, layout, confidence rule, and demo behaviour (12:03), the use case as the rule's home (12:12), the unified caffeine night over the late cup (12:23), and recording the audit failure (14:01).
+- **Files:**
+  - Added: `Half-Life/Domain/Entities/StepHistory.swift`, `Half-Life/Domain/Entities/StepsComparison.swift`, `Half-Life/Domain/BusinessRules/StepsComparisonRule.swift`, `Half-Life/Domain/UseCases/ObserveStepsComparisonUseCase.swift`, `Half-Life/Data/Repositories/LiveHealthDataRepository+StepHistory.swift`, and, in `Half-Life/Features/Insights/`, `StepsDetailFeature.swift`, `StepsDetailView.swift`, and `StepsDetailViewAccessibilityID.swift`.
+  - Added tests: `Half-LifeTests/Domain/StepsComparisonRuleTests.swift`, `Half-LifeTests/Domain/ObserveStepsComparisonUseCaseTests.swift`, `Half-LifeTests/Data/HealthDataRepositoryStepHistoryTests.swift`, `Half-LifeTests/App/StepsComparisonDependencyTests.swift`, `Half-LifeTests/Presentation/StepsDetailFeatureTests.swift`, `Half-LifeTests/Presentation/InsightsFeatureStepsTests.swift`, `Half-LifeUITests/StepsDetailUITests.swift`, and `Half-LifeUITests/Robots/StepsDetailRobot.swift`.
+  - Modified: `HealthDataRepository.swift`, `LiveHealthDataRepository.swift`, `HealthDataDependencies.swift`, `InsightsFeature.swift`, `InsightsView.swift`, `ObserveTimeOfDayUseCase.swift` (its doc comment), `FakeHealthDataRepository.swift`, `InsightsFeatureTests.swift` and `InsightsUITests.swift` (retargeted to sleep, later rewritten by half-life-ff), `Robot.swift`, `project.pbxproj`, `Localizable.xcstrings`, `Insights.md`, `Architecture.md`, `TodayScreen.md`, and `ai_log.md`.
+- **Verification:**
+  - **Full unit and UI run** in a scratch copy of the live tree, taken at about 14:03, with every session's work in it:
+    - Unit: 1,273 tests in 233 suites passed, with 102 known issues from `withKnownIssue` tests.
+    - UI: 80 tests, 75 passed, and 5 failed, all accessibility audits. UI-STEPS-3 is this task's, recorded as a known issue at the owner's decision. The heart rate screen's is half-life-28's, recorded. UI-INS-8 and Settings' Caffeine and your body were recorded earlier. The root screen's "Dynamic Type font sizes are partially unsupported" is on no screen this task changed, and has shown up in earlier entries. It wasn't investigated.
+  - **This task's suites:** 22 tests in 6 suites passed, with DEP-STEPS's 3 expected known issues. UI-STEPS-1 and UI-STEPS-2 passed.
+  - **Coverage:** the Half-Life target is at 92.90% (17,566 of 18,908 lines). `StepsDetailView` is at 94.11%.
+  - **Lint:** swift-format lint `--strict` and SwiftLint `--strict`, on every file this task added or changed, are clean.
+  - **Build:** no compiler warnings in this task's files. The run's warnings are all in other sessions' test files.
+  - **`xcodebuild docbuild`** succeeded, with no warnings from the Half-Life catalog.
+- **Notes:**
+  - Not committed.
+  - Known issue, recorded at the owner's decision: UI-STEPS-3, the screen's audit at the end of the scroll (see the Insights article). Widening the helper's top exception would likely fix it and half-life-28's UI-RHR-2 together, and needs the owner's approval.
+  - Not verified: what the demo's steps show under the caffeine-night definition. The owner's decision was that the demo's steps keep no link to caffeine. The 12:03 numbers were for the late-cup definition.
+
+### 2026-09-13 14:56 -0400 — Card 2's footnote, the cutoff warning's wording, and card 3's week
+
+- **Started:** 2026-09-13 14:56 -0400
+- **Ended:** 2026-09-13 17:19 -0400
+- **Human:** Adam Ure
+- **AI tool / model:** Claude Code / Claude Opus 5
+- **Transcript:** `ai_transcripts/2026-09-12-2243-db11f64a.md` (not yet exported; the name is the exporter's expected one)
+- **Type:** change
+- **Request:**
+  - Card 2's footnote says "Sleep studies suggest most people's sleep isn't measurably affected below about 35 mg", but that number follows the learned baseline. Say instead that the number comes from the trend in how long the user sleeps and how hard they find it to get to sleep, and that without a trend it's a value clinical sleep studies support for the average person.
+  - While that was being looked into, the owner also asked that card 3's last 7 days leave out today, because today has no sleep yet.
+- **Interactions:**
+  - `14:56` The AI found that the learned threshold comes only from the trend in time asleep. half-life-ff's `SleepToleranceRule` fits where time asleep starts to drop, and time to fall asleep doesn't set it. So a footnote naming both would overstate what the app knows. Card 2 also couldn't tell a learned threshold from the 40 mg default. The composer's cutoff warning says "Sleep studies suggest under" the same number.
+  - `14:59` The owner chose the AI's recommendations:
+    - The footnote names time asleep only. Learned: "35 mg is where your time asleep starts to drop, from the trend in your recent nights." Otherwise: "Until your nights show a trend, this is 40 mg, a level clinical sleep studies support for the average person."
+    - The cutoff warning changes the same way.
+  - Card 3 needed no question. The week ends yesterday, and yesterday is selected by default.
+  - `17:19` The owner asked the AI to wrap up its log. The full test run for coverage was still going.
+- **AI contribution:**
+  - **Design.**
+    - `SleepThreshold` gains a `source`: `.sleepStudies` for `standard`, and `.learned` for every threshold made from an amount. In production, those come only from the learned tolerance. So a learned 40 mg no longer equals the standard.
+    - Card 2's footnote and the composer's warning choose their wording from it.
+    - Card 3's two week use cases ask their repositories for 8 days, drop today, and send the 7 only when they change. The repositories keep one definition of a day.
+    - The view names the last day "Yesterday", and "Tonight" is gone. The column identifiers run from 1 to 7 days ago.
+  - **Staged tests.** Tests were staged in the scratchpad. Edits to existing test and robot files were written as scripts that re-apply to the current file, because peers edit some of them.
+    - The staged tests were THRESH-5, the rewritten WEEKUSE-1 and SLEEPUSE-1, UI-INS-4 to 7 changed to match the owner's new requirement, and new UI-INS-18 to 20.
+    - The composer's warning test gained a wording check.
+    - WEEKUSE-1, SLEEPUSE-1, and UI-INS-4 to 7 weren't wrong. The owner changed what the week holds.
+  - **Red.**
+    - At 15:05, in a scratch copy, as "value of type 'SleepThreshold' has no member 'source'".
+    - At 15:13, in a second copy without that suite:
+      - the week use cases got nothing, because they still asked for 7 days
+      - 6 UI tests failed for the expected reasons: "Today" was selected, 2 days ago landed on "Yesterday", the footnote had no identifier, and the warning still said "Sleep studies"
+      - UI-INS-20 passed already, because today's demo drinks also give a last cup
+  - **Checks before landing.** The green changes were written as scratchpad scripts, and dry-run on a copy: all applied, and lint was clean.
+    - A compile of that copy with the staged tests first failed on half-life-8a's new LAUNCH-SPLASH test, whose code landed minutes later. A fresh copy then built.
+    - The catalog script removed the two old sentences and "Tonight", added four sentences, and checked that nothing else changed.
+  - **Green, landed at 15:15.** The code and tests landed together, with the edit scripts re-applied to the current files, and two doc comments in `LastSevenDaysFeatureTests` updated.
+  - **Fixing the first green run's failures (15:24).**
+    - Three older unit tests, which the AI hadn't changed, failed: `taskReducesEachWeekInTheCalendarIntoState` and `taskReducesEachSleepHistoryInTheCalendarIntoState` in `LastSevenDaysFeatureTests`, and `lastSevenDaysActionsReachTheLastSevenDaysFeature` in `InsightsFeatureTests`. Their fake repositories answered only when asked for 7 days. What they check hasn't changed, so their fakes now answer for the 8 days to today, and they still expect the same 7.
+    - The composer's warning test failed on the AI's own new check. The warning read "Clinical sleep studies support under 40 mg for the average person.", which is right, but the check looked for lowercase "clinical". It's case-insensitive now.
+  - **Docs.**
+    - Insights: card 2's footnote, the week, WEEKUSE-1, SLEEPUSE-1, WEEKCARD-2 and 3, UI-INS-4 to 7, and UI-INS-18 to 20.
+    - Caffeine Cutoff: THRESH-5.
+    - Drink Composer: the warning's wording.
+    - Architecture: the two use case rows.
+  - **Coordination.**
+    - Told half-life-8a, which announced edits to the launch key files, `Architecture.md`, and `ai_log.md`, which files this change touches.
+    - Told half-life-ff about `SleepThreshold.source`. ff checked its tests against it, and they passed in the first green run.
+    - half-life-ce is replacing the age wheel with a date of birth. The AI told it there's no overlap, and when its catalog edits landed.
+  - **Card 1's model layer, changed by another session.** In the owner's "Audit the Foundation Models context budget" task (15:22), session `ccfc6117` found the likeliest cause of card 1 failing on the device: the model can call `compareCaffeineTiming` over and over until the 4,096-token window fills, and nothing capped the answer.
+    - The tree now has the fix it proposed: the facts go into the insight's prompt as `InsightFacts`, the session has no tools, the answer is capped at 150 tokens, and failures log their kind.
+    - The code comments say the owner approved moving the facts on 2026-09-13. `CaffeineTimingTool.swift` is gone.
+    - That replaces the tool-based design this AI built and the owner approved at 13:04, whose flaw it didn't foresee. The AI takes the change as the current state.
+- **Human changes:** The owner decided the footnote and the cutoff warning name time asleep only, with the wording above, and that card 3's week leaves out today. No code was edited by hand.
+- **Files:**
+  - Modified: `Half-Life/Domain/Entities/SleepThreshold.swift`, `Half-Life/Domain/UseCases/ObserveDrinkLogWeekUseCase.swift`, `ObserveSleepWeekUseCase.swift`, `Half-Life/Features/Insights/SleepWindowView.swift`, `LastSevenDaysView.swift`, `LastSevenDaysFeature.swift`, `InsightsViewAccessibilityID.swift`, `Half-Life/Features/DrinkComposer/CutoffWarningBanner.swift`, and `Half-Life/Localizable.xcstrings`.
+  - Modified tests: `Half-LifeTests/Domain/SleepThresholdTests.swift`, `ObserveDrinkLogWeekUseCaseTests.swift`, `ObserveSleepWeekUseCaseTests.swift`, `Half-LifeTests/Presentation/LastSevenDaysFeatureTests.swift`, and `InsightsFeatureTests.swift`.
+  - Modified UI tests: `Half-LifeUITests/InsightsUITests.swift`, `DrinkComposerUITests.swift`, `Robots/InsightsRobot.swift`, and `Robots/DrinkComposerRobot.swift`.
+  - Modified docs: `Insights.md`, `CaffeineCutoff.md`, `DrinkComposer.md`, `Architecture.md`, and `ai_log.md`.
+- **Verification:**
+  - Red, then green, in scratch copies that stub half-life-ff's chart, as above.
+  - Green: the first run, at 15:24, passed every other unit test and all 9 changed Insights UI tests. The rerun of the fixed tests, at 16:59, passed `LastSevenDaysFeatureTests` and `InsightsFeatureTests` (12 tests in 2 suites) and the composer's warning test. An earlier rerun was killed because the Mac ran low on memory: 17 simulators were booted, and several sessions were building at once.
+  - swift-format and SwiftLint were clean on every changed Swift file.
+  - DocC built at 15:21 with no warning from the app.
+  - **Coverage: not measured for this change.** A full run of every unit and UI test started at about 17:00, and was still going when the owner asked to wrap up. By 17:19, 30 UI tests had passed and 2 had failed (HealthCardUITests.testScrolledToTheEndTheCardClearsTheLogButton, HealthCardUITests.testTheTodayScreenWithTheCardPassesTheAccessibilityAudit). The unit tests had finished: Test run with 1329 tests in 244 suites passed after 19.243 seconds with 107 known issues..
+- **Notes:**
+  - Not committed. The transcript isn't exported yet.
+  - Still open: the full run's result, and the 80% coverage check that depends on it. half-life-e4's full run at about 14:03, before this change, measured 92.90%.
+  - Card 1's audit test, UI-INS-17, fails for the known Insights audit reason (see card 1's entry).
+
+### 2026-09-13 14:52 -0400 — Refine the Steps screen's caffeine-night wording and mark
+
+- **Started:** 2026-09-13 14:52 -0400
+- **Ended:** 2026-09-13 15:05 -0400
+- **Human:** Adam Ure
+- **AI tool / model:** Claude Code / Claude Opus 5 (session half-life-e4)
+- **Transcript:** `ai_transcripts/2026-09-13-1116-fd9690cb.md`
+- **Type:** change
+- **Request:** Reword the Steps screen's definition to "A caffeine night is one with more than your recommended caffeine in you when you fell asleep, or at your bedtime if Apple Health has no sleep that night", and mark the days after a caffeine night with a coffee cup, like the drinks use, instead of a sleep icon.
+- **Interactions:**
+  - `14:52` The owner asked for both changes.
+- **AI contribution:**
+  - **Test first.** UI-STEPS-4 checks the sentence through a new `verifyDefinesACaffeineNight()` on `StepsDetailRobot` and a new `definition` identifier. With only the identifier added, it failed on behaviour: the screen read "more than 40 mg of caffeine … when Apple Health has no sleep that night".
+  - **Changed.** The definition is now fixed text, with no amount. The chart's and legend's mark is `cup.and.saucer.fill`, the espresso drinks' symbol (drip coffee uses `mug.fill`), in place of `moon.zzz.fill`. The now-unused milligram format was removed.
+  - **Strings.** The old definition key was removed, and the new one added, with a comment that "your recommended caffeine" is the sleep threshold. The legend's comment was updated.
+  - **Docs.** In the Insights article, the verdict-card and chart bullets, a decision row, UI-STEPS-4, and the identifier list. In the Architecture article, the robot row.
+  - **Mistake, corrected.** The rewritten doc comment on `StepsDetailView` reached 151 characters. The lint step printed "lint ok" even though SwiftLint reported the violation, because the command didn't stop on it. It was caught in the output, the comment was rewrapped, and both linters returned 0 when checked explicitly.
+- **Human changes:** Chose the wording and the coffee cup.
+- **Files:** `Half-Life/Features/Insights/StepsDetailView.swift`, `Half-Life/Features/Insights/StepsDetailViewAccessibilityID.swift`, `Half-LifeUITests/Robots/StepsDetailRobot.swift`, `Half-LifeUITests/StepsDetailUITests.swift`, `Half-Life/Localizable.xcstrings`, `Half-Life/Documentation.docc/Insights.md`, `Half-Life/Documentation.docc/Architecture.md`, and `ai_log.md`.
+- **Verification:**
+  - These ran in a scratch copy of the live tree.
+    - UI-STEPS-1, UI-STEPS-2, and UI-STEPS-4 passed. UI-STEPS-3 failed as recorded (the known issue in the Insights article).
+    - `StepsDetailFeatureTests` and `InsightsFeatureStepsTests` passed.
+  - swift-format lint `--strict` and SwiftLint `--strict`, on every changed Swift file, are clean.
+  - `xcodebuild docbuild`, at about 15:00, failed to link the app, with no error from this task's files in its output, while other sessions were editing `SleepDetailView`, `SleepDetailFeature`, and `WhatWeNoticedView`. The same command succeeded at 15:05, with no warnings from the Half-Life catalog.
+  - Coverage wasn't re-measured. The 14:03 full run's 92.90% is from before this change, which removed one function and added one constant.
+- **Notes:**
+  - Not committed.
+  - `StepsComparison` still carries the threshold, which the screen no longer shows, so nothing reads it now. Removing it would change the rule's signature and its tests, so the owner can decide.
+  - Only the Steps screen was changed. The other Insights screens keep their own wording and marks.
+
+### 2026-09-13 15:03 -0400 — Design the app icon
+
+- **Started:** 2026-09-13 15:03 -0400
+- **Ended:** 2026-09-13 15:24 -0400
+- **Human:** Adam Ure
+- **AI tool / model:** Claude Code / Claude Opus 5
+- **Transcript:** `ai_transcripts/2026-09-13-1503-cb82096e.md`
+- **Type:** change, planning
+- **Request:** Help create an app icon for Half-Life.
+- **Interactions:**
+  - `15:03` The owner asked for help creating an app icon.
+  - `15:11` Shown three concepts, rendered in light, dark, and tinted (1: an espresso ground with a copper decay curve and a cream dot at the half-life point; 2: the same curve with a crescent moon for bedtime; 3: the app's cream canvas). The AI recommended 2. The owner chose to combine the moon and the dot.
+- **AI contribution:**
+  - **Format.** Built the icon as an Icon Composer document (`AppIcon.icon`), Xcode 26's first-party format for Liquid Glass icons, so iOS renders the light, dark, tinted, and clear appearances from one source. It replaces the template's `AppIcon.appiconset`, which held no images. The app folder is a synchronized group, so the project file wasn't edited. No third-party tools or assets were used. The layers are hand-written SVG, rendered for review with Xcode's `ictool` and laid out with a scratch Swift script.
+  - **Design.** An espresso gradient ground. One dose's caffeine curve (absorption, then first-order elimination) in copper, with a soft copper fill that fades to the baseline. A cream dot sits where half the dose is gone, and a cream crescent moon stands for bedtime above the tail. Colours come from the app's palette (`accentOnEmphasis`, `textOnEmphasis`, `textPrimary`).
+  - **Iterations.** Round 1's curve rose so steeply that it read as a "Λ". The rise was made gentler and drawn as an outlined shape. Icon Composer draws the first group in front, so the curve at first covered the dot, and the dot was moved into the front group. The fill's glass edge drew a line along the baseline, so the fill layer is flat, not glass.
+  - **Mistakes, corrected.** One contact sheet came out blank from a shell word-splitting error, and was rebuilt. The first Home Screen screenshots were taken while the simulator was still booting, and were retaken after `simctl bootstatus`.
+- **Human changes:** Chose the combined moon-and-dot design.
+- **Files:** `Half-Life/AppIcon.icon/icon.json`, `Half-Life/AppIcon.icon/Assets/{curve,area,dot,moon}.svg` (added), `Half-Life/Assets.xcassets/AppIcon.appiconset/Contents.json` (deleted, and staged by `git rm`), `ai_log.md`.
+- **Verification:**
+  - `xcodebuild build` for an iOS 26.5 simulator, with its own derived data, succeeded. `actool` compiled `AppIcon.icon` with no warnings.
+  - The built app's `Info.plist` names `AppIcon`. Its `Assets.car` holds the icon's Curve and Markers groups in light, dark, and tintable appearances, and the compiled `AppIcon60x60@2x.png` fallback shows the design.
+  - The Home Screen screenshots didn't show the icon, because the app was installed on a page the screenshot doesn't reach.
+  - No Swift changed, so there are no new tests, and coverage, lint, and the DocC build weren't re-run.
+- **Notes:**
+  - Not committed.
+  - To adjust the icon, open `Half-Life/AppIcon.icon` in Icon Composer. The scratch generator that wrote the SVGs wasn't added to `scripts/`, because scripts there must be written test-first.
+  - Check the icon on a device's Home Screen, in each appearance, before release.
+
+### 2026-09-13 15:22 -0400 — Audit the Foundation Models context budget
+
+- **Started:** 2026-09-13 15:22 -0400
+- **Ended:** 2026-09-13 15:35 -0400
+- **Human:** Adam Ure
+- **AI tool / model:** Claude Code / Claude Opus 5
+- **Transcript:** `ai_transcripts/2026-09-13-1522-ccfc6117.md`
+- **Type:** review, debugging
+- **Request:** Audit the app's use of Foundation Models, whose context window is 4,096 tokens for input and output together, so every prompt stays inside it.
+- **Interactions:**
+  - `15:22` The owner asked for the audit.
+  - `15:33` The owner said the main concern is the Insights tab's first card, which keeps failing with what looks like a context window error.
+- **AI contribution:**
+  - **Method.** A scratch Swift program copied the app's instructions, tool names, descriptions, `@Guide` schemas, and prompts, verbatim, with example tool output. It counted each part with `SystemLanguageModel.tokenCount(for:)`, and whole worst-case transcripts with `tokenCount(for: transcriptEntries)`, which includes the framework's formatting. This Mac's macOS 26.4 beta (25E5207k) doesn't export `tokenCount`, so the program ran in a dedicated iOS 26.5 simulator, created and deleted for this, with `simctl spawn`. The tokenizer worked there with Apple Intelligence off. `contextSize` read 4096. With Apple Intelligence off, no live session ran, so the owner's failure wasn't reproduced.
+  - **Fixed cost.** Question sessions (`AskHalfLifeIntent`): 931 tokens (22%) before any tool call. The five tool definitions are 697 of them, and `logDrink` alone is 251, for its 13-case drink enum. Insight sessions: 769 tokens (18%) with a disagreement, including the tool call, its output, and the answer.
+  - **Insights card 1.** A normal pass can't overflow. It takes about 25 repeated `compareCaffeineTiming` calls (4,081 tokens), or a sentence of about 1,700 words, to fill the window. So if the error is `exceededContextWindowSize`, the model is looping inside the session. No `GenerationOptions` caps the output anywhere in the app. Putting the facts in the prompt instead of a tool measured 655 tokens, and would leave nothing to loop on.
+  - **Questions.** A long question overflows. Seven days of `getDrinksOnDay` at 12 drinks a day is 81%, 14 days at 6 is 88%, and 30 days at 4 is 128%. The tool's guide allows up to 90 days ago, and nothing limits the calls. The question itself has no length limit: about 13,800 characters fill the window.
+  - **Other findings.** No code handles `exceededContextWindowSize` separately. The data source logs only the error's domain and code, so the failure's kind has to be decoded. The six tools the Language Model article lists as still to come would add about 100 to 180 tokens each to every question session.
+- **Human changes:** None.
+- **Files:** `ai_log.md`.
+- **Verification:** The token counts come from the framework's own tokenizer in the iOS 26.5 simulator. Tool output was example text sized like the tools' real output, not read from the app. No live model ran. No app code changed, so no tests, coverage, lint, or DocC build ran.
+- **Notes:**
+  - To confirm the card's cause, the owner can check the "Couldn't write an insight" line in the device's log. Domain `FoundationModels.LanguageModelSession.GenerationError` with code 0 would be `exceededContextWindowSize`, by Swift's default error bridging, and 2 would be `guardrailViolation`.
+  - At 15:43 the owner chose the first three proposals, which the next entry by this session built (Fix the Insights card's language model session). The card's failure turned out to be a refusal, not the context window. Proposed fixes, as written before that decision: facts in the insight's prompt instead of the tool (this changes LMSRC-6 and a recorded decision); a `maximumResponseTokens` cap; logging the error's case; a call budget and a line cap in the tools; a length limit on the question; and a Swift Testing budget test using `tokenCount`, which runs in the simulator without Apple Intelligence.
+  - half-life-ce asked whether this session edits its date-of-birth files. It doesn't, and the AI replied.
+
+### 2026-09-13 15:26 -0400 — Switch the bedtime to the system's compact time picker
+
+- **Started:** 2026-09-13 15:26 -0400
+- **Ended:** 2026-09-13 17:16 -0400
+- **Human:** Adam Ure
+- **AI tool / model:** Claude Code / Claude Opus 5
+- **Transcript:** The session `b9b42237`'s file in `ai_transcripts/`, written at the next export (not exported yet).
+- **Type:** change
+- **Request:** Replace the bedtime's custom picker with SwiftUI's `DatePicker`, showing only the time.
+- **Interactions:**
+  - `15:26` The owner asked for the change.
+  - `15:28` The AI pointed out that the system picker's inline wheel had failed the accessibility audit's Dynamic Type check on 2026-09-12, which is why the two wheels were built, and asked which style to use. The owner chose the compact style, which the AI recommended, over the inline wheel. The change covers onboarding's bedtime step and Settings' Bedtime screen, which had the same wheels.
+  - `17:16` The owner asked the AI to wrap up the log entry, while the full test run was still going.
+- **AI contribution:**
+  - `BedtimeView` and `BedtimeSettingsView` show a compact `DatePicker` with only the hour and minute, labeled "Bedtime", on a `surfaceCard` card. Its time zone is the calendar's, so the time it shows and the bedtime it saves agree.
+  - `OnboardingFormat.bedtime(at:in:)` turns the picker's date into a bedtime, dropping the seconds. The existing `date(for:in:)` turns the bedtime into the picker's date.
+  - Removed, now unused: `OnboardingFormat.hour` and `minute`, with their two tests, which tested only them; the `hourPicker` and `minutePicker` identifiers; and the "Hour" and "Minute" catalog keys. Settings gained a `picker` identifier.
+  - Both robots find the picker as a date picker, which the red run confirmed the wheels weren't.
+  - The Onboarding, Settings, and Architecture articles describe the picker, and record the decision.
+- **Human changes:** None.
+- **Files:** `Half-Life/Features/Onboarding/BedtimeView.swift`, `BedtimeViewAccessibilityID.swift`, `OnboardingFormat.swift`; `Half-Life/Features/Settings/BedtimeSettingsView.swift`, `BedtimeSettingsViewAccessibilityID.swift`; `Half-Life/Localizable.xcstrings`; `Half-Life/Documentation.docc/Onboarding.md`, `Settings.md`, `Architecture.md`; `Half-LifeTests/Presentation/OnboardingFormatTests.swift`; `Half-LifeUITests/Robots/BedtimeRobot.swift`, `BedtimeSettingsRobot.swift`; `Half-LifeUITests/SettingsUITests.swift`; `ai_log.md`.
+- **Verification:**
+  - Red: the new `OnboardingFormatTests` test failed to compile, because `OnboardingFormat` had no `bedtime(at:in:)`. UI-ONB-3 and UI-SET-6's Bedtime audit failed with "The bedtime picker didn't appear" and "The bedtime's time picker didn't appear", because the wheels weren't a date picker. Green: `OnboardingFormatTests` passed, all 6 tests. All 10 `OnboardingUITests` passed, including UI-ONB-3's accessibility audit of every step and UI-ONB-8 at the default and the largest text size, and so did UI-SET-6's Bedtime audit. So the compact picker passes the audit the inline wheel failed. In the full run, all 1,329 unit tests in 244 suites passed, with 107 known issues recorded by existing `withKnownIssue` tests.
+  - swift-format lint `--strict` and SwiftLint `--strict` found nothing in the changed files. SwiftLint reported two line-length violations in `TodayRobot+Health.swift`, another session's file.
+  - `docbuild` succeeded, with 0 diagnostics for the app and widget targets. Its 426 warnings are all in third-party packages.
+  - Coverage wasn't measured. When the entry was wrapped up, the full run with coverage was still going, so its result bundle couldn't be read. By then, 32 UI tests had passed and 4 had failed, all on screens this change doesn't touch: `Half_LifeUITests.testRootScreenPassesAccessibilityAudit`, `HealthCardUITests.testScrolledToTheEndTheCardClearsTheLogButton`, `HealthCardUITests.testTheTodayScreenWithTheCardPassesTheAccessibilityAudit`, and `HeartRateDetailUITests.testTheScreenPassesTheAccessibilityAudit`. The AI didn't investigate them.
+- **Notes:**
+  - Not committed.
+  - No UI test chooses a time. The compact picker's wheels open in a system popover whose elements have no identifiers the app can set, so a robot can't drive them under Article II.6. The reducers' tests cover saving a chosen bedtime.
+  - While this session worked, another session removed the half-life tests from `OnboardingFormatTests.swift` and moved `OnboardingFormat.hours` out of the file. That change isn't this session's.
+  - Another session's write put the removed "Hour" and "Minute" keys back in `Localizable.xcstrings` once. The AI removed them again.
+  - Other sessions' unfinished changes stopped the test builds four times: a missing `SettingsViewAccessibilityID.appVersion`, a missing `InsightFacts`, a deleted `CaffeineTimingTool.swift` the project still listed, and a missing `CaffeineDecayFeature.State.timeSpan`. The AI ran the UI tests through a personal, git-ignored scheme with only the app and the UI test target, which the unit tests' errors can't stop.
+  - Still to do before the change is done: finish the full run and check that the app target's coverage is at least 80%. The full run's result bundle is `build/DatePicker-full.xcresult`, and its log is `build/DatePicker-full.log`. The personal scheme `HalfLife-UITests-DatePicker` and the simulator `HalfLife-DatePicker` are still in place.
+
+### 2026-09-13 15:03 -0400 — Add a launch splash screen
+
+- **Started:** 2026-09-13 15:03 -0400
+- **Ended:** 2026-09-13 17:17 -0400
+- **Human:** Adam Ure
+- **AI tool / model:** Claude Code / Claude Opus 5
+- **Transcript:** `ai_transcripts/2026-09-13-1502-f8c75e25.md`
+- **Type:** change
+- **Request:** Create a reasonable splash screen for the app while everything loads.
+- **Interactions:**
+  - `15:03` The owner asked for a splash screen shown while the app loads. No design was specified, so the AI made the design decisions, recorded in the new Splash Screen article as the AI's, not reviewed by the owner.
+  - `17:17` The owner asked the AI to wrap up this entry while the full test run was still going.
+- **AI contribution:**
+  - **Design.** iOS's launch screen (`UILaunchScreen` in `Info.plist`) now draws the page color, `backgroundCanvasTop`, with a new brand mark in the middle. A new `SplashView` draws the same color and the same mark at the same size and place, so the handover is invisible. It shows over the root while `AppFeature.State.isLaunching` is true, which means the first profile or the app lock hasn't arrived yet. If the launch takes longer than 0.6 s, the app's name and a `ProgressView` fade in beneath the mark, and when both have arrived the splash fades into the app over 0.25 s. There's no minimum display time, so one-tap logging is never delayed.
+  - **Brand mark.** `Assets.xcassets/Images/brandMark.imageset/brandMark.svg`, 120 × 60 pt, generated by a scratch Python script from a one-compartment absorption and elimination curve (a flat line, the rise, the peak dot, the long fall), in `AccentColor` and `textPrimary`. It's first-party, with no third-party assets. The curve measures 3.4:1 against the page, above the 3:1 that graphics need. The first draft peaked too close to its left edge and was redrawn with a flat pre-drink baseline.
+  - **Tests (red, then green).** `AppFeatureSplashTests` (SPLASH-1). `UITestLaunchConfigurationTests` gained LAUNCH-SPLASH, and `AppLockDependencyTests` gained LOCKSIM-2. The new `SplashRobot` and `SplashUITests` (UI-SPLASH-1, UI-SPLASH-2) cover the rest. To test the splash, a new launch key, `HALF_LIFE_UI_TEST_LAUNCH=held`, swaps in `HeldAppLockSettingDataSource`, which never answers, so the splash stays up for the robot and the accessibility audit. `launchHoldingTheSplash()` is in `Robot.swift`.
+  - **Problems found by the tests.** (1) Inside the root's `appView.screen` container, the splash was merged into it and lost its identifier, the same trap the lock screen hit. (2) As an overlay, it took the empty container's zero size, and the audit failed with "Text clipped". The root now puts the container and the splash side by side in a `ZStack`.
+  - **Docs.** Added the Splash Screen article and listed it in the catalog. Updated Architecture (folder structure, robots, and the AppFeature row), Design System (the brand mark), Onboarding (the root, ONB-2), and App Lock ("nothing is ever shown before the lock"). Doc comments in AppFeature and AppView no longer say "only its background".
+  - **Coordination.** Told half-life-e4, -ff, and -1c which shared files would change. Answered half-life-ce (no overlap with its date-of-birth work) and half-life-88, which now draws `brandMark` at its natural size on Welcome and, at the owner's request, on the lock screen. The Splash Screen article notes that a change to the mark changes every screen that draws it. Other sessions' in-progress changes broke the shared build three times (`OnboardingFormatTests`, then the language model tests' `InsightFacts`, then `SettingsRobot`'s `appVersion`), so the UI tests ran through a personal, git-ignored scheme (`HalfLife-UITests-Splash`) with only the app and the UI tests.
+- **Human changes:** None.
+- **Files:** Added `Half-Life/Features/Splash/SplashView.swift`, `Half-Life/Features/Splash/SplashViewAccessibilityID.swift`, `Half-Life/Assets.xcassets/Images/Contents.json`, `Half-Life/Assets.xcassets/Images/brandMark.imageset/{Contents.json,brandMark.svg}`, `Half-Life/Documentation.docc/SplashScreen.md`, `Half-LifeTests/Presentation/AppFeatureSplashTests.swift`, `Half-LifeUITests/Robots/SplashRobot.swift`, and `Half-LifeUITests/SplashUITests.swift`. Modified `Half-Life/App/AppFeature.swift`, `Half-Life/App/AppView.swift`, `Half-Life/App/Dependencies/AppLockDependencies.swift`, `Half-Life/App/UITesting/{LaunchEnvironmentKey,UITestLaunchConfiguration,SimulatedAppLockDataSources}.swift`, `Half-Life/Info.plist`, `Half-Life.xcodeproj/project.pbxproj` (UI-test membership for the identifiers file), `Half-LifeTests/App/{UITestLaunchConfigurationTests,AppLockDependencyTests}.swift`, `Half-LifeUITests/Robots/Robot.swift`, `Half-Life/Documentation.docc/{Documentation,Architecture,DesignSystem,Onboarding,AppLock}.md`, and `ai_log.md`.
+- **Verification:**
+  - Unit: red first (build failed on the missing `isLaunching`, `holdsLaunch`, launch key, and held data source). Then `AppFeatureSplashTests`, `UITestLaunchConfigurationTests`, and `AppLockDependencyTests` passed: 14 tests in 3 suites.
+  - UI: red first ("Expected SplashRobot, but AppRobot is showing"), then "Text clipped" from the overlay. Both `SplashUITests` then passed.
+  - A screenshot of the held splash on the iPhone 17 Pro simulator shows the mark in the middle of the screen, with the name and the indicator below it.
+  - The built `Info.plist` holds `UILaunchScreen` with `UIColorName` `backgroundCanvasTop` and `UIImageName` `brandMark`.
+  - swift-format lint `--strict` and SwiftLint `--strict` are clean on the changed files. `docbuild` succeeded with 0 diagnostics for `Half-Life` and `Half-LifeWidgets`.
+  - **Full run: not finished when the entry ended.** Other sessions' in-progress changes stopped the shared build until 16:44. The first full run from that build was killed by the system for low memory, after 11 UI tests had passed with no failures. A second run, from the same build, was still going at 17:17. By then 45 tests had passed and 3 UI tests had failed:
+    - `HealthCardUITests.testScrolledToTheEndTheCardClearsTheLogButton`: scrolled to the end, the Apple Health card ends at y 707, inside the tab bar's fade, which starts at y 693.
+    - `HeartRateDetailUITests.testTheScreenPassesTheAccessibilityAudit`: "Contrast failed", in the second audit of `auditAccessibilityAboveTheTabBar()`.
+    - `InsightsUITests.testWithSleepInHealthInsightsPassesTheAccessibilityAudit`: "Contrast failed", in the same audit.
+    - None of the three was rerun on a build without the splash, so none is attributed to this change or cleared of it. Each fails after launch and navigation, long after the splash has gone. The first is in another session's new, uncommitted Health card files, edited at 15:58 and 16:01.
+  - **Coverage: not measured.** The Definition of Done's 80% check is still open.
+- **Notes:**
+  - Not committed.
+  - Still open before a commit: finish the full run and the coverage check, and rerun the three failing UI tests on a build without the splash to find out whether they belong to this change.
+  - The transcript will be re-exported before any commit, so it covers this entry's full session.
+  - iOS's launch screen can't be tested automatically. Check on a device that it hands over to the splash with no jump, deleting the app first because iOS caches launch screens.
+  - The build setting `INFOPLIST_KEY_UILaunchScreen_Generation = YES` adds an empty nested `UILaunchScreen` dictionary beside the new keys in the built `Info.plist`. iOS ignores it, so the shared build setting was left alone.
+  - When dark mode is built, `brandMark` needs a dark variant.
+
+### 2026-09-13 15:31 -0400 — Replace Welcome's SF Symbol with the brand mark
+
+- **Started:** 2026-09-13 15:31 -0400
+- **Ended:** 2026-09-13 16:12 -0400
+- **Human:** Adam Ure
+- **AI tool / model:** Claude Code / Claude Opus 5
+- **Transcript:** `ai_transcripts/2026-09-13-1531-fd4fc002.md`
+- **Type:** change
+- **Request:** Replace the SF Symbol of a trend chart on onboarding's first screen with a real image.
+- **Interactions:**
+  - `15:31` The owner asked for the change.
+- **AI contribution:**
+  - **The image.** Welcome now draws `Image(.brandMark)`, the image set the splash-screen session (half-life-8a) added the same day: one cup's decay curve with a dot at the peak, the prototype's welcome logo. It replaces `Image(systemName: "chart.line.downtrend.xyaxis")`. The AI chose it without asking, because it's the app's only first-party illustration and matches screenshot 01. It stays hidden from VoiceOver, because it's decorative. It's drawn at its natural 120 × 60 pt, on onboarding's solid page (`backgroundCanvasTop`), where the Splash Screen article measures its curve at 3.4:1.
+  - **Coordination.** Told half-life-8a, which owns the asset. It confirmed it won't change the mark's size or colors, and asked that the asset itself not be resized. It wasn't.
+  - **Docs.** Onboarding's prototype table and the Design System article's brand-mark bullet name Welcome as a user of the mark. `WelcomeView`'s doc comment says what its logo is.
+  - **No new test.** The mark is hidden from VoiceOver, so it isn't in the accessibility tree, and no robot can find it. The Splash Screen article leaves its mark untested for the same reason. The existing Welcome tests cover the screen around it.
+- **Human changes:** None
+- **Files:** `Half-Life/Features/Onboarding/OnboardingView.swift`, `Half-Life/Documentation.docc/Onboarding.md`, `Half-Life/Documentation.docc/DesignSystem.md`, `ai_log.md`.
+- **Verification:**
+  - swift-format lint `--strict` and SwiftLint `--strict` on `OnboardingView.swift` were clean after the change, at 15:36.
+  - UI-ONB-1 (`testSkippingEveryStepReachesToday`) and UI-ONB-8 (`testEveryStepScrollsOnlyVertically`, and with the largest text) passed, on a dedicated simulator with its own derived data.
+  - UI-ONB-3 (`testEveryStepPassesTheAccessibilityAudit`) passed Welcome's, About you's, and the factors step's audits, then failed at the bedtime step: "The bedtime picker didn't appear" (`OnboardingUITests.swift:216` in the build that ran). The session `b9b42237` was replacing that picker with a `DatePicker` at the time (entry "Switch the bedtime to the system's compact time picker", still pending). This task didn't touch the bedtime step.
+  - `xcodebuild docbuild` first failed at about 15:45 on `FactorsSettingsView.swift:135` ("cannot find 'metricSize' in scope"), another session's file, which was fixed at 15:44. The re-run succeeded, with 0 diagnostics for `Half-Life` and `Half-LifeWidgets`.
+  - Coverage wasn't re-measured. The most recent full run, 92.90%, is from before this change, which replaces one `Image` in a view and adds no lines.
+  - **Not seen on screen.** The app installed on the simulator, but `simctl launch` hung twice without bringing it forward, so there's no screenshot. The UI tests launched it and drove Welcome.
+- **Notes:**
+  - Not committed.
+  - While this task ran, another session reworded Welcome's footer in the same file. That edit isn't part of this entry.
+  - Check Welcome in the `OnboardingView` preview or on a device. If the mark looks too large or small beside the title, scale it in `WelcomeView`, not in the asset, which the launch and splash screens share.
+
+### 2026-09-13 14:47 -0400 — Reword the Sleep screen's analysis, and give it a card above both charts
+
+- **Started:** 2026-09-13 14:47 -0400 (the AI's first clock reading after the prompt)
+- **Ended:** 2026-09-13 16:14 -0400
+- **Human:** Adam Ure
+- **AI tool / model:** Claude Code / Claude Opus 5
+- **Transcript:** `ai_transcripts/2026-09-13-1116-e5ff84bf.md`, and `ai_transcripts/2026-09-13-1116-9ce469dd.md` after the session resumed
+- **Type:** change
+- **Request:** The owner reviewed the Sleep screen and liked the time asleep analysis. They asked to remove "Your cutoff now uses 35 mg instead of the standard 40 mg", and to add that sleep quality is affected by many factors, but the trend is that on nights with more than x mg in the body at sleep, "you sleep more". Mid-task, they asked to split the analysis out of the time asleep chart's card, because it draws on both charts, and to make its message refer to both.
+- **Interactions:**
+  - `14:47` The owner asked for the wording change.
+  - `~14:48` (the AI's clock read 14:48 right after) Asked two questions. The tolerance exists only when time asleep falls above it, so "you sleep more" would contradict the analysis. The owner chose "you sleep less". The owner also chose to drop the cutoff from the no-drop sentence. Both were the AI's recommendations.
+  - `~14:5x` (between the AI's clock readings at 14:48 and 14:58) Asked, mid-task, for the analysis to have a card of its own above both charts, with a message about both. Asked how to describe the time to fall asleep, the owner chose "longer" or "shorter" only beyond 5 minutes, and "about as quickly" otherwise (the AI's recommendation).
+- **AI contribution:**
+  - **Tests first, red in a scratch copy.**
+    - `SleepDetailViewTextTests` (SLEEPSCREEN-4): the hedged sentence with a tolerance, both charts described, no mention of the cutoff in any combination, and the too-few-nights sentence naming both measures. The first version was red on the old wording, and was rewritten after the owner's second request.
+    - `SleepDetailFallingAsleepTests` (SLEEPSCREEN-5): the 5-minute band. It was red, because `FallingAsleep` didn't exist.
+  - **Built.**
+    - `SleepDetailFeature.FallingAsleep`, `fallingAsleepBand`, and `State.fallingAsleep`.
+    - An analysis card, "What your nights show", above the two chart cards, with the headline and a sentence from nine full sentences: 4 with a tolerance, 4 without a drop, and 1 for too few nights. Each is a whole localized sentence, so translators see it entire. The time asleep card now holds only its chart and averages.
+    - The screen's text moved into `SleepDetailView+Text.swift`, and the sentence function split into one helper per finding, for SwiftLint's function and type body limits.
+    - `SleepDetailViewAccessibilityID.analysisCard`. The catalog lost 3 old sentences and gained 10 keys.
+    - The Insights article's Sleep section: the owner's two decisions, the analysis card, the new sentences, the identifiers, and SLEEPSCREEN-4 and 5. `analysisCard` was added to the Architecture article's robot row.
+  - **Also fixed** 2 swift-format violations in `SleepToleranceRuleTests.swift`, left by this session's earlier edits, which half-life-1c reported.
+- **Human changes:** The wording, the direction ("less"), dropping the cutoff from both sentences, the separate card, and the 5-minute band (see Interactions).
+- **Files:**
+  - Added: `Half-Life/Features/Insights/SleepDetailView+Text.swift`, `Half-LifeTests/Presentation/SleepDetailViewTextTests.swift`, and `Half-LifeTests/Presentation/SleepDetailFallingAsleepTests.swift`.
+  - Modified: `SleepDetailFeature.swift`, `SleepDetailView.swift`, `SleepDetailViewAccessibilityID.swift`, `Localizable.xcstrings`, `SleepToleranceRuleTests.swift` (formatting only), `Insights.md`, `Architecture.md`, and `ai_log.md`.
+- **Verification:**
+  - In scratch copies:
+    - The Sleep suites and `InsightsFeatureTests` (23 tests), with UI-INS-11 and UI-INS-12, passed.
+    - After the text moved into its extension, 16 tests and UI-INS-11 passed again.
+  - A full run in a scratch copy of the main tree, taken at 15:04:
+    - Unit: 1309 tests in 239 suites passed, with 106 known issues.
+    - UI: 86 tests, 80 passed and 6 failed, all accessibility audits of other screens. Five are the same as in the previous run: UI-INS-8, UI-RHR-2, the Steps screen's, the Today screen with the Health card, and Settings' "Caffeine and your body". The sixth is half-life-1c's new "What we noticed" card. The Sleep screen's UI-INS-11 and UI-INS-12 passed.
+    - Coverage of the `Half-Life` target: 93.14% (18124 of 19458 lines).
+  - swift-format lint `--strict` and SwiftLint `--strict`: clean on every file this task changed.
+  - `docbuild`: succeeded, with no warnings from the app's sources or catalog.
+- **Notes:**
+  - Not committed.
+  - The cutoff still follows the tolerance. Only the screen stopped saying so.
+
+### 2026-09-13 15:48 -0400 — Strip CloudKit from the SwiftData stores
+
+- **Started:** 2026-09-13 15:48 -0400
+- **Ended:** 2026-09-13 17:17 -0400
+- **Human:** Adam Ure
+- **AI tool / model:** Claude Code / Claude Opus 5
+- **Transcript:** The session `0730974b`'s file in `ai_transcripts/`, written at the next export (not exported yet).
+- **Type:** change
+- **Request:** CloudKit is deferred, so strip every CloudKit implementation from what's stored with SwiftData, named as the user profile and the drink log.
+- **Interactions:**
+  - `15:48` The owner asked for CloudKit to be stripped from the SwiftData stores.
+  - `17:16` The owner asked the AI to wrap up with this entry, before the red step had been observed.
+- **AI contribution:**
+  - **Scope.** Only the drink log uses SwiftData. The user profile is `Profile.json`, written by `FileProfileDataSource`, and it never synced, so it had nothing to strip.
+  - **Configuration.** Removed `aps-environment`, `com.apple.developer.icloud-container-identifiers`, and `com.apple.developer.icloud-services` from `Half-Life.entitlements`, and `UIBackgroundModes` (`remote-notification`) from `Info.plist`. No code registers for remote notifications. The HealthKit and App Group entitlements are unchanged.
+  - **Data source.** Extracted `SwiftDataDrinkLogDataSource.makeModelConfiguration(isStoredInMemoryOnly:)`, so a test can read the configuration without opening the store. It still passes `.automatic`. The change to `.none` wasn't made, because the red step was never observed (see Verification). With no iCloud container in the entitlements, `.automatic` keeps the store local, so the store no longer syncs. `.none` would make that explicit.
+  - **Test.** Added SRC-11, `devicesStoreNeverSyncsToCloudKit`: the device store's configuration isn't in memory, and names no CloudKit container.
+  - **Copy.** The Welcome footer now reads "Your caffeine and health data stays on this iPhone. No account needed." The demo drinks' footnote no longer says they sync to iCloud. Both String Catalog keys were replaced, with new translator comments.
+  - **Docs.** Updated the Architecture ("Data sources" and "Data and privacy"), Drink Composer (the SRC-11 row, and a "CloudKit sync is deferred" privacy bullet that lists what CloudKit backup, roadmap rank 23, must restore), Settings, Onboarding, Today Screen, and Widgets articles. Updated the doc comments in `DrinkRecord`, `DrinkLogDataSourceDependencies`, and `SwiftDataDrinkLogDataSource`, and three test comments. `DrinkRecord` still follows CloudKit's model rules, so sync can return without a migration.
+  - **Left alone.** Constitution Article V.1 and `CLAUDE.md`'s privacy bullet allow the drink log's sync but don't require it. Changing the constitution needs an explicit request. Also left alone: roadmap rank 23, the Health purpose strings (still true), and the Widgets article's record of a rejected alternative.
+  - **Mistakes.**
+    - The AI edited the entitlements file while its own `docbuild` was running. That build failed with "Entitlements file was modified during the build". Any peer build running then would have failed the same way, so the AI told six sessions.
+    - The AI told five sessions that half-life-9d's `AppVersion` type didn't exist. Its search missed it: the type had landed at about 16:00. half-life-9d corrected this, and the AI corrected it with the other four.
+    - Building the isolated snapshot for the red step took six attempts:
+      - An external SIGTERM killed one run.
+      - Peers' in-progress tests broke two: `InsightFacts` (half-life-c3), and `timeSpan` (half-life-bf).
+      - The AI's own setup broke three:
+        - It deleted a fake that another test used.
+        - `plutil -insert` read the dots in the entitlement keys as a key path.
+        - A `;` in a command chain let a build start without the restored entitlements.
+    - The last run, with only the AI's suite in the test target, stalled from 16:44, and was stopped at 17:17.
+- **Human changes:** None.
+- **Files:**
+  - Modified:
+    - `Half-Life/Half-Life.entitlements`, `Half-Life/Info.plist`, `Half-Life/Localizable.xcstrings`
+    - `Half-Life/Data/DataSources/SwiftDataDrinkLogDataSource.swift`, `Half-Life/Data/DataSources/DrinkRecord.swift`, `Half-Life/App/Dependencies/DrinkLogDataSourceDependencies.swift`
+    - `Half-Life/Features/Onboarding/OnboardingView.swift`, `Half-Life/Features/Settings/DemoHistorySettingsView.swift`
+    - `Half-Life/Documentation.docc/{Architecture,DrinkComposer,Settings,Onboarding,TodayScreen,Widgets}.md`
+    - `Half-LifeTests/Data/SwiftDataDrinkLogDataSourceTests.swift`, `Half-LifeTests/App/CaffeineDecayDependencyTests.swift`, `Half-LifeTests/App/LogDrinkDependencyTests.swift`
+    - `ai_log.md`
+  - Also created, both git-ignored or outside the repo: the personal scheme `HalfLife-UnitTests-56`, and the simulator `HalfLife-NoCloudKit`.
+- **Verification:**
+  - **No test ran.** SRC-11's red step was never observed, and no green run, full run, or coverage check happened. So the change isn't done under CLAUDE.md's definition of done.
+  - A build-for-testing of the shared scheme in the main tree succeeded after these edits. Its compiler warnings are all in two peer test files, `DemoHealthDataSourcesTests` and `SimulatedHealthDataSourceTests`.
+  - SwiftLint `--strict` found nothing across the repo. swift-format lint `--strict` found nothing in the files this task changed. It found 19 issues in two peer files: `LogDrinkIntent.swift` (18) and `CutoffReminderFeature.swift` (1).
+  - `plutil -lint` passed on the entitlements and the Info.plist. The String Catalog is valid JSON.
+  - `docbuild` failed on the AI's mid-build entitlements edit, and wasn't re-run.
+- **Notes:**
+  - Not committed.
+  - **The docs are ahead of the code.** The Architecture and Drink Composer articles say the store is configured with CloudKit off. That's true only once `makeModelConfiguration` passes `.none`. The comment above `makeModelContainer` still describes `.automatic`.
+  - **Next steps.**
+    1. Observe SRC-11 fail in a copy of the tree that still has the iCloud entitlements. A copy is in this session's scratchpad (`snap/`), with its tests pruned to the drink log suite.
+    2. Change `.automatic` to `.none`, and update that comment.
+    3. Run the full unit and UI suites with coverage, and re-run `docbuild`.
+  - Whether to amend Article V.1 and `CLAUDE.md` to match the deferral is the owner's call.
+  - **Coordination.** Told half-life-bf which shared files overlapped: `TodayScreen.md`, `Localizable.xcstrings`, and `ai_log.md`. Sent six sessions a heads-up about the entitlements change. half-life-00, -9d, and -c3 replied.
+
+### 2026-09-13 15:29 -0400 — Stop showing the user their half-life
+
+- **Started:** 2026-09-13 15:29 -0400
+- **Ended:** 2026-09-13 17:16 -0400, when the owner asked for the log to be wrapped up. The full test run was still going.
+- **Human:** Adam Ure
+- **AI tool / model:** Claude Code / Claude Opus 5
+- **Transcript:** `ai_transcripts/2026-09-13-1529-1c2744e2.md`, written at the next export (not exported yet).
+- **Type:** change
+- **Request:** Take the starting half-life card off onboarding's "Caffeine and your body" step and off Settings' Caffeine and your body screen, because the app shouldn't share its half-life calculation with the user.
+- **Interactions:**
+  - `15:29` The owner asked for the card to go from onboarding and Settings.
+  - `15:31` The AI pointed out that the half-life also showed in the onboarding summary's "Starting half-life" row and on Settings' Caffeine and your body row. The owner chose to remove it everywhere, which the AI recommended.
+  - `17:16` The owner asked the AI to wrap up this log entry.
+- **AI contribution:**
+  - **Red.** Exhaustive `TestStore` tests in `HalfLifeFactorsFeatureTests`, `ProfileSettingsFeatureTests`, and `SettingsFeatureTests` stopped expecting a half-life in state. One test in `HalfLifeFactorsFeatureTests` and five in `ProfileSettingsFeatureTests` failed for that reason: each feature still reduced `profile.halfLife` into `State`.
+  - **Green.** `HalfLifeFactorsFeature.State` and `ProfileSettingsFeature.State` no longer hold the half-life. The card left `HalfLifeFactorsView` and `FactorsSettingsView`. The row left `OnboardingSummaryView`, whose lead now reads "Here's what Half-Life starts from.", and `SettingsView`'s Caffeine and your body row has no value. The factors still set the half-life the decay model uses.
+  - **Removed as unused:** `OnboardingFormat.hours(_:locale:)` and its two tests, the `halfLife` identifiers of three views, the robots' `verifyStartingHalfLife`, and four strings from `Localizable.xcstrings`, one of them replaced by the shorter lead.
+  - **UI tests.** UI-ONB-5 and UI-SET-3 now check that a chosen factor shows as chosen, and that pregnancy takes its trimester, instead of a half-life. UI-SET-1 checks the bedtime's row instead of the half-life's. `HalfLifeFactorsRobot.verifyChosen` now waits for the saved choice, and `FactorsSettingsRobot` gained a `verifyChosen`.
+  - **Docs.** The Onboarding and Settings articles record the decision, and drop the half-life from the summary, the root's row table, and the requirements. The Architecture article's robot and feature tables match.
+  - **Mistakes, corrected.** A reflowed doc comment in `ProfileSettingsFeature` came out 151 characters long. SwiftLint caught it, and it was shortened.
+- **Human changes:** Chose to remove the half-life everywhere, not only the card.
+- **Files:** `Half-Life/Features/Onboarding/{HalfLifeFactorsFeature,HalfLifeFactorsView,HalfLifeFactorsViewAccessibilityID,OnboardingSummaryFeature,OnboardingSummaryView,OnboardingSummaryViewAccessibilityID,OnboardingFormat}.swift`, `Half-Life/Features/Settings/{FactorsSettingsView,FactorsSettingsViewAccessibilityID,ProfileSettingsFeature,SettingsView}.swift`, `Half-Life/Localizable.xcstrings`, `Half-Life/Documentation.docc/{Architecture,Onboarding,Settings}.md`, `Half-LifeTests/Presentation/{HalfLifeFactorsFeatureTests,ProfileSettingsFeatureTests,SettingsFeatureTests,OnboardingFormatTests}.swift`, `Half-LifeUITests/{OnboardingUITests,SettingsUITests}.swift`, `Half-LifeUITests/Robots/{HalfLifeFactorsRobot,FactorsSettingsRobot,OnboardingSummaryRobot,SettingsRobot}.swift`, `ai_log.md`.
+- **Verification:** Incomplete when the log was wrapped up.
+  - The main tree's test targets didn't compile during this task, because of other sessions' tests for code not yet written: `LanguageModelDataSourceTests` (`failureKind`), `SimulatedLanguageModelDataSourceTests` and `InsightLanguageModelTests` (`InsightFacts`), and `CaffeineDecayFeatureTests` (`timeSpan`). Each build compiled every file this task changed without errors. So the tests ran in a scratch copy of the tree, taken at 16:21, with those four files left out.
+  - Two earlier runs in scratch copies stopped on the same kind of error. A run and a `docbuild` were killed when the Mac ran low on memory.
+  - **Unit, in the scratch copy:** 1224 tests passed and none failed, including the four suites this task changed.
+  - **UI, still running at 17:16:** 50 passed and 3 failed. The failures are other screens' tests: `HealthCardUITests.testScrolledToTheEndTheCardClearsTheLogButton`, and the accessibility audits of the resting heart rate screen and of Insights with sleep. UI-ONB-5's `testAChosenFactorShowsAsChosen` passed, and so did every other onboarding test that had run. UI-ONB-5's pregnancy test, UI-SET-1, UI-SET-3, and the Settings audits hadn't run yet.
+  - **Coverage:** not measured yet. The run writes its report when it finishes, and it leaves four test files out, so its figure would understate the main tree's.
+  - swift-format lint `--strict` and SwiftLint `--strict`: clean on every Swift file this task changed.
+  - `docbuild`: not run to completion.
+- **Notes:**
+  - Not committed.
+  - Before a commit: rerun the full suite in the main tree once the other sessions' tests compile, state its coverage, and run `docbuild`.
+  - The Settings article's known issue, that the end of Caffeine and your body sits under the tab bar and fails its audit, still describes the removed card's last line. Removing the card shortens the screen, which may fix the audit. The note waits for that audit's result.
+  - half-life-ce, which is replacing the age picker with a date of birth, touches `ProfileSettingsFeature`, its tests, `OnboardingUITests`, the catalog, and the Onboarding and Settings articles. The AI told it which lines this change touches. At 17:16 it said its change stays in its scratch copy this session, so nothing was merged into these files.
+
+### 2026-09-13 15:47 -0400 — Show the app version and build at the bottom of Settings
+
+- **Started:** 2026-09-13 15:47 -0400
+- **Ended:** 2026-09-13 17:16 -0400
+- **Human:** Adam Ure
+- **AI tool / model:** Claude Code / Claude Opus 5
+- **Transcript:** `ai_transcripts/2026-09-13-1547-35c83dcc.md`
+- **Type:** change, debugging
+- **Request:** "For my sanity", show the app's version and build number at the bottom of Settings. Later, the owner reported that Xcode couldn't build the change.
+- **Interactions:**
+  - `15:47` The owner asked for the version and build at the bottom of Settings.
+  - `16:41` The owner reported a build failure caused by the change. The AI found Xcode's error, `cannot find type 'AppVersion' in scope` in `SettingsFeature.swift`, and wrongly blamed a race between Xcode's file list and the new files being written.
+  - `16:50` The owner cleaned, and the error stayed. The AI then wrongly said Xcode had stopped noticing new files in general, and suggested reopening the project.
+  - `16:57` The owner said the project genuinely lacked the `AppVersion` type. Xcode's `Half-Life.SwiftFileList` showed it: its 392 files were exactly the command-line build's 399 without the 7 new production files, while it did include a file another session created at 16:26.
+  - `~16:59` (the AI's clock read 17:00 right after) The owner said the files hadn't been added to the project. The AI re-created the 7 files with identical content, to make Xcode notice them. It didn't help.
+  - `17:03` The owner asked which file declares `observeAppVersion`: `App/Dependencies/AppVersionDependencies.swift`.
+  - `17:04` The owner asked for every file Xcode was missing, to add them by hand. The AI listed the 7 production files, and the 6 new test files as probably missing too (Xcode hadn't built the test target, so there was no list to check).
+  - `17:16` The owner asked the AI to wrap up with this entry.
+- **AI contribution:**
+  - **Tests first.** New tests for the data source (VER-1, VER-2), the repository (VERREPO-1), the use case (VERUSE-1), the registration (DEP-VER), and the root's version (SET-5), with 2 fakes. They were red because `AppVersion` and `\.observeAppVersion` didn't exist. A UI test, UI-SET-7, with `SettingsRobot.verifyShowsTheAppVersion()`, which checks the numbers' shape, such as "1.0 (1)", because the UI test bundle's version isn't the app's.
+  - **Built through the layers** (constitution Article I): the `AppVersion` entity, the `AppVersionRepository` protocol, `ObserveAppVersionUseCase`, the `AppVersionDataSource` protocol, `BundleAppVersionDataSource` (the only code that reads `CFBundleShortVersionString` and `CFBundleVersion`), the `LiveAppVersionRepository` actor, which reads the version once and streams it once, and `\.observeAppVersion`. `SettingsFeature` observes it from a new `task`, and `SettingsView` shows "Version %@ (%@)" as a footnote in `textPrimary` below the rows, with the `SettingsViewAccessibilityID.appVersion` identifier. There's one new catalog key.
+  - **Documentation:** the Settings article's new "The app version" section, and its requirements, features table, privacy, and UI test notes. New rows in the Architecture article for the use case, repository, data source, `SettingsFeature`, and `SettingsRobot`.
+  - **Coordination:** told half-life-bf about the shared files, and corrected half-life-56's report that the AppVersion tests broke the test target.
+  - **Diagnosis mistakes**, recorded under Rule 6: the race and the stale-Xcode explanations above were wrong. So were two checks that read Xcode's build log as a complete list of compiled files. It only names files whose compile job ran, and that build stopped at the first errors.
+- **Human changes:** The owner rejected both wrong explanations, and chose to add the missing files to the project in Xcode by hand.
+- **Files:**
+  - Added: `Half-Life/Domain/Entities/AppVersion.swift`, `Half-Life/Domain/Repositories/AppVersionRepository.swift`, `Half-Life/Domain/UseCases/ObserveAppVersionUseCase.swift`, `Half-Life/Data/DataSources/AppVersionDataSource.swift`, `Half-Life/Data/DataSources/BundleAppVersionDataSource.swift`, `Half-Life/Data/Repositories/LiveAppVersionRepository.swift`, `Half-Life/App/Dependencies/AppVersionDependencies.swift`, `Half-LifeTests/Data/BundleAppVersionDataSourceTests.swift`, `Half-LifeTests/Data/LiveAppVersionRepositoryTests.swift`, `Half-LifeTests/Domain/ObserveAppVersionUseCaseTests.swift`, `Half-LifeTests/App/AppVersionDependencyTests.swift`, `Half-LifeTests/Fakes/FakeAppVersionRepository.swift`, and `Half-LifeTests/Fakes/FakeAppVersionDataSource.swift`.
+  - Modified: `SettingsFeature.swift`, `SettingsView.swift`, `SettingsViewAccessibilityID.swift`, `Localizable.xcstrings`, `SettingsFeatureTests.swift`, `SettingsUITests.swift`, `SettingsRobot.swift`, `Settings.md`, `Architecture.md`, and `ai_log.md`.
+- **Verification:**
+  - Red: the new tests failed to compile, for the missing types, in the main tree at about 15:56.
+  - The main tree's `Half-Life` scheme built with `xcodebuild` at 16:46, with all 7 new files in its file list. Its test target didn't compile, because of other sessions' in-progress tests (`InsightFacts`, `failureKind`, `timeSpan`).
+  - In a scratch copy of the main tree, taken at about 16:20, without 8 in-progress test files of other sessions:
+    - Unit: 1260 tests in 233 suites passed, with 89 known issues, including every new suite and `SettingsFeatureTests`.
+    - UI: UI-SET-7, the root's accessibility audit (UI-SET-6), and UI-SET-1 passed.
+    - `docbuild`: succeeded, with no diagnostics for the app or the widgets. The main tree's `docbuild` had failed, because another session removed `CaffeineTimingTool.swift` during the build.
+  - swift-format lint `--strict` and SwiftLint `--strict`: clean on every Swift file this task changed.
+  - **Coverage: not measured yet.** The full run with coverage was still running at 17:16. Its unit tests had passed, and two other screens' UI tests had failed so far: `HealthCardUITests.testScrolledToTheEndTheCardClearsTheLogButton` and `HeartRateDetailUITests.testTheScreenPassesTheAccessibilityAudit`.
+  - The owner's Xcode still fails to build: it doesn't include the 7 new files.
+- **Notes:**
+  - Not committed. The transcript hasn't been re-exported for a commit.
+  - Open: the owner's Xcode doesn't include the new files, although `xcodebuild` does and `project.pbxproj` is unchanged. The cause isn't known. After the files are added by hand, check `project.pbxproj`'s diff for duplicate or wrong-target entries, and that the project still opens.
+  - The coverage number is still owed for the Definition of Done.
+
+### 2026-09-13 15:53 -0400 — Keep the Today screen's last card clear of the log button (unfinished)
+
+- **Started:** 2026-09-13 15:53 -0400
+- **Ended:** 2026-09-13 17:16 -0400
+- **Human:** Adam Ure
+- **AI tool / model:** Claude Code / Claude Opus 5
+- **Transcript:** The session `4a4ba78c`'s file in `ai_transcripts/`, written at the next export (not exported yet).
+- **Type:** change, debugging
+- **Request:** At the bottom of the Today tab, the tab bar's bottom accessory (the log button) hides the Apple Health card. Add a spacer at the bottom of the content, at least the accessory's height, so all of the Today tab's content can be seen after scrolling.
+- **Interactions:**
+  - `15:53` The owner asked for the spacer.
+  - `17:16` The owner asked to wrap up the AI log. The task stopped there, unfinished.
+- **AI contribution:**
+  - **Investigation.**
+    - `TodayView`'s scroll view ends with the Apple Health card, and has only `Spacing.sectionGap` (28 pt) of padding below it.
+    - The iOS 26.5 SDK's SwiftUI has no API that insets content for `tabViewBottomAccessory`. It has only `tabViewBottomAccessoryPlacement`, which says whether the accessory is inline or expanded. So the content has to leave the room itself, as the owner asked.
+    - The previous entry's full run had the Today screen's audit with the Health card (HUI-6) failing, which fits the report. The Settings article records the same symptom on Settings' pushed screens as a known issue.
+  - **A red test, written but not yet seen failing.**
+    - HUI-7 in `HealthCardUITests`, `testScrolledToTheEndTheCardClearsTheLogButton`.
+    - `TodayRobot.verifyHealthCardClearsTheLogButton()` checks that, scrolled to the end, the card ends above the tab bar's fade, 44 pt above the log button. The failure message gives the card's bottom, the fade's top, and the button's top.
+    - `tabBarFadeHeight` in `Robot+TabBarAudit.swift` is no longer `private`, so the robot shares the audit's value.
+  - **No production code changed.** The spacer isn't added, because the test hasn't been seen to fail (red → green).
+  - **Tooling.** The AI used its own simulator (`HalfLife-BottomSpacer`), its own derived data (`build/BottomSpacer`), and a personal scheme with only the UI tests (`HalfLife-UITests-BottomSpacer`, in the git-ignored `xcuserdata`). Other sessions' red tests kept the shared scheme's unit test target from compiling.
+  - **Coordination.** Told half-life-56 which shared files this task touches.
+- **Human changes:** None.
+- **Files:** `Half-LifeUITests/HealthCardUITests.swift`, `Half-LifeUITests/Robots/TodayRobot+Health.swift`, `Half-LifeUITests/Robots/Robot+TabBarAudit.swift`, and `ai_log.md`. The first two are still untracked, from the Apple Health card's task.
+- **Verification:**
+  - swift-format lint `--strict` and SwiftLint `--strict`: clean on the three test files.
+  - HUI-7 never ran, in four attempts:
+    1. With the shared scheme, the build failed on another session's red unit test (`CaffeineDecayFeatureTests`, `timeSpan`).
+    2. The system stopped the run for low memory, with 16 simulators booted.
+    3. The build failed because another session deleted `CaffeineTimingTool.swift` during it.
+    4. The run started at 16:29 was still going, with no output, at 17:16.
+  - No production code changed, so no full run, coverage check, or `docbuild` ran.
+- **Notes:**
+  - Not committed. Unfinished.
+  - To finish:
+    - See HUI-7 fail, and read the overlap it reports.
+    - Add the spacer at the end of `TodayView`'s stack, sized from that overlap. The proposal: a `Sizing` token for the accessory's clearance, scaled with `@ScaledMetric(relativeTo: .headline)`, because the log button grows with its headline font.
+    - Document HUI-7 and the clearance in the Apple Health Card article (its Tests paragraph still says HUI-1 to HUI-6), the Today Screen article, and the Design System article.
+    - Run the full suite, check coverage, and run `docbuild`.
+  - The same spacer may also fix HUI-6's failing audit. That isn't verified.
+
+### 2026-09-13 17:11 -0400 — Use the brand mark on the lock screen
+
+- **Started:** 2026-09-13 17:11 -0400
+- **Ended:** PENDING
+- **Human:** Adam Ure
+- **AI tool / model:** Claude Code / Claude Opus 5
+- **Transcript:** `ai_transcripts/2026-09-13-1531-fd4fc002.md`
+- **Type:** change
+- **Request:** Use the same image as Welcome, the brand mark, on the lock screen.
+- **Interactions:**
+  - `17:11` The owner asked for the change, after the entry "Replace Welcome's SF Symbol with the brand mark" in the same session.
+- **AI contribution:**
+  - **The image.** ``AppLockView`` now draws `Image(.brandMark)` at its natural size, in place of the `lock.fill` SF Symbol. It stays hidden from VoiceOver. The padlock only repeated the title, "Half-Life is locked", which still says the app is locked. The screen sits on onboarding's solid page, like Welcome, so the mark keeps its measured contrast.
+  - **Coordination.** Told half-life-8a, which owns the asset, that the lock screen uses it too, and that the Design System bullet changed again. The asset wasn't changed.
+  - **Docs.** The App Lock article's lock screen paragraph describes the mark and why the padlock went. The Design System article's brand-mark bullet adds the lock screen.
+  - **No new test,** for the reason in the Welcome entry: the mark is hidden from VoiceOver, so no robot can find it.
+- **Human changes:** None
+- **Files:** `Half-Life/Features/AppLock/AppLockView.swift`, `Half-Life/Documentation.docc/AppLock.md`, `Half-Life/Documentation.docc/DesignSystem.md`, `ai_log.md`.
+- **Verification:**
+  - swift-format lint `--strict` and SwiftLint `--strict` on `AppLockView.swift` are clean.
+  - UI-LOCK-1 (`AppLockUITests.testTheLockHidesTheAppOnceItLeavesAndUnlocks`), which shows the lock screen and runs its accessibility audit, passed on a dedicated simulator with its own derived data.
+  - `xcodebuild docbuild`: PENDING.
+  - Coverage wasn't re-measured. The change replaces one `Image` in a view and adds no lines. The most recent full run was 92.90%.
+  - Not seen on screen, for the reason in the Welcome entry.
+- **Notes:**
+  - Not committed.
+  - `PrivacyCover`, which hides the app in the app switcher while the lock is on, still shows only the app's name. The owner didn't ask for it to change.
+
+### 2026-09-13 15:25 -0400 — Replace the age wheel with a date-of-birth picker
+
+- **Started:** 2026-09-13 15:25 -0400
+- **Ended:** 2026-09-13 17:16 -0400
+- **Human:** Adam Ure
+- **AI tool / model:** Claude Code / Claude Opus 5
+- **Transcript:** `ai_transcripts/2026-09-13-1525-e929ff11.md`
+- **Type:** change, planning
+- **Request:** Replace the age scroll wheel with a date picker, in onboarding's About you step and Settings' About you screen, for a native experience and a simpler implementation.
+- **Interactions:**
+  - `15:25` Asked for the change.
+  - `~15:31` Answered two questions (reconstructed from the first command run after the answers). Store the full date of birth, which the AI recommended, over keeping the birth year. Show a "Prefer not to say" option under the picker, over an "Add date of birth" button that reveals it, which the AI recommended.
+  - `17:16` Asked the AI to wrap up this entry. The work stopped there, unmerged (see "Notes").
+- **AI contribution:**
+  - **Research before asking.** Found that iOS's wheel date picker failed the audit's Dynamic Type check on 2026-09-12, which is why the age and bedtime were SwiftUI wheels, and raised it as a risk. Another session has since moved the bedtime to the compact time picker, which passes the audit on a still screen.
+  - **Isolation.** Worked in scratch copies of the tree, never in the main tree, and rebased twice onto the peers' changes (3-way, every conflict resolved by keeping both sides). Told the peer sessions which shared files it would touch. A peer's app-version work had taken UI-SET-7, so this change's Settings UI test is UI-SET-8.
+  - **Red, confirmed late.** The tests were written first, but the red run came after the production code, because the simulator was busy. It was then run against an untouched snapshot, where the tests failed to compile on the missing `DateOfBirth`, `BirthDatePicker`, `birthDate`, and `birthDateChosen`, and on the use case's removed clock.
+  - **Domain.** `DateOfBirth`, a real Gregorian day with no time zone: the day a moment falls on, the start of its day, and the age at a moment (DOB-1 to DOB-3). `UserProfile.birthYear` became `dateOfBirth`. `SleepNeedRule` counts whole years since the date of birth. `SaveAboutYouUseCase` saves the date of birth as given, with no clock or calendar.
+  - **Data.** The profile file is version 2, storing the date of birth as year, month, and day. A version 1 file's birth year reads as no date of birth, and a stored day that isn't real throws (PROFFILE-5). Dropping the old birth year was the AI's choice, not asked.
+  - **Presentation.** `BirthDatePicker` (ages 13 to 100 from the start of today, a 30-year-old's date shown until one is picked, a saved date filled in only if offered) and `BirthDateField` (iOS's compact `DatePicker` on a card, with a "Prefer not to say" `SettingsOption`), shared by `AboutYouFeature` and `ProfileSettingsFeature`, each with `birthDateChosen` and `preferNotToSayTapped` (ONB-10, SETPROF-1 to SETPROF-5).
+  - **Tests changed, with the reason.** `SleepNeedRuleTests`, `ProfileSaveUseCaseTests` (its calendar-year test went, because the use case no longer counts years), both reducers' tests, and one `OnboardingDependencyTests` assertion that the save use case held the clock, which it no longer has. Seven Settings date tests moved to `ProfileSettingsFeatureDateOfBirthTests`, an extension that keeps the suite within SwiftLint's body length.
+  - **UI tests.** The robots gained "Prefer not to say" commands and lost `chooseAge(_:)`. Added UI-ONB-10 and UI-SET-8.
+  - **Docs and catalog.** Onboarding (the decision, `DateOfBirth`, and the requirements), Settings (a decision row, SETPROF, UI-SET-8), and Architecture (robots, features, use case, repository, stored data). One catalog key, "Date of birth", and reworded comments on "Age" and "Prefer not to say".
+  - **The log entry itself.** First appended at 17:16. Another session's rewrite of `ai_log.md` then dropped it, so it was appended again.
+- **Human changes:** The two decisions above.
+- **Files:** Only `ai_log.md` changed in the main tree. The change itself is in the scratch copy `scratchpad/work` of this session, not merged:
+  - Added: `Domain/Entities/DateOfBirth.swift`, `Features/Onboarding/BirthDatePicker.swift`, `Features/Onboarding/BirthDateField.swift`, `Half-LifeTests/Domain/DateOfBirthTests.swift`, `Half-LifeTests/Presentation/ProfileSettingsFeatureDateOfBirthTests.swift`.
+  - Modified: `UserProfile`, `UserProfileRepository`, `SaveAboutYouUseCase`, `ObserveRecommendedSleepUseCase`, `SleepNeedRule`, `FileProfileDataSource`, `LiveUserProfileRepository`, `UserProfileDependencies`, `AboutYouFeature`, `AboutYouView`, `AboutYouViewAccessibilityID`, `ProfileSettingsFeature`, `AboutYouSettingsView`, `AboutYouSettingsViewAccessibilityID`, `Localizable.xcstrings`, the Onboarding, Settings, and Architecture articles, nine unit test files and the fake repository, `AboutYouRobot`, `AboutYouSettingsRobot`, `OnboardingUITests`, and `SettingsUITests`.
+- **Verification:**
+  - Unit tests, in the scratch copy: 1,303 tests in 241 suites passed, with 107 known issues, all expected ones. Every suite this change touched passed. Four other sessions' unfinished test files were set aside for the run, because they didn't compile: `CaffeineDecayFeatureTests`, `LanguageModelDataSourceTests`, `SimulatedLanguageModelDataSourceTests`, and `InsightLanguageModelTests`.
+  - swift-format lint `--strict` and SwiftLint `--strict`: clean on every file this change touched.
+  - Not run: the UI tests, the accessibility audits, coverage, and `docbuild`. The audit spike never ran a test. The machine's load average reached about 900, and each attempt timed out booting its simulator.
+- **Notes:**
+  - **Not merged and not committed.** Before it can land: the UI test target doesn't compile, because UI-ONB-2 still calls the removed `chooseAge(_:)`. A robot command for picking a date is undesigned, pending a probe of whether the compact picker's popover can be driven by identifier (constitution Article II.6). The compact date picker's accessibility audit is unproven, and the Onboarding and Settings articles' accessibility bullets still describe the age wheel. Then a 3-way merge into the main tree, the full unit and UI run with coverage (the 80% check), and `docbuild`.
+  - A date equal to the suggested one can't be picked directly, because the picker reports no change. Picking another date first works.
+  - Open for the owner: whether a version 1 file's birth year should be dropped, as built, or converted.
+
+### 2026-09-13 15:50 -0400 — Label the start and end of the Today curve's time axis
+
+- **Started:** 2026-09-13 15:50 -0400
+- **Ended:** 2026-09-13 17:30 -0400
+- **Human:** Adam Ure
+- **AI tool / model:** Claude Code / Claude Opus 5
+- **Transcript:** `ai_transcripts/2026-09-13-1550-7ab061fb.md`
+- **Type:** change
+- **Request:** The Today screen's decay curve had little context. The big number says what its amount axis is, so add time indicators at the left and right ends of its time axis.
+- **Interactions:**
+  - `15:50` Asked for time indicators on the left and right of the decay curve's time axis.
+  - `17:23` Said the first labels, "3:50 AM" and "3:49 AM", looked a minute apart, which didn't fit the chart's scale.
+  - `17:25` Offered four label formats: a day and time, a weekday and time, relative hours such as "12h ago", or ticks every 6 hours. Chose a day and time, which the AI recommended.
+  - `17:29` Said it looks good, and asked for this entry.
+- **AI contribution:**
+  - **Reducer.** `CaffeineDecayFeature.State.timeSpan` is the curve's window: from its first level to one spacing past its last, or `nil` until the curve has two levels (DECAY-6). The levels are one minute apart, so a 24-hour window's two ends share a clock time.
+  - **View.** Under the chart, a row puts the window's start at the left edge and its end at the right, such as "Today, 3:50 AM" and "Tomorrow, 3:50 AM". It's in `caption` `textSecondary` with monospaced digits, and each label wraps at large Dynamic Type sizes. The chart's time axis is pinned to `timeSpan`, so each label sits exactly under its edge. A `DateFormatter` with the short styles and `doesRelativeDateFormatting` writes the labels, because `Date.FormatStyle` has no relative day names. VoiceOver reads the row as one element, "From Today, 3:50 AM to Tomorrow, 3:50 AM", with its identifier `caffeineDecayView.timeSpan`.
+  - **UI test.** `TodayRobot.verifyCurveTimeSpan()` checks that the row shows two clock times. UI-3 calls it.
+  - **First design, withdrawn.** The first build labelled the clock times of the first and last levels, "3:50 AM" and "3:49 AM". The AI noticed that they'd read oddly before building them, but documented the oddity instead of asking. The owner caught it. The DECAY-6 tests and the implementation were rewritten test-first for the owner's choice.
+  - **Accessibility fix.** The row first ignored its children and set a label, which left it with no traits, and the Today audit failed it with "Hit area is too small". It now combines its children, as the card's header does, so it keeps the static-text trait, and the audit passes.
+  - **Docs.** The Today Screen article explains `timeSpan`, the labels, the withdrawn design and the owner's choice, and the VoiceOver reading, with a new DECAY-6 row and UI-3 updated. The catalog gained one key, "From %@ to %@", with a translator comment.
+  - **Isolation.** Worked in the main tree with its own simulator (`HalfLife-CurveAxis`), derived data (`build/bf`), and personal unit-test scheme (git-ignored). Told the four busy peers which shared files it would touch. None overlapped except `Localizable.xcstrings` and `ai_log.md`, where each only appended. While peers' unfinished tests (`AppVersion`, then `InsightFacts`) kept the test target from compiling, the first red ran in a scratch snapshot without those files.
+- **Human changes:** Rejected the clock-time-only labels, and chose a day and time.
+- **Files:**
+  - Modified: `Half-Life/Features/CaffeineDecay/CaffeineDecayFeature.swift`, `CaffeineDecayView.swift`, `CaffeineDecayViewAccessibilityID.swift`; `Half-LifeTests/Presentation/CaffeineDecayFeatureTests.swift`; `Half-LifeUITests/Robots/TodayRobot.swift`, `Half-LifeUITests/TodayUITests.swift`; `Half-Life/Documentation.docc/TodayScreen.md`; `Half-Life/Localizable.xcstrings`; `ai_log.md`.
+- **Verification:**
+  - Red, first design: in the scratch snapshot, both DECAY-6 tests failed to compile on the missing `timeSpan`. UI-3 then failed with "The decay curve's start and end times didn't appear."
+  - Red, owner's design: both rewritten DECAY-6 tests failed on the window's end (04:02 instead of 04:03) and on a one-level curve's span.
+  - Green, 17:2x: all 10 `CaffeineDecayFeatureTests`, UI-3, and the Today accessibility audit (UI-2) passed.
+  - Two runs were lost to the machine, not the code: one to "Failed to install or launch the test runner (Mach error -308)", and one killed for low memory.
+  - swift-format lint `--strict` and SwiftLint `--strict`: clean on every file this change touched. The remaining violations are in other sessions' unfinished files: `LogDrinkIntent.swift`, `LanguageModelInstructions.swift`, and `InsightLanguageModelTests.swift`.
+  - `docbuild`: 0 diagnostics for the app and widget targets, before the last article edits. The rebuild after them was stopped by the owner.
+  - The transcript has no email addresses or home paths.
+  - Not run: the full unit and UI suite, and coverage (the 80% check).
+- **Notes:**
+  - Not committed.
+  - Before committing: the full test run with coverage, and `docbuild` after the final article edits.
+  - The Home Screen widget's curve still has no time labels. It wasn't asked for.
+
+### 2026-09-13 17:36 -0400 — Write the README: building, signing with another account, and testing
+
+- **Started:** 2026-09-13 17:36 -0400
+- **Ended:** 2026-09-13 17:42 -0400
+- **Human:** Adam Ure
+- **AI tool / model:** Claude Code / Claude Opus 5
+- **Transcript:** `ai_transcripts/2026-09-13-1736-21393c3a.md` (the exporter's name for this session; not exported yet)
+- **Type:** change
+- **Request:** Write the repository's `README.md` with instructions for building the project. Note that signing with a different Apple account needs different bundle identifiers, and call out each place that has to change. Include instructions for the tests.
+- **Interactions:**
+  - `17:36` Asked for the README.
+- **AI contribution:**
+  - **Found every identifier.** Searched the project file, the entitlements, the Info.plists, the shared scheme, and the Swift sources and tests. The team `422Y4K9N6G` is set on the project and all four targets. The four targets' bundle identifiers are under `com.quillanq`. The App Group `group.com.quillanq.Half-Life` appears in both entitlements, `FileWidgetSnapshotDataSource.appGroupIdentifier`, and a test that expects it. The logging subsystem `com.quillanq.Half-Life` appears in `Logger+HalfLife.swift` and its test. The two widget kinds also use the prefix, but aren't registered anywhere.
+  - **Wrote `README.md`.** It covers the requirements, building in Xcode and with `xcodebuild`, and trying the app in the simulator: demo data, Apple Intelligence, Face ID, and widgets. Its section on signing with another account lists each place to change as a table, in order: team and bundle identifiers, the App Group, the capabilities automatic signing registers, the logging subsystem, and what can stay. It ends with a `grep` that finds any identifier left, and the steps for a device and TestFlight. The tests section covers both test targets, the full run with coverage and the 80% bar, unit-only and single-class runs, the scripts' tests, and what needs a manual check on a device. Then the format, lint, and `docbuild` commands, and the repository's layout.
+  - **Hedged one claim.** Whether a free Personal Team supports the App Groups and HealthKit capabilities wasn't verified, so the README says it "may not" and names the paid membership as the fix.
+- **Human changes:** None
+- **Files:**
+  - Added: `README.md`.
+  - Modified: `ai_log.md`.
+- **Verification:**
+  - A simulator build with `DEVELOPMENT_TEAM=""`, in its own derived data (`build/ReadmeCheck`), succeeded with "Sign to Run Locally". That confirms the README's claim that simulator builds need no team.
+  - The README's `grep` for the old prefix and team found only the files the README lists: 18 lines in `project.pbxproj` (10 team, 8 bundle identifier), the two entitlements, the two Swift constants and their two tests, the two widget kinds, and the three DocC articles.
+  - Not run: the tests, coverage, lint, or `docbuild`. No Swift, project, or DocC file changed.
+- **Notes:**
+  - Not committed.
+  - The README's steps for a device and TestFlight weren't tried with another account.
+  - The README describes the working tree, which holds other sessions' uncommitted work, such as the Demo data screen and Apple Intelligence features. If any of that doesn't land, the README's "Trying it in the simulator" section needs the same change.
+
+### 2026-09-13 15:43 -0400 — Fix the Insights card's language model session
+
+- **Started:** 2026-09-13 15:43 -0400
+- **Ended:** 2026-09-13 17:55 -0400
+- **Human:** Adam Ure
+- **AI tool / model:** Claude Code / Claude Opus 5
+- **Transcript:** `ai_transcripts/2026-09-13-1522-ccfc6117.md`
+- **Type:** change, debugging
+- **Request:** Implement the audit's first three proposals for the Insights tab's first card: the facts in the prompt instead of the `compareCaffeineTiming` tool, a cap on the answer's tokens, and the error's kind in the failure log. Then refine the insight's wording.
+- **Interactions:**
+  - `15:43` The owner asked to implement proposals 1 to 3 from the audit (the entry above).
+  - `17:15` The owner asked for a sentence that explains the headline. They had received a headline that only named the grouping of nights, with a sentence that only listed counts, and gave an example that said on which side of the threshold they sleep better. Their card's numbers are left out here, because the threshold is learned from sleep (Rule 7).
+  - `17:24` The owner pointed out that the docs had the new instructions but the prompt was unchanged, and asked for the prompt to change too.
+  - `17:35` The owner reported that the new result went beyond the context window.
+  - `17:38` The owner shared the log line: `Couldn't write an insight: refusal FoundationModels.LanguageModelSession.GenerationError 8`. The model had refused; the context window wasn't the problem.
+  - `~17:40` The prompt's first line was changed on disk, not by this session, to "a headline that says what the app has discovered from the data". Seen when an edit was rejected at 17:40; recorded at 17:42. The AI kept it and brought the tests and docs in line.
+  - `17:46` The owner reported a refusal again, and asked for a headline like "You get the most sleep when below" the threshold, with a sentence on how the data supports it.
+  - `17:47` Asked two questions, the owner chose to have the rules write the headline, and to test on the device rather than turn on Apple Intelligence on the Mac.
+  - `17:49` The owner asked to put the instructions in without waiting for the red run to finish.
+  - `17:53` The owner said everything works, stopped the verification run, and asked to commit everything in the working tree.
+- **AI contribution:**
+  - **The facts in the prompt (proposal 1).** `CaffeineTimingTool` became `InsightFacts`, a plain type that writes the finding as lines of text. An insight's session has no tools. Its prompt gives the facts, and the data source returns the same facts for the number check. The standing rules for an insight take every number from the facts instead of a tool. `SimulatedLanguageModelDataSource` uses `InsightFacts`.
+  - **The cap (proposal 2).** `GenerationOptions(maximumResponseTokens: 150)` on the insight's answer. The longest valid answer measured was 74 tokens, in French.
+  - **The error's kind (proposal 3).** `failureKind(of:)` names the `GenerationError` case, `toolCallError`, or `other`, and both failure logs carry it as `.public`, with the domain and code. It found the refusal at 17:38.
+  - **Wording, round 1 (17:15).** A "What it means" line in the facts ("you tend to sleep longer…"), rules and guides asking for a headline that says what the finding means and a sentence that explains it, and a prompt asking what the facts mean for the user's sleep. The AI used "longer", not "better", because the finding compares time asleep. The model refused it.
+  - **Mistake.** At 17:35 the AI took the owner's report at face value and reasoned about a runaway answer against the cap, before asking for the log line, which showed a refusal.
+  - **Wording, round 2 (17:38).** The line in the past tense about the user's own nights ("you slept longer…"), a rule saying where the facts come from, and the prompt reworded, then changed on disk, not by this session. Also refused.
+  - **Wording, round 3 (17:47).** The rules write the headline for each direction ("You get more sleep at 40 mg or less", "You get more sleep above 40 mg", "Your sleep is about the same either side of 40 mg"). The model uses it in the user's language, and writes one sentence on how the nights support it, with the confidence words. The "What it means" line and the Health rule were dropped. "More", not "the most", because only two groups of nights are compared.
+  - **Measurements.** In an iOS 26.5 simulator with the framework's tokenizer: the session measured 695 tokens with the tool, 655 without, 763 after round 1, 773 after round 2, and 703 after round 3, all of 4,096. Answers in the new styles measured 54 to 64 tokens in English, French, German, Japanese, and Portuguese.
+  - **Docs.** The Language Model, Insights, and Architecture articles: the decision, the facts in the prompt, the cap, refusals, the context budget table, LMSRC-4 to LMSRC-9, and LMTOOL-10/11 renamed LMFACT-1/2.
+- **Human changes:** Chose the facts in the prompt, the cap, and the error's kind (15:43). Asked for the sentence to explain the headline, and for the prompt to change with the instructions. The prompt's first line was changed on disk at about 17:40, not by this session. Chose the computed headline and device testing (17:47). Tested round 3 on the device (17:53).
+- **Files:** `Half-Life/Data/DataSources/FoundationModels/InsightFacts.swift` (added), `Half-Life/Data/DataSources/FoundationModels/Tools/CaffeineTimingTool.swift` (deleted), `Half-Life/Data/DataSources/FoundationModels/{FoundationModelLanguageModelDataSource,LanguageModelDataSource,LanguageModelInstructions,GeneratedInsight}.swift`, `Half-Life/App/UITesting/SimulatedLanguageModelDataSource.swift`, `Half-Life/Domain/BusinessRules/InsightNumberRule.swift` (comment), `Half-LifeTests/Data/{InsightLanguageModelTests,LanguageModelDataSourceTests,LiveLanguageModelRepositoryInsightTests}.swift`, `Half-LifeTests/App/SimulatedLanguageModelDataSourceTests.swift`, `Half-Life/Documentation.docc/{LanguageModel,Insights,Architecture}.md`, `ai_log.md`.
+- **Verification:**
+  - Red first, in a scratch copy of the live tree, with a private scheme that runs only the unit tests. Proposals 1 to 3: a compile failure, because `InsightFacts` and the new members didn't exist. The shared tree's other sessions kept this session's own builds from reaching the test files, so the red is from half-life-56's build at about 16:25, which failed on exactly those names. Round 1: 6 failures (the facts, rules, prompt, and guide tests), plus half-life-bf's 2 unfinished `timeSpan` tests. Round 2: 5. Round 3: 6. Each was the new text failing, and nothing else.
+  - Green: every unit test, 1,263 passed and 0 failed, at about 17:30 with round 1, and at 17:52 with round 3.
+  - swift-format lint `--strict` and SwiftLint `--strict`, on every changed Swift file: clean.
+  - `xcodebuild docbuild` succeeded at about 17:34, with 0 warnings from Half-Life's catalog. That was before rounds 2 and 3 edited the Insights and Language Model articles. The next docbuild was stopped with the run below, so the last doc edits weren't build-checked.
+  - The full unit and UI run, and so the coverage check, didn't run. The owner stopped the run at 17:53 and asked to commit. Coverage for this change is unmeasured.
+  - No test runs the real model. The owner tried round 3 on the device and reported that everything works (17:53).
+- **Notes:**
+  - Committed with everything else in the working tree at the owner's request (17:53), including other sessions' uncommitted work since `ee2f4b9`.
+  - If the model still refuses, the refusal's `explanation` says why. It isn't logged, because it can quote the prompt's health data.
+  - The builds and tests ran in a scratch copy of the live tree, with a private scheme in the git-ignored `xcuserdata/` that runs only the unit tests. Other sessions' changes in progress broke the shared test build three times (`SettingsViewAccessibilityID.appVersion`, `AppVersion`, and bf's `timeSpan` tests), and one red was taken with bf's in-progress test file left out of the copy. Around 16:30 and again at 16:4x, the simulator failed to boot while 17 simulators were running; it was erased and rebooted.
+  - The audit's other proposals for questions (a call budget, a cap on `getDrinksOnDay`, a length limit on the question, and a token budget test) are still to decide.

@@ -16,9 +16,13 @@ extension DependencyValues {
     /// The app's caffeine decay repository (constitution Article I.15).
     ///
     /// Live and in previews, it's one app-scoped ``LiveCaffeineDecayRepository``. It reads drinks from the shared
-    /// ``DrinkLogDataSourceKey`` data source, the half-life and the bedtime from the shared ``ProfileDataSourceKey``
-    /// data source, the absorption rate from ``StandardAbsorptionRateDataSource``, and the time from
-    /// ``SystemClockDataSource``. In tests, using it without overriding it reports an issue.
+    /// ``DrinkLogDataSourceKey`` data source, and the bedtime from the shared ``ProfileDataSourceKey`` data source. It
+    /// reads the half-life through ``EstimatedHalfLifeDataSource``: the personal estimate from the shared
+    /// ``HalfLifeEstimateDataSourceKey`` data source, or the survey's from the profile. It reads the sleep threshold
+    /// through ``PersonalSleepThresholdDataSource``: the caffeine tolerance from the shared
+    /// ``SleepToleranceDataSourceKey`` data source, or the standard 40 mg. It reads the absorption rate from
+    /// ``StandardAbsorptionRateDataSource``, and the time from ``SystemClockDataSource``. In tests, using it without
+    /// overriding it reports an issue.
     var caffeineDecayRepository: any CaffeineDecayRepository {
         get { self[CaffeineDecayRepositoryKey.self] }
         set { self[CaffeineDecayRepositoryKey.self] = newValue }
@@ -47,19 +51,75 @@ extension DependencyValues {
         get { self[ObserveCaffeineCutoffUseCaseKey.self] }
         set { self[ObserveCaffeineCutoffUseCaseKey.self] = newValue }
     }
+
+    /// Observes the cutoffs for the next several nights through the app-scoped ``caffeineDecayRepository``.
+    ///
+    /// In tests, using it without overriding it reports an issue.
+    var observeUpcomingCutoffs: ObserveUpcomingCutoffsUseCase {
+        get { self[ObserveUpcomingCutoffsUseCaseKey.self] }
+        set { self[ObserveUpcomingCutoffsUseCaseKey.self] = newValue }
+    }
+
+    /// Observes tonight's sleep window through the app-scoped ``caffeineDecayRepository``.
+    ///
+    /// In tests, using it without overriding it reports an issue.
+    var observeSleepWindow: ObserveSleepWindowUseCase {
+        get { self[ObserveSleepWindowUseCaseKey.self] }
+        set { self[ObserveSleepWindowUseCaseKey.self] = newValue }
+    }
+
+    /// Observes the drink composer's cutoff warning through the app-scoped ``caffeineDecayRepository``.
+    ///
+    /// In tests, using it without overriding it reports an issue.
+    var observeCutoffWarning: ObserveCutoffWarningUseCase {
+        get { self[ObserveCutoffWarningUseCaseKey.self] }
+        set { self[ObserveCutoffWarningUseCaseKey.self] = newValue }
+    }
 }
 
-/// Registers the app-scoped caffeine decay repository. It's private, because only the use cases in this file are
-/// built from it.
-private enum CaffeineDecayRepositoryKey: DependencyKey {
+// Built from the repository key's values directly, not through `@Dependency`, following the Architecture article's
+// "Registering a repository and its use cases".
+private enum ObserveCutoffWarningUseCaseKey: DependencyKey {
+    static let liveValue = ObserveCutoffWarningUseCase(repository: CaffeineDecayRepositoryKey.liveValue)
+    static let previewValue = ObserveCutoffWarningUseCase(repository: CaffeineDecayRepositoryKey.previewValue)
+    static let testValue = ObserveCutoffWarningUseCase(repository: CaffeineDecayRepositoryKey.testValue)
+}
+
+// Built from the repository key's values directly, not through `@Dependency`, following the Architecture article's
+// "Registering a repository and its use cases".
+private enum ObserveSleepWindowUseCaseKey: DependencyKey {
+    static let liveValue = ObserveSleepWindowUseCase(repository: CaffeineDecayRepositoryKey.liveValue)
+    static let previewValue = ObserveSleepWindowUseCase(repository: CaffeineDecayRepositoryKey.previewValue)
+    static let testValue = ObserveSleepWindowUseCase(repository: CaffeineDecayRepositoryKey.testValue)
+}
+
+// Built from the repository key's values directly, not through `@Dependency`, following the Architecture article's
+// "Registering a repository and its use cases".
+private enum ObserveUpcomingCutoffsUseCaseKey: DependencyKey {
+    static let liveValue = ObserveUpcomingCutoffsUseCase(repository: CaffeineDecayRepositoryKey.liveValue)
+    static let previewValue = ObserveUpcomingCutoffsUseCase(repository: CaffeineDecayRepositoryKey.previewValue)
+    static let testValue = ObserveUpcomingCutoffsUseCase(repository: CaffeineDecayRepositoryKey.testValue)
+}
+
+/// Registers the app-scoped caffeine decay repository.
+///
+/// It's internal so that the language model's tools can read the same repository as the use cases in this file, as
+/// the Architecture article's "Registering a repository and its use cases" explains.
+enum CaffeineDecayRepositoryKey: DependencyKey {
     static let liveValue: any CaffeineDecayRepository = LiveCaffeineDecayRepository(
-        drinkLog: DrinkLogDataSourceKey.liveValue, halfLife: ProfileDataSourceKey.liveValue,
+        drinkLog: DrinkLogDataSourceKey.liveValue,
+        halfLife: EstimatedHalfLifeDataSource(
+            estimates: HalfLifeEstimateDataSourceKey.liveValue, prior: ProfileDataSourceKey.liveValue),
         absorption: StandardAbsorptionRateDataSource(), bedtime: ProfileDataSourceKey.liveValue,
-        clock: SystemClockDataSource())
+        clock: SystemClockDataSource(),
+        threshold: PersonalSleepThresholdDataSource(tolerances: SleepToleranceDataSourceKey.liveValue))
     static let previewValue: any CaffeineDecayRepository = LiveCaffeineDecayRepository(
-        drinkLog: DrinkLogDataSourceKey.previewValue, halfLife: ProfileDataSourceKey.previewValue,
+        drinkLog: DrinkLogDataSourceKey.previewValue,
+        halfLife: EstimatedHalfLifeDataSource(
+            estimates: HalfLifeEstimateDataSourceKey.previewValue, prior: ProfileDataSourceKey.previewValue),
         absorption: StandardAbsorptionRateDataSource(), bedtime: ProfileDataSourceKey.previewValue,
-        clock: SystemClockDataSource())
+        clock: SystemClockDataSource(),
+        threshold: PersonalSleepThresholdDataSource(tolerances: SleepToleranceDataSourceKey.previewValue))
     static let testValue: any CaffeineDecayRepository = UnimplementedCaffeineDecayRepository()
 }
 
@@ -93,6 +153,22 @@ private struct UnimplementedCaffeineDecayRepository: CaffeineDecayRepository {
 
     func cutoff(in calendar: Calendar) -> AsyncStream<CaffeineCutoff> {
         reportIssue("A test observed the caffeine cutoff without overriding \\.caffeineDecayRepository.")
+        return AsyncStream { $0.finish() }
+    }
+
+    func upcomingCutoffs(nights: Int, in calendar: Calendar) -> AsyncStream<[CaffeineCutoff]> {
+        reportIssue("A test observed the upcoming cutoffs without overriding \\.caffeineDecayRepository.")
+        return AsyncStream { $0.finish() }
+    }
+
+    func sleepWindow(in calendar: Calendar) -> AsyncStream<SleepWindow> {
+        reportIssue("A test observed the sleep window without overriding \\.caffeineDecayRepository.")
+        return AsyncStream { $0.finish() }
+    }
+    func cutoffWarning(
+        for drink: FavouriteDrink, secondsAgo: TimeInterval, in calendar: Calendar
+    ) -> AsyncStream<CutoffWarning?> {
+        reportIssue("A test observed the cutoff warning without overriding \\.caffeineDecayRepository.")
         return AsyncStream { $0.finish() }
     }
 }

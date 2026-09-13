@@ -33,8 +33,6 @@ enum HalfLifeFactorsViewAccessibilityID {
     static let cirrhosisOption = "halfLifeFactorsView.cirrhosisOption"
     /// The "I take fluvoxamine" option.
     static let fluvoxamineOption = "halfLifeFactorsView.fluvoxamineOption"
-    /// The starting half-life the choices give.
-    static let halfLife = "halfLifeFactorsView.halfLife"
     /// The button that moves on.
     static let continueButton = "halfLifeFactorsView.continueButton"
 }

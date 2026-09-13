@@ -6,7 +6,7 @@ How Half-Life reads the user's resting heart rate from Apple Health.
 
 The brief asks Half-Life to show how caffeine habits might be affecting sleep and heart rate. Resting heart rate is the heart-rate signal the app reads: one number per day, the average of the resting heart rate samples Health recorded during that day. Apple Watch usually records one resting heart rate a day. Averaging also gives one number for a day with several samples, for example from a second device or app.
 
-``HealthKitRestingHeartRateDataSource``, implementing ``RestingHeartRateDataSource``, is the only code that reads resting heart rate from HealthKit (constitution Articles I.14 and V.3.5). No repository reads it yet.
+``HealthKitRestingHeartRateDataSource``, implementing ``RestingHeartRateDataSource``, is the only code that reads resting heart rate from HealthKit (constitution Articles I.14 and V.3.5). ``HalfLifeEstimateRepository`` reads it, for the day before each night (<doc:HalfLifeEstimator>).
 
 ## What's read
 
@@ -33,7 +33,15 @@ The brief asks Half-Life to show how caffeine habits might be affecting sleep an
 | RHR-4 | It returns `nil` when Health has no resting heart rate for that day. |
 | RHR-5 | A failed query throws HealthKit's error, logged with the error's domain and code only. |
 
-`HealthKitRestingHeartRateDataSourceTests` covers RHR-1 to RHR-5. Each test replaces the HealthKit query with a stand-in that records the query it's given and answers it, so no test reads real Health data. The query against the real health store isn't unit-tested, because a test can't grant the test host access to Health. RHR-5's logging isn't tested.
+The Apple Health card (<doc:AppleHealthCard>) shows today's resting heart rate once Health has one, so the data source has a change stream, like sleep's. `changes()` gives each subscriber its own observer query on resting heart rate, through `HKHealthStore.observeHalfLife`, which stops when the subscriber stops listening.
+
+| ID | Requirement |
+|----|-------------|
+| RHR-6 | Each subscriber to `changes()` starts its own observer query on resting heart rate, and gets one signal per change HealthKit reports. |
+| RHR-7 | An error HealthKit reports to the observer signals nothing, and is logged with the error's domain and code only. |
+| RHR-8 | When a subscriber stops listening, its observer query stops. |
+
+`HealthKitRestingHeartRateDataSourceTests` covers RHR-1 to RHR-5, and `HealthKitRestingHeartRateChangesTests` covers RHR-6 to RHR-8, with a stand-in for the observer query. Each test replaces the HealthKit query with a stand-in that records the query it's given and answers it, so no test reads real Health data. The query against the real health store isn't unit-tested, because a test can't grant the test host access to Health. RHR-5's logging isn't tested.
 
 ## Access and missing data
 

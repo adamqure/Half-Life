@@ -137,7 +137,8 @@ Every style uses SF Pro and scales with Dynamic Type. Most sizes the prototype u
 
 - Figures that change while on screen, like the live caffeine figure and the chart's scrub label, use monospaced digits so they don't jitter.
 - A unit beside a metric ("mg") uses the metric's weight at about 45% of its size, in `textSecondary`.
-- The "Half-life" wordmark is a logo asset, not a text style.
+- The "Half-life" wordmark is a logo asset, not a text style. The splash screen sets the app's name in `titleLarge` until one exists.
+- The brand mark, one cup's decay curve, is the image set `brandMark`, which the launch screen, the splash screen, onboarding's Welcome screen, and the lock screen draw. Its colors are `AccentColor` and `textPrimary`, written into its SVG (<doc:SplashScreen>).
 
 ## Spacing, shape, and elevation
 

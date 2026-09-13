@@ -17,7 +17,8 @@ import OSLog
 ///
 /// Each row's action asks through a use case, and the step learns the outcome from the permissions it observes
 /// (constitution Article I.6). Health is asked for only when the user taps (Article V.3.1). When the app becomes active
-/// again, the step refreshes, because a permission can change in the Settings app. See the Onboarding article, ONB-7.
+/// again, the step refreshes, because a permission can change in the Settings app. Settings' Permissions section reuses
+/// it, and never sends `continueTapped`. See the Onboarding article, ONB-7, and the Settings article.
 @Reducer nonisolated struct PermissionsFeature {
     private static let logger = Logger(for: PermissionsFeature.self)
 
@@ -26,6 +27,9 @@ import OSLog
     struct State: Equatable {
         /// The permissions the repository last published, or `nil` until they arrive.
         var permissions: Permissions?
+        /// Whether allowing Face ID or Touch ID also turns the app lock on. Onboarding's step does. Settings'
+        /// Permissions section doesn't, because Settings has the lock's own switch. See the App Lock article, ONB-LOCK.
+        var turnsOnAppLock = false
     }
 
     /// What can happen in the step.
@@ -63,6 +67,7 @@ import OSLog
     @Dependency(\.requestBiometricPermission) var requestBiometricPermission
     @Dependency(\.refreshPermissions) var refreshPermissions
     @Dependency(\.openAppSettings) var openAppSettings
+    @Dependency(\.turnOnAppLock) var turnOnAppLock
 
     /// Asks for each permission on request, and reduces the permissions into `State`.
     var body: some ReducerOf<Self> {
@@ -82,6 +87,11 @@ import OSLog
             case .allowNotificationsTapped:
                 return request("notifications") { [requestNotificationPermission] in
                     try await requestNotificationPermission.execute(())
+                }
+            case .allowBiometricsTapped where state.turnsOnAppLock:
+                // Turning the lock on asks for biometrics first, so there's one prompt, not two.
+                return request("biometrics for the app lock") { [turnOnAppLock] in
+                    try await turnOnAppLock.execute(())
                 }
             case .allowBiometricsTapped:
                 return request("biometrics") { [requestBiometricPermission] in

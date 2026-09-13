@@ -25,20 +25,6 @@ struct OnboardingFormatTests {
         return calendar
     }()
 
-    @Test func aHalfLifeReadsInHoursToOneDecimalPlace() throws {
-        #expect(OnboardingFormat.hours(.standard, locale: Self.english) == "5.5 hours")
-        #expect(
-            OnboardingFormat.hours(try #require(CaffeineHalfLife(seconds: 29_700)), locale: Self.english) == "8.3 hours"
-        )
-        #expect(
-            OnboardingFormat.hours(try #require(CaffeineHalfLife(seconds: 118_800)), locale: Self.english) == "33 hours"
-        )
-    }
-
-    @Test func aHalfLifeFollowsTheLocale() {
-        #expect(OnboardingFormat.hours(.standard, locale: Locale(identifier: "de_DE")) == "5,5 Stunden")
-    }
-
     @Test func aBedtimeReadsAsATimeOfDay() throws {
         let late = try #require(Bedtime(hour: 23, minute: 5))
 
@@ -57,16 +43,13 @@ struct OnboardingFormatTests {
         #expect(tokyo.component(.minute, from: date) == 45)
     }
 
-    @Test func anHourReadsInTheLocalesClock() {
-        #expect(OnboardingFormat.hour(22, in: Self.utc, locale: Self.english) == "10\u{202F}PM")
-        #expect(OnboardingFormat.hour(0, in: Self.utc, locale: Self.english) == "12\u{202F}AM")
-        #expect(OnboardingFormat.hour(22, in: Self.utc, locale: Locale(identifier: "en_GB")) == "22")
-    }
+    @Test func aTimePickersDateIsABedtimeAtItsTimeOfDayInTheCalendar() throws {
+        var tokyo = Calendar(identifier: .gregorian)
+        tokyo.timeZone = try #require(TimeZone(identifier: "Asia/Tokyo"))
+        // 2:45:59pm UTC is 11:45:59pm in Tokyo. The seconds are dropped.
+        let date = Date(timeIntervalSinceReferenceDate: 14.75 * 3_600 + 59)
 
-    @Test func aMinuteAlwaysHasTwoDigits() {
-        #expect(OnboardingFormat.minute(5, locale: Self.english) == "05")
-        #expect(OnboardingFormat.minute(30, locale: Self.english) == "30")
-        #expect(OnboardingFormat.minute(0, locale: Self.english) == "00")
+        #expect(OnboardingFormat.bedtime(at: date, in: tokyo) == Bedtime(hour: 23, minute: 45))
     }
 
     @Test func aRecommendedRangeIsInWholeHours() {

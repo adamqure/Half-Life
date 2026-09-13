@@ -61,6 +61,8 @@ enum DrinkComposerViewAccessibilityID {
     static let whenTwoHoursAgo = "drinkComposerView.whenTwoHoursAgo"
     /// The "4h ago" choice.
     static let whenFourHoursAgo = "drinkComposerView.whenFourHoursAgo"
+    /// The warning shown when the chosen drink, at the time chosen, is past its caffeine cutoff.
+    static let cutoffWarning = "drinkComposerView.cutoffWarning"
     /// The message shown when the drink couldn't be saved.
     static let errorMessage = "drinkComposerView.errorMessage"
     /// The button that logs the chosen drink.

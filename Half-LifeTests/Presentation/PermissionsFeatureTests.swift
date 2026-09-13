@@ -120,4 +120,36 @@ struct PermissionsFeatureTests {
         await store.send(.continueTapped)
         await store.receive(\.delegate.continued)
     }
+
+    // MARK: - ONB-LOCK in the App Lock article: in onboarding, allowing Face ID also turns the app lock on
+
+    @Test func inOnboardingAllowingBiometricsTurnsTheAppLockOn() async {
+        let permissions = FakeBiometricPermissionsRepository(
+            biometrics: .notRequested(.faceID), afterRequest: .allowed(.faceID))
+        let appLock = FakeAppLockRepository()
+        let store = TestStore(initialState: PermissionsFeature.State(turnsOnAppLock: true)) {
+            PermissionsFeature()
+        } withDependencies: {
+            $0.turnOnAppLock = TurnOnAppLockUseCase(permissions: permissions, appLock: appLock)
+        }
+
+        await store.send(.allowBiometricsTapped)
+        await store.finish()
+
+        #expect(await permissions.biometricRequestCount == 1)
+        #expect(await appLock.turnOnCount == 1)
+    }
+
+    @Test func aFailedAppLockChangesNothing() async {
+        let store = TestStore(initialState: PermissionsFeature.State(turnsOnAppLock: true)) {
+            PermissionsFeature()
+        } withDependencies: {
+            $0.turnOnAppLock = TurnOnAppLockUseCase(
+                permissions: FakeBiometricPermissionsRepository(biometrics: .allowed(.faceID)),
+                appLock: FakeAppLockRepository(error: FakeDataSourceError()))
+        }
+
+        await store.send(.allowBiometricsTapped)
+        await store.finish()
+    }
 }

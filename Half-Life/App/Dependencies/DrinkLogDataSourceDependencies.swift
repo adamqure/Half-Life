@@ -20,12 +20,12 @@ import SwiftData
 /// Each repository key builds its values from this key's values. There's no `DependencyValues` property, because
 /// only repositories use data sources.
 enum DrinkLogDataSourceKey: DependencyKey {
-    /// The app's store, on the device and synced to the user's private CloudKit database. If the store can't be
-    /// opened, this launch uses an empty in-memory store instead, and the failure is logged. Under a UI test, it's
-    /// always an empty in-memory store (``UITestLaunchConfiguration``).
+    /// The app's store, on the device only. If the store can't be opened, this launch uses an empty in-memory store
+    /// instead, and the failure is logged. Under a UI test, it's always an empty in-memory store
+    /// (``UITestLaunchConfiguration``).
     static let liveValue: any DrinkLogDataSource = makeLiveValue(configuration: .current)
 
-    /// An empty in-memory store, so previews never touch the device's store or iCloud.
+    /// An empty in-memory store, so previews never touch the device's store.
     static let previewValue: any DrinkLogDataSource = makeDataSource {
         try SwiftDataDrinkLogDataSource.makeModelContainer(isStoredInMemoryOnly: true)
     }
@@ -88,6 +88,10 @@ private struct UnimplementedDrinkLogDataSource: DrinkLogDataSource {
 
     func delete(_ id: LoggedDrink.ID) async throws {
         throw unimplemented("deleted a drink")
+    }
+
+    func replaceDemoDrinks(with drinks: [LoggedDrink]) async throws {
+        throw unimplemented("replaced the demo drinks")
     }
 
     func drinks() async throws -> [LoggedDrink] {

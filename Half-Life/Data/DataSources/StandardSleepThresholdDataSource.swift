@@ -11,11 +11,17 @@
 
 /// The sleep threshold data source until the threshold is personalised.
 ///
-/// Nothing can store a threshold yet, so the current one is always ``SleepThreshold/standard`` (THRESH-3). The
-/// personal sensitivity threshold (roadmap rank 22) replaces it with a source that holds the user's own.
+/// Its threshold is always ``SleepThreshold/standard`` (THRESH-3). The app uses
+/// ``PersonalSleepThresholdDataSource``, which serves the user's caffeine tolerance, so this one stands in only where
+/// a repository is built without a threshold, as in tests.
 struct StandardSleepThresholdDataSource: SleepThresholdDataSource {
     /// Returns ``SleepThreshold/standard``.
     func threshold() -> SleepThreshold {
         .standard
+    }
+
+    /// Returns a stream that finishes at once, because the standard threshold never changes (THRESH-4).
+    func changes() -> AsyncStream<Void> {
+        AsyncStream { $0.finish() }
     }
 }

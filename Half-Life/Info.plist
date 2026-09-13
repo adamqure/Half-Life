@@ -2,19 +2,12 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
-	<key>NSFaceIDUsageDescription</key>
-	<string>Localized in InfoPlist.xcstrings</string>
-	<key>NSHealthClinicalHealthRecordsShareUsageDescription</key>
-	<string>Localized in InfoPlist.xcstrings</string>
-	<key>NSHealthShareUsageDescription</key>
-	<string>Localized in InfoPlist.xcstrings</string>
-	<key>NSHealthUpdateUsageDescription</key>
-	<string>Localized in InfoPlist.xcstrings</string>
-	<key>NSSiriUsageDescription</key>
-	<string>Localized in InfoPlist.xcstrings</string>
-	<key>UIBackgroundModes</key>
-	<array>
-		<string>remote-notification</string>
-	</array>
+	<key>UILaunchScreen</key>
+	<dict>
+		<key>UIColorName</key>
+		<string>backgroundCanvasTop</string>
+		<key>UIImageName</key>
+		<string>brandMark</string>
+	</dict>
 </dict>
 </plist>

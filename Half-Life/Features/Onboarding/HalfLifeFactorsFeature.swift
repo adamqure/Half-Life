@@ -13,11 +13,12 @@ import ComposableArchitecture
 import Foundation
 import OSLog
 
-/// Onboarding's step that asks what changes how fast the user clears caffeine, and shows the starting half-life.
+/// Onboarding's step that asks what changes how fast the user clears caffeine.
 ///
-/// A choice is saved as soon as it's made. The factors and the half-life in `State` come only from the profile the
-/// repository publishes, so the half-life shown is always the one the rule gave for what's saved (constitution Article
-/// I.5). Choosing pregnancy asks for the trimester before anything is saved. See the Onboarding article, ONB-6.
+/// A choice is saved as soon as it's made. The factors in `State` come only from the profile the repository
+/// publishes (constitution Article I.5). The step never shows the half-life they give, because the app doesn't share
+/// its half-life calculation with the user. Choosing pregnancy asks for the trimester before anything is saved. See
+/// the Onboarding article, ONB-6.
 @Reducer nonisolated struct HalfLifeFactorsFeature {
     private static let logger = Logger(for: HalfLifeFactorsFeature.self)
 
@@ -26,8 +27,6 @@ import OSLog
     struct State: Equatable {
         /// The saved factors.
         var factors: Set<HalfLifeFactor> = []
-        /// The saved starting half-life, or `nil` until the profile arrives.
-        var halfLife: CaffeineHalfLife?
         /// Whether the user tapped "I'm pregnant" and hasn't chosen a trimester yet.
         var isChoosingTrimester = false
 
@@ -70,7 +69,7 @@ import OSLog
     @Dependency(\.observeUserProfile) var observeUserProfile
     @Dependency(\.saveHalfLifeFactors) var saveHalfLifeFactors
 
-    /// Saves each choice, and reduces the saved factors and half-life into `State`.
+    /// Saves each choice, and reduces the saved factors into `State`.
     var body: some ReducerOf<Self> {
         Reduce { state, action in
             switch action {
@@ -82,7 +81,6 @@ import OSLog
                 }
             case let .profileUpdated(profile):
                 state.factors = profile.halfLifeFactors
-                state.halfLife = profile.halfLife
                 return .none
             case .noneTapped:
                 state.isChoosingTrimester = false

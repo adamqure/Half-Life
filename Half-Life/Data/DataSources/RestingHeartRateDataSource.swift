@@ -14,7 +14,8 @@ import Foundation
 /// Reads the user's resting heart rate from Apple Health.
 ///
 /// An implementation is the only code that reads resting heart rate from Health (constitution Articles I.14 and
-/// V.3.5). No repository reads it yet. The Resting Heart Rate article lists its requirements, RHR-1 to RHR-5.
+/// V.3.5). ``HalfLifeEstimateRepository`` and ``HealthDataRepository`` read it. The Resting Heart Rate article lists
+/// its requirements, RHR-1 to RHR-8.
 protocol RestingHeartRateDataSource: Sendable {
     /// Returns the average of the resting heart rates recorded during the calendar day that contains `day`.
     ///
@@ -23,4 +24,11 @@ protocol RestingHeartRateDataSource: Sendable {
     ///   also `nil` when the user has denied read access, because HealthKit doesn't reveal a denial.
     /// - Throws: HealthKit's error if the query failed, for example because the device is locked.
     func averageRestingHeartRate(on day: Date) async throws -> Double?
+
+    /// Returns a stream for one subscriber that yields each time Health reports that resting heart rate may have
+    /// changed.
+    ///
+    /// A signal doesn't say what changed, so a subscriber re-reads the days it needs. The stream ends when its
+    /// subscriber stops listening.
+    func changes() async -> AsyncStream<Void>
 }

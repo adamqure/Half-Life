@@ -69,6 +69,7 @@ struct TodayFeatureTests {
             $0.observeCaffeineCurve = ObserveCaffeineCurveUseCase(repository: repository)
             $0.observeCaffeineStatus = ObserveCaffeineStatusUseCase(repository: repository)
             $0.observeTimeOfDay = ObserveTimeOfDayUseCase(currentTime: SilentCurrentTimeRepository())
+            $0.refreshHalfLifeEstimate = RefreshHalfLifeEstimateUseCase(repository: FakeHalfLifeEstimateRepository())
         }
 
         await store.send(.caffeineDecay(.task))

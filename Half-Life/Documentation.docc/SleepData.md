@@ -8,7 +8,7 @@ The brief's question is when caffeine lands relative to bedtime, and sleep is th
 
 Half-Life reads the samples as they were recorded, as ``SleepStageInterval`` values. A business rule, not yet built, will turn a night's intervals into a summary of that night, for example time asleep, time in each stage, time awake, and how long it took to fall asleep. The owner chose this split on 2026-09-11. It keeps the data source a thin HealthKit wrapper, and the rule that decides what a night is can be tested without HealthKit.
 
-``HealthKitSleepDataSource``, implementing ``SleepDataSource``, is the only code that reads sleep from HealthKit (constitution Articles I.14 and V.3.5). No repository reads it yet. It's part of the HealthKit read (roadmap rank 7), built ahead of its rank at the owner's request.
+``HealthKitSleepDataSource``, implementing ``SleepDataSource``, is the only code that reads sleep from HealthKit (constitution Articles I.14 and V.3.5). ``HalfLifeEstimateRepository`` reads it, for the half-life estimator (<doc:HalfLifeEstimator>). It's part of the HealthKit read (roadmap rank 7), built ahead of its rank at the owner's request.
 
 ## What's read
 
@@ -76,8 +76,8 @@ The data source only reads, and never requests authorization. The owner decided 
 
 ## Still to decide
 
-- **The night rule.** The business rule that turns intervals into a night's summary. It decides what counts as a night (for example noon to noon, dated by the morning), how overlapping trackers merge, and which figures describe the night's quality.
-- **The repository.** Which repository reads the data source, what range it reads, and how it republishes on `changes()` (constitution Article I.12).
+- **The night rule.** Settled. The half-life estimator built ``SleepNightRule`` (<doc:HalfLifeEstimator>), and the Apple Health card's ``LastNightSleepRule`` reuses its sessions to find last night (<doc:AppleHealthCard>).
+- **The repositories.** Settled. The estimator's repository reads 90 days of sleep (<doc:HalfLifeEstimator>), and ``HealthDataRepository`` reads last night for the Apple Health card, and re-reads on `changes()` (<doc:AppleHealthCard>).
 - **Background delivery.** Whether sleep that syncs while the app isn't running should wake it.
 
 ## Topics

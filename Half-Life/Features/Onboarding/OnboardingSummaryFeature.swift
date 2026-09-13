@@ -12,8 +12,8 @@
 import ComposableArchitecture
 import Foundation
 
-/// Onboarding's last step: what the user told the app, the starting half-life, the recommended sleep, and each
-/// permission's status, with two ways out.
+/// Onboarding's last step: what the user told the app, the recommended sleep, and each permission's status, with two
+/// ways out.
 ///
 /// "Log my first cup" and "Take me to Today" both finish onboarding. ``AppFeature`` completes it, and opens the drink
 /// composer afterwards for the first. See the Onboarding article.

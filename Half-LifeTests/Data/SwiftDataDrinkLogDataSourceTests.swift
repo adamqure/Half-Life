@@ -157,8 +157,8 @@ extension SwiftDataStoreTests {
             #expect(count == 0)
         }
 
-        /// A drink whose stored type this version doesn't know, for example from a newer version synced through
-        /// CloudKit, is left out rather than failing the whole read.
+        /// A drink whose stored type this version doesn't know, for example one a newer version stored, is left out
+        /// rather than failing the whole read.
         @Test func drinkWithAnUnknownTypeIsSkipped() async throws {
             let context = ModelContext(container)
             context.insert(
@@ -170,6 +170,15 @@ extension SwiftDataStoreTests {
 
             #expect(try await source.drinks() == [known])
             #expect(try await source.nonNegligibleDrinks() == [known])
+        }
+
+        /// SRC-11: the device's store stays on the device. Its configuration names no CloudKit container, even while
+        /// the app's entitlements name one. Describing the store doesn't open it.
+        @Test func devicesStoreNeverSyncsToCloudKit() {
+            let configuration = SwiftDataDrinkLogDataSource.makeModelConfiguration()
+
+            #expect(!configuration.isStoredInMemoryOnly)
+            #expect(configuration.cloudKitContainerIdentifier == nil)
         }
     }
 }

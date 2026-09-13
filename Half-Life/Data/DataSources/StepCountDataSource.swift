@@ -14,7 +14,8 @@ import Foundation
 /// Reads the user's daily step count from Apple Health.
 ///
 /// An implementation is the only code that reads step count from Health (constitution Articles I.14 and V.3.5).
-/// No repository reads it yet. The Step Count article lists its requirements, STEPS-1 to STEPS-5.
+/// ``HalfLifeEstimateRepository`` and ``HealthDataRepository`` read it. The Step Count article lists its requirements,
+/// STEPS-1 to STEPS-8.
 protocol StepCountDataSource: Sendable {
     /// Returns the total number of steps recorded during the calendar day that contains `day`.
     ///
@@ -23,4 +24,10 @@ protocol StepCountDataSource: Sendable {
     ///   has denied read access, because HealthKit doesn't reveal a denial. It's `0` only when Health recorded zero.
     /// - Throws: HealthKit's error if the query failed, for example because the device is locked.
     func stepCount(on day: Date) async throws -> Int?
+
+    /// Returns a stream for one subscriber that yields each time Health reports that step count may have changed.
+    ///
+    /// A signal doesn't say what changed, so a subscriber re-reads the steps it needs. The stream ends when its
+    /// subscriber stops listening.
+    func changes() async -> AsyncStream<Void>
 }

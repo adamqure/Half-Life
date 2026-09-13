@@ -28,6 +28,8 @@ struct HealthKitStepCountDataSource: StepCountDataSource {
     let calendar: Calendar
     /// Runs a statistics query, and returns its sum quantity, or `nil` if no sample matched.
     let sumQuantity: @Sendable (HKStatisticsQueryDescriptor) async throws -> HKQuantity?
+    /// Starts an observer query for a sample type, and returns a function that stops it.
+    let observe: @Sendable (HKSampleType, @escaping @Sendable ((any Error)?) -> Void) -> @Sendable () -> Void
 
     /// Creates a step count data source.
     ///
@@ -36,14 +38,21 @@ struct HealthKitStepCountDataSource: StepCountDataSource {
     ///     changes to the time zone.
     ///   - sumQuantity: Runs a statistics query and returns its sum quantity. Defaults to running it on the app's
     ///     shared health store, ``HealthKit/HKHealthStore/halfLife``.
+    ///   - observe: Starts an observer query for a sample type, and returns a function that stops it. Defaults to
+    ///     running it on the shared health store.
     init(
         calendar: Calendar = .autoupdatingCurrent,
         sumQuantity: @escaping @Sendable (HKStatisticsQueryDescriptor) async throws -> HKQuantity? = {
             try await $0.result(for: .halfLife)?.sumQuantity()
-        }
+        },
+        observe:
+            @escaping @Sendable (HKSampleType, @escaping @Sendable ((any Error)?) -> Void) -> @Sendable () -> Void = {
+                HKHealthStore.observeHalfLife($0, handler: $1)
+            }
     ) {
         self.calendar = calendar
         self.sumQuantity = sumQuantity
+        self.observe = observe
     }
 
     /// Returns the total number of steps recorded during the calendar day that contains `day`.
@@ -72,5 +81,24 @@ struct HealthKitStepCountDataSource: StepCountDataSource {
             Self.logger.error("Couldn't read step count: \(domain, privacy: .public) \(code, privacy: .public)")
             throw error
         }
+    }
+
+    /// Returns a stream for one subscriber that yields after each change HealthKit reports to step count.
+    ///
+    /// Each subscriber gets its own observer query, which stops when the subscriber stops listening. An error
+    /// HealthKit reports is logged with its domain and code only, and signals nothing (STEPS-6 to STEPS-8).
+    func changes() -> AsyncStream<Void> {
+        let (stream, continuation) = AsyncStream.makeStream(of: Void.self)
+        let stop = observe(HKQuantityType(.stepCount)) { error in
+            if let error {
+                let domain = (error as NSError).domain
+                let code = (error as NSError).code
+                Self.logger.error("Couldn't observe step count: \(domain, privacy: .public) \(code, privacy: .public)")
+            } else {
+                continuation.yield()
+            }
+        }
+        continuation.onTermination = { _ in stop() }
+        return stream
     }
 }

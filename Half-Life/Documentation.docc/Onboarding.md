@@ -18,7 +18,7 @@ The owner set the scope on 2026-09-12.
 | Age | The recommended sleep range that sleep insights compare against | No |
 | What changes how fast the user clears caffeine | The starting half-life (see "HalfLifePriorRule") | No. "None of these" is the default. |
 | Bedtime | The level at bedtime, and later the cutoff and the pre-log warning (rank 13) | No. It starts at 10:30pm (``Bedtime/standard``). |
-| Apple Health, notifications, and Face ID | Reading sleep, steps, and resting heart rate. Notifications and Face ID have no feature yet (see "Risks the owner accepted"). | No. The app works fully without any of them (constitution Article V.3.3). |
+| Apple Health, notifications, and Face ID | Reading sleep, steps, and resting heart rate. Notifications send the cutoff reminder (<doc:CutoffReminder>), and Face ID unlocks the app lock (<doc:AppLock>). | No. The app works fully without any of them (constitution Article V.3.3). |
 
 Nothing blocks. Every step can be continued with nothing entered, so a user who skips everything lands on the Today screen with the standard model.
 
@@ -27,9 +27,11 @@ Nothing blocks. Every step can be continued with nothing entered, so a user who 
 The owner answered four questions on 2026-09-12:
 
 1. **Apple Health is requested when the user taps**, from the permissions step, after the step explains each type. Constitution Article V.3.1 said "at the moment the feature needs them, never at launch", so it was amended the same day (see "Constitution amendment").
-2. **Notifications and Face ID are requested in onboarding**, although no feature uses either yet. The cutoff notification is rank 19 and the biometric lock is rank 27. The AI recommended adding each row with its feature instead. The risks are recorded below.
+2. **Notifications and Face ID are requested in onboarding**, although no feature used either when they were added. The cutoff notification was rank 19 and the biometric lock is rank 27. Since 2026-09-12, the cutoff reminder uses notifications (<doc:CutoffReminder>), and the app lock uses Face ID (<doc:AppLock>). The AI recommended adding each row with its feature instead. The risks are recorded below.
 3. **Age sets the recommended sleep range.** It doesn't change the half-life.
-4. **The medical answers set the starting half-life, and are kept on the device**, so Settings (rank 21) can revise them later, for example when a pregnancy ends.
+4. **The medical answers set the starting half-life, and are kept on the device**, so Settings can revise them later, for example when a pregnancy ends (<doc:Settings>).
+
+> Note: On 2026-09-13, the owner decided that **the app never shows the user their half-life**: "We shouldn't be sharing directly with the user their half-life calculation." The owner asked for the "Your starting half-life" card to go from this step and from Settings' Caffeine and your body screen. The AI pointed out that the number also showed in the summary's "Starting half-life" row and on Settings' Caffeine and your body row, and the owner chose to remove those too, which the AI recommended. The factors still set the half-life the decay model uses. Only the number is hidden.
 
 The name was a low-priority item in the roadmap's backlog, and the Today Screen article said onboarding wouldn't ask for it. The owner added it to onboarding on 2026-09-12. The backlog's design for it still applies: a text field with `.textContentType(.givenName)`, so AutoFill offers the first name from the user's contact card in one tap, with no permission.
 
@@ -39,9 +41,9 @@ The prototype's onboarding is screenshots 01–06. The brief asks that every cut
 
 | Prototype element | Becomes |
 |-------------------|---------|
-| 01: the logo, the wordmark, and "Log your coffee in one tap…" | Kept, as the Welcome step |
+| 01: the logo, the wordmark, and "Log your coffee in one tap…" | Kept, as the Welcome step. The logo is the brand mark, one cup's decay curve, the same image the launch and splash screens draw (<doc:SplashScreen>). It replaced an SF Symbol of a falling chart on 2026-09-13, at the owner's request. It sits on onboarding's solid page, the canvas's top color, where its curve meets the 3:1 contrast that graphics need. It's decorative, so VoiceOver skips it. |
 | 01: "Continue with Apple" and "Continue with email" | Cut. The brief rules out accounts ("One user, one device. No accounts infrastructure"). One "Get started" button replaces both. |
-| 01: "Your caffeine and health data stays on your device." | Kept, reworded so it's true. The drink log syncs to the user's private iCloud database (constitution Article V.1), so the footer can't say all caffeine data stays on the device. For example: "Your health data stays on this iPhone. Your drink log syncs only to your own iCloud. No account needed." |
+| 01: "Your caffeine and health data stays on your device." | Kept, reworded: "Your caffeine and health data stays on this iPhone. No account needed." Nothing syncs, so it's true (<doc:DrinkComposer>). While the drink log synced to the user's private iCloud database, from 2026-09-11 to 2026-09-13, the footer said so instead. If sync returns (roadmap rank 23), the footer has to say so again. |
 | 02: "What should we call you?" | Kept, and optional. Age joins it on one "About you" step. |
 | 03: goals (Sleep better, Fewer jitters, Cut back gradually, Just curious) | Cut. The screen says the goals change "what we show you first", but nothing in the app would change. "Fewer jitters" belongs to the personal sensitivity threshold (rank 22), and nothing on the roadmap steps a ceiling down week by week. Collecting them would break Articles III.1 and V.2. |
 | 03: the daily ceiling, 400 mg | Cut from onboarding, because no feature uses a ceiling yet. The Today total's bar may need one (see "Still to decide"). |
@@ -53,8 +55,8 @@ The prototype's onboarding is screenshots 01–06. The brief asks that every cut
 | 05: "We only read. Nothing is written back, and nothing leaves your phone." | Kept. Onboarding asks for no write access, and Health data is never synced (Article V.3.4). |
 | 05: "Not now — I'll log manually" | Kept, as the step's Continue button, which works whether or not anything was allowed |
 | New: the Notifications and Face ID rows | Added, at the owner's request |
-| 06: "You're set, Test.", with a summary | Kept. It shows the name, the starting half-life, the bedtime, the recommended sleep range, and each permission's status. The goals and ceiling rows are cut with their steps. |
-| 06: "Give it about ten days of logging — that's when the sleep pattern gets honest." | Replaced until the estimator (rank 9) decides how much data it needs. The app can't promise a number of days it hasn't designed (the brief's *Honesty* criterion). |
+| 06: "You're set, Test.", with a summary | Kept. It shows the name, the bedtime, the recommended sleep range, and each permission's status. The goals and ceiling rows are cut with their steps. It showed the starting half-life too until the owner's decision of 2026-09-13 (see "The owner's decisions"). |
+| 06: "Give it about ten days of logging — that's when the sleep pattern gets honest." | Replaced. The app can't promise a number of days it hasn't designed (the brief's *Honesty* criterion). The estimator (rank 9) needs at least 14 nights, each after 2 days of logged drinks, before the data can move the half-life, and with real nights it usually moves only a little (<doc:HalfLifeEstimator>). So no number of days makes the pattern "honest", and the summary doesn't promise one (see "Still to decide"). |
 | 06: "Log my first cup" and "Take me to Today" | Kept |
 
 ## The flow
@@ -66,10 +68,11 @@ The prototype's onboarding is screenshots 01–06. The brief asks that every cut
 | 3 | Caffeine and your body | What changes how fast they clear caffeine, a multi-select that starts at "None of these" | As each choice changes |
 | 4 | Bedtime | When they want to be asleep, on a time picker | On Continue |
 | 5 | Permissions | Apple Health, notifications, Face ID | Each request is the system's own state |
-| 6 | Summary | Nothing | Completes onboarding when the user leaves it |
+| 6 | Use Siri and Shortcuts | Nothing: it shows phrases to try, and the button to the Shortcuts app | Nothing |
+| 7 | Summary | Nothing | Completes onboarding when the user leaves it |
 
 - **The half-life comes before the bedtime.** The order was chosen for the bedtime step's cutoff card, which used the half-life. The owner took the cutoff out of onboarding on 2026-09-12 (see "What changed while building"), and the order stayed.
-- **Steps 2 to 5 show their place and a back button.** The place is written out, "Step 1 of 4", rather than drawn as the prototype's dots, so it doesn't rely on color (Article VI.3). The back button is the navigation stack's own, so swiping back works too.
+- **Steps 2 to 6 show their place and a back button.** The place is written out, "Step 1 of 5", rather than drawn as the prototype's dots, so it doesn't rely on color (Article VI.3). The back button is the navigation stack's own, so swiping back works too.
 - **Onboarding ends when the user leaves the summary.** "Log my first cup" completes it and opens the drink composer, and "Take me to Today" completes it.
 - **Quitting before the end restarts onboarding**, at Welcome, on the next launch. The answers saved so far fill the steps in.
 
@@ -77,7 +80,7 @@ The prototype's onboarding is screenshots 01–06. The brief asks that every cut
 
 Onboarding follows the app's one-way data flow (constitution Article I.5). No step holds a draft of the profile.
 
-- **A factor is saved as soon as it's chosen.** The step reads it back through the repository's stream, so an option shows as chosen once the repository publishes it. The starting half-life card updates the same way, so it always shows the half-life the rule gave for what's saved.
+- **A factor is saved as soon as it's chosen.** The step reads it back through the repository's stream, so an option shows as chosen once the repository publishes it. The step doesn't show the half-life the rule gives for what's saved (see "The owner's decisions").
 - **Typed and picked answers are saved on Continue**: the name, the age, and the bedtime. They're the step's own editing state until then (Article I.2), so a half-typed name isn't saved. A step that's returned to fills in from the saved profile once, unless the user has already changed it.
 - **A failed save doesn't block.** It's logged, and the user continues. The answer can be given again later, and until then the default applies.
 - **Permissions are system state.** The permissions step asks through a use case, and learns the outcome through the permissions repository's stream (Article I.6).
@@ -125,7 +128,7 @@ The nightly sleep recommended for the user's age.
 | `minimumSeconds` | `TimeInterval` | The least recommended |
 | `maximumSeconds` | `TimeInterval` | The most recommended |
 
-When the age isn't known, it's the adult range. Nothing shows it yet except the summary. The Patterns screen (rank 15) and insight cards (rank 12) will compare sleep against it.
+When the age isn't known, it's the adult range. Nothing shows it yet except the summary. The Insights tab (rank 15) and insight cards (rank 12) will compare sleep against it.
 
 ### Permissions
 
@@ -171,7 +174,7 @@ T½ = 5.5 h × m(pregnancy or estrogen) × m(smokes) × m(cirrhosis) × m(fluvox
 | Cirrhosis | ×2.5 | 13.8 h | 13.7 hours against 3.8 (Renner 1984, ×3.6), but only ×1.2 in a milder group (Desmond 1980). The effect depends on severity, so this is between the two. |
 | Fluvoxamine | ×6.0 | 33 h | 31 hours against 5 (Jeppesen 1996, 8 people, ×6.2). Another study measured 56 hours against 4.9 (Culm-Merdek 2005, ×11). The FDA lists it as the one strong inhibitor of the enzyme that clears caffeine. |
 
-Each multiplier is a starting point for one person, drawn from group averages. Healthy people alone vary from about 2.3 to 9.9 hours (Blanchard 1983, 16 men), so the step and the summary call the result a starting estimate. The personal half-life estimator (rank 9) replaces it once the user's own data can.
+Each multiplier is a starting point for one person, drawn from group averages. Healthy people alone vary from about 2.3 to 9.9 hours (Blanchard 1983, 16 men), so the step and the summary call the result a starting estimate. The personal half-life estimator (rank 9) starts from it and updates it with the user's own nights. When the nights can't say anything, the estimate stays at this starting value (<doc:HalfLifeEstimator>).
 
 **Considered and left out.** Each of these was in the research, and each fell short:
 
@@ -231,7 +234,7 @@ The recommended nightly sleep for the user's age, from the National Sleep Founda
 | `PermissionsRepository` (new) | The three permissions' statuses | `HealthKitAuthorizationDataSource`, `UserNotificationsAuthorizationDataSource`, `LocalAuthenticationDataSource`, `FilePermissionHistoryDataSource` |
 
 - **The profile's stream no longer finishes.** It publishes the current profile as soon as it's subscribed to, then every change (constitution Article I.12). Today it finishes after one value, because nothing could change the profile.
-- **The starting half-life is stored.** When the factors are saved, ``UserProfileRepository`` executes `HalfLifePriorRule` and stores the result through ``HalfLifeDataSource``. ``CaffeineDecayRepository`` reads it from the same data source, as it reads the standard one today, and the data source's change signal tells it to recalculate. This is the shared-data-source pattern in <doc:Architecture>. The factors are stored too, so the prior can be recalculated if the rule changes. How the estimator (rank 9) and a Settings override (rank 21) combine with the prior is theirs to decide.
+- **The starting half-life is stored.** When the factors are saved, ``UserProfileRepository`` executes `HalfLifePriorRule` and stores the result through ``HalfLifeDataSource``. ``CaffeineDecayRepository`` reads it from the same data source, as it reads the standard one today, and the data source's change signal tells it to recalculate. This is the shared-data-source pattern in <doc:Architecture>. The factors are stored too, so the prior can be recalculated if the rule changes. Since the estimator (rank 9) was built, ``CaffeineDecayRepository`` reads the half-life through ``EstimatedHalfLifeDataSource``. It serves the personal estimate when the estimate started from the current starting half-life, and the starting half-life otherwise, so a changed answer still reaches the curve at once (<doc:HalfLifeEstimator>). How a half-life override would combine with them is still open. Settings was built without the override (<doc:Settings>).
 - **The permissions repository refreshes on request.** A notification or Face ID permission can change in the Settings app while Half-Life is in the background. The permissions step sends a refresh when the app becomes active, and the repository republishes if anything changed.
 
 ### Data sources
@@ -244,11 +247,11 @@ The recommended nightly sleep for the user's age, from the National Sleep Founda
 | `LocalAuthenticationDataSource` | `LAContext`: `canEvaluatePolicy(_:error:)` and `biometryType` for the status, and `evaluatePolicy(_:localizedReason:)` for the request |
 | `FilePermissionHistoryDataSource` | A small JSON file that records whether Face ID has been requested. iOS reports Face ID as available both before the app asks and after the user allows it, so the app has to remember that it asked. |
 
-**Why a file, not SwiftData or UserDefaults.** The profile holds health information, such as a pregnancy, so it needs `NSFileProtectionComplete` (Article V.4), and it must not sync (Article V.1). The drink store syncs to CloudKit and uses a weaker class, so the profile can't share it, and a second SwiftData store for one record is more machinery than a file. UserDefaults can't be given `NSFileProtectionComplete`, and it's a required-reason API, which would need a privacy manifest the app doesn't have yet (Article V.7).
+**Why a file, not SwiftData or UserDefaults.** The profile holds health information, such as a pregnancy, so it needs `NSFileProtectionComplete` (Article V.4), and it must never sync, even when the drink log does (Article V.1). The drink store uses a weaker class and is built to sync to CloudKit later, so the profile can't share it, and a second SwiftData store for one record is more machinery than a file. UserDefaults can't be given `NSFileProtectionComplete`, and it's a required-reason API, which would need a privacy manifest the app doesn't have yet (Article V.7).
 
 **`NSFileProtectionComplete` has a cost.** The file can't be read while the device is locked. The decay repository reads the bedtime and half-life only while a feature observes them, which happens in the foreground, so that's fine today. Siri (rank 14) answering "when should I sleep?" from the Lock Screen would need them, and would have to fail gracefully or argue for a weaker class then.
 
-**Face ID has no separate permission request.** iOS shows the Face ID purpose string the first time the app evaluates a biometric policy, and then scans the user's face. So "requesting" Face ID is one authentication. Its only lasting effect is the permission, until the biometric lock (rank 27) uses it.
+**Face ID has no separate permission request.** iOS shows the Face ID purpose string the first time the app evaluates a biometric policy, and then scans the user's face. So "requesting" Face ID is one authentication. Its lasting effect is the permission. In onboarding, allowing it also turns the app lock on, through ``TurnOnAppLockUseCase``, which asks for Face ID itself, so there's one prompt (<doc:AppLock>).
 
 ## Presentation
 
@@ -258,10 +261,11 @@ The recommended nightly sleep for the user's age, from the National Sleep Founda
 |---------|----------------|-----------|
 | ``OnboardingFeature`` | The flow. Welcome is the root of a navigation stack, and each later step is pushed onto a `StackState` path (constitution Article I.6). It tells ``AppFeature`` when the user asked to log their first cup. | None of its own |
 | ``AboutYouFeature`` | Step 2: the name and age | ``ObserveUserProfileUseCase``, ``ObserveTimeOfDayUseCase`` (for the current year, to fill in the age), ``SaveAboutYouUseCase`` |
-| ``HalfLifeFactorsFeature`` | Step 3: the factors, and the starting half-life they give | ``ObserveUserProfileUseCase``, ``SaveHalfLifeFactorsUseCase`` |
+| ``HalfLifeFactorsFeature`` | Step 3: the factors, without the half-life they give | ``ObserveUserProfileUseCase``, ``SaveHalfLifeFactorsUseCase`` |
 | ``BedtimeFeature`` | Step 4: the bedtime, on a time picker | ``ObserveUserProfileUseCase``, ``SaveBedtimeUseCase`` |
 | ``PermissionsFeature`` | Step 5: one row per permission, with its status and an action | ``ObservePermissionsUseCase``, the three request use cases, ``RefreshPermissionsUseCase``, ``OpenAppSettingsUseCase`` |
-| ``OnboardingSummaryFeature`` | Step 6: the summary, and the two ways out | ``ObserveUserProfileUseCase``, ``ObserveRecommendedSleepUseCase``, ``ObservePermissionsUseCase`` |
+| ``SiriShortcutsFeature`` | Step 6: phrases to try with Siri, and the button to the Shortcuts app. It asks for nothing, and only moves on. | None |
+| ``OnboardingSummaryFeature`` | Step 7: the summary, and the two ways out | ``ObserveUserProfileUseCase``, ``ObserveRecommendedSleepUseCase``, ``ObservePermissionsUseCase`` |
 
 Each step is its own feature, view, and screen, so each has its own robot (Article II.5) and its own exhaustive `TestStore` tests. One reducer for the whole flow would have been simpler to wire, but its state and tests would carry every step at once.
 
@@ -269,7 +273,7 @@ Each step is its own feature, view, and screen, so each has its own robot (Artic
 
 ``AppFeature`` starts observing the profile when its view appears.
 
-- **Until the first profile arrives**, ``AppView`` shows only its background, so the Today screen never flashes up behind onboarding.
+- **Until the first profile arrives**, ``AppView`` shows only the splash screen, so the Today screen never flashes up behind onboarding (<doc:SplashScreen>).
 - **While onboarding isn't complete**, ``AppFeature`` presents `OnboardingFeature` full screen, through a `@Presents` property.
 - **Leaving the summary** reaches ``AppFeature`` as a delegate action, and ``AppFeature`` completes onboarding through ``CompleteOnboardingUseCase``. If that fails, the failure is logged and onboarding stays.
 - **When the profile says it's complete**, ``AppFeature`` dismisses onboarding. The dismissal follows the repository, not the button (constitution Article I.5).
@@ -283,21 +287,38 @@ Each row shows an icon, the permission's name, one line on what it's for, and it
 |-----|-----------|--------------|
 | Apple Health: "Reads your sleep, steps, and resting heart rate. Nothing is written back, and your Health data never leaves this iPhone." | "Allow" button | "Asked", with a line pointing to the Health app to change what's shared. On a device without Health: "Not available on this device". |
 | Notifications | "Allow" button | "On", or "Off" with a button to the Settings app |
-| Face ID (or Touch ID): "Lets Half-Life check that it's you." | "Allow" button | "On", or "Off" with a button to the Settings app. On a device with none enrolled: "Not set up", with "Set up Face ID in the Settings app." With no biometrics at all, the row is hidden. |
+| Face ID (or Touch ID): "Locks Half-Life each time you leave it, so only you can see your caffeine and health data. You can turn the lock off in Settings." Allowing it also turns the app lock on (<doc:AppLock>). | "Allow" button | "On", or "Off" with a button to the Settings app. On a device with none enrolled: "Not set up", with "Set up Face ID in the Settings app." With no biometrics at all, the row is hidden. |
 
 Opening the Settings app goes through the permissions repository, to a data source, like every other piece of system UI (Article I.6).
+
+### The Siri and Shortcuts step
+
+``SiriShortcutsFeature`` and ``SiriShortcutsView``, the fifth numbered step, after Permissions. Half-Life's App Shortcuts work as soon as the app is installed, and App Intents need no permission, so the step asks for nothing (<doc:AppIntents>). It teaches. It shows four phrases to try, each one of the App Shortcuts' phrases as Siri hears it:
+
+- "Log a latte in Half-Life"
+- "How much caffeine is in me in Half-Life?"
+- "When should I go to sleep in Half-Life?"
+- "Ask Half-Life a question"
+
+Under them, Apple's `ShortcutsLink` opens Half-Life's shortcuts in the Shortcuts app, where the user can see every phrase and put a shortcut on the Action Button. Continue moves on.
+
+- **The phrases are the app's own rows, not Apple's `SiriTipView`.** The owner first chose `SiriTipView`, with a spike to check that UI tests could find it. On 2026-09-13, the spike found that it isn't in the accessibility tree at all, by identifier or by its text, so no robot could verify or audit it. The owner then chose rows drawn in the design system, each with an identifier, which `SiriShortcutsRobot` verifies and the audit checks. Each row is one accessibility element, and its symbol is hidden, because the phrase carries the meaning.
+- **The Shortcuts button names the app from `CFBundleDisplayName`.** Without a display name, its label read " shortcuts". The app now declares `CFBundleDisplayName`, "Half-Life", in `InfoPlist.xcstrings`, with a placeholder in `Info.plist` (Article VII.1.1). UI-ONB-9 checks that the label names Half-Life.
+- **The button opens the Shortcuts app itself.** `ShortcutsLink` is a view the framework provides, and it's the only way to open an app's shortcuts in the Shortcuts app. So the view shows it as it is, rather than routing the open through a data source, as the Settings app's button does.
+- **The phrases are written in `Localizable.xcstrings`**, with the app's name, and each matches a phrase in `AppShortcuts.xcstrings`. A phrase changed in one must change in the other.
+- **Its audit excuses one issue: clipped text in the Shortcuts button.** The audit reports the button's label, "Half-Life shortcuts", as clipped, even with the button at its full natural size. The control draws its own label, so the app can't change it. On 2026-09-13, the owner chose to keep the button, which opens straight to Half-Life's shortcuts, and excuse that one issue. The alternatives were a button of the app's own, which could open only the Shortcuts app's main screen, or no button. `SiriShortcutsRobot`'s `auditAccessibilityExcusingTheShortcutsButton()` ignores a text-clipped issue only for an element inside the button's frame, with the button found by its identifier. Every other issue fails.
 
 ### Accessibility and localization
 
 - Each permission row's name is a heading. Its Allow button reads as "Allow Apple Health", "Allow notifications", or "Allow Face ID", and its status is one element, with its symbol hidden.
-- Each step's place is written out, "Step 1 of 4", and read by VoiceOver.
+- Each step's place is written out, "Step 1 of 5", and read by VoiceOver.
 - **Every onboarding screen has a solid page**, the canvas's top color, and text set directly on it uses `textPrimary`. Over the gradient, the accessibility audit's contrast check failed text on every pushed step, even `textPrimary` at over 10:1 by the tokens' values. On Welcome, the same check passed its small `textSecondary` footer on some runs and failed it on others. On the solid page, small `textSecondary` text such as "Step 3 of 4" still failed, although the tokens put it at 5.6:1. The audit seems to measure rendered pixels, which the gradient and small glyphs throw off. Text on cards keeps both tones, and passed throughout. A scratch diagnostic found each of these, and wasn't kept. The Design System article's page gradient still applies to the rest of the app.
 - **The summary's buttons sit on the solid page, and onboarding's primary button has no shadow.** The audit failed "Take me to Today" for contrast while the summary could scroll under it, and again while the shadow of "Log my first cup" fell across it. The drink composer's Add button has no shadow either.
 - **The name field wraps**, up to three lines. As a one-line field, the audit reported that its text could be clipped at larger Dynamic Type sizes.
-- **The bedtime is two wheels**, hours and minutes, built from SwiftUI pickers, with hours in the locale's clock ("10 PM" or "22"). The system's time picker failed the audit's Dynamic Type check ("Dynamic Type font sizes are unsupported"). The age wheel, also a SwiftUI picker, passes.
+- **The bedtime is the system's compact time picker**: a button that shows the time in the locale's clock ("10:30 PM" or "22:30") and opens iOS's own wheel. Its label, "Bedtime", sits beside it on the card. The system picker's inline wheel failed the audit's Dynamic Type check on 2026-09-12 ("Dynamic Type font sizes are unsupported"), so the bedtime was first two wheels built from SwiftUI pickers. The compact style passes the audit on a still screen (see "What changed while building"). The age wheel, a SwiftUI picker, passes too.
 - A selected chip or factor has the selected trait, so VoiceOver doesn't depend on its fill.
 - Every step scrolls vertically, so nothing is lost at the largest Dynamic Type sizes (Article VI.2). **No screen scrolls sideways**: its content fits the screen's width, and UI-ONB-8 checks each screen with a sideways swipe, at the default and the largest text size. iOS 26's back gesture still works from anywhere on a pushed step, and slides the page sideways as it goes back. The owner chose on 2026-09-12 to keep it.
-- All copy lives in `Localizable.xcstrings`. Half-lives, times, and sleep ranges are formatted with locale-aware APIs (Article VII.3).
+- All copy lives in `Localizable.xcstrings`. Times and sleep ranges are formatted with locale-aware APIs (Article VII.3).
 - The factors step says plainly that Half-Life isn't medical advice, and suggests asking a doctor how much caffeine is right during pregnancy or with liver disease.
 
 ## Privacy and logging
@@ -343,8 +364,9 @@ These changed the design in the build:
 - **The bedtime saves on Continue.** With no card depending on it, it's editing state until Continue, like the name and age. A time picker that saved on every turn, and waited for the repository, could also have jumped back while turning.
 - **The profile carries the bedtime and the half-life.** The steps read them from the profile, not from the cutoff stream.
 - **``AppFeature`` completes onboarding**, not the summary. The summary's delegate action can't be cancelled by the dismissal it causes, and the root is where the composer opens afterwards.
-- **The steps' place is written out**, "Step 1 of 4", instead of dots.
-- **Every onboarding screen has a solid page, with primary-tone text on it, and the bedtime is two wheels.** Both were needed to pass the accessibility audit. See "Accessibility and localization".
+- **The steps' place is written out**, "Step 1 of 5", instead of dots.
+- **Every onboarding screen has a solid page, with primary-tone text on it.** It was needed to pass the accessibility audit. See "Accessibility and localization".
+- **The bedtime moved from two wheels to the system's time picker.** The first build used two SwiftUI wheels, for hours and minutes, because the system picker's inline wheel failed the audit's Dynamic Type check. On 2026-09-13 the owner asked for the system's time picker, showing only the time. They chose its compact style, which the AI recommended, over the inline wheel, which would have needed an audit exception. Settings' Bedtime screen changed with it. `OnboardingFormat`'s hour and minute labels for the wheels were removed with their tests, and ``OnboardingFormat/bedtime(at:in:)`` turns the picker's date back into a bedtime.
 - **The permissions stack was built in parallel** by a subagent, against a contract this session set. It added ``UIKitSystemSettingsDataSource``, the simulated data sources for UI tests, and the Touch ID prompt's reason, "Allow Half-Life to check that it's you.", which doesn't promise the lock that isn't built.
 - **`StandardBedtimeDataSource`, `StandardHalfLifeDataSource`, and `EmptyUserProfileDataSource` were removed**, with their tests. ``FileProfileDataSource`` returns the same standard values when nothing is stored, and its tests carry their requirements, BEDSRC-1 and HALF-1.
 
@@ -356,8 +378,9 @@ The owner approved amending Article V.3.1 on 2026-09-12, so that a Health reques
 
 The owner chose on 2026-09-12 to request notifications and Face ID in onboarding, before any feature uses them. The AI recommended against it. The risks:
 
-- **Nothing uses them yet.** Until the cutoff notification (rank 19) and the biometric lock (rank 27) are built, allowing either does nothing. Asking for access an app doesn't use goes against Apple's guidance to request permission only when a feature needs it, which App Review can enforce.
+- **Nothing uses them yet.** Until the cutoff notification (rank 19) and the biometric lock (rank 27) are built, allowing either does nothing. This no longer holds for notifications: the cutoff reminder was built on 2026-09-12 (<doc:CutoffReminder>). Asking for access an app doesn't use goes against Apple's guidance to request permission only when a feature needs it, which App Review can enforce.
 - **The purpose string promises a lock that doesn't exist.** The Face ID purpose string says "Half-Life uses Face ID to unlock the app", and there's no lock until rank 27. That's also a question for the brief's *Honesty* criterion.
+  - Resolved on 2026-09-12: the app lock is built (<doc:AppLock>). Allowing Face ID in onboarding turns the lock on, and the row now says so.
 - **The rows' copy has to be true either way.** A line such as "For cutoff reminders" describes a feature the build may never ship if time runs out before rank 19.
 - **Article III.1** asks for no speculative features. A permission request with nothing behind it is close to one.
 
@@ -370,7 +393,7 @@ The UI tests launch the real app. Today, a fresh launch shows the Today screen. 
 - **A launch environment sets the starting state.** The key `HALF_LIFE_UI_TEST_PROFILE`, set to `completed` or `fresh`, makes the app keep the profile in a new temporary file, seeded accordingly, start with an empty drink log that lives only in memory, and simulate every permission (``UITestLaunchConfiguration``, and the simulated data sources in `App/UITesting/`). The key and its values live in `LaunchEnvironmentKey.swift`, which belongs to both targets, as the accessibility identifiers do (Article II.7). Previews use a temporary file too, seeded as having finished onboarding.
 - **Every UI test launches through a helper.** `launchPastOnboarding()` and `launchAtOnboarding()`, in `Robot.swift`, set the key and launch. The existing tests launch past onboarding, so they still open on the Today screen.
 - **System prompts aren't tested.** A UI test can't reliably answer Health's sheet, the notification alert, or the Face ID prompt, and the simulator's Face ID enrollment can't be set from a test. The fake permission data sources answer instead, and the real prompts are a manual check on a device.
-- **Each step has a robot:** `WelcomeRobot`, `AboutYouRobot`, `HalfLifeFactorsRobot`, `BedtimeRobot`, `PermissionsRobot`, and `OnboardingSummaryRobot`, each in its own file, listed in `Robots.all`, and with an accessibility audit. `OnboardingUITests` drives them.
+- **Each step has a robot:** `WelcomeRobot`, `AboutYouRobot`, `HalfLifeFactorsRobot`, `BedtimeRobot`, `PermissionsRobot`, `SiriShortcutsRobot`, and `OnboardingSummaryRobot`, each in its own file, listed in `Robots.all`, and with an accessibility audit. `OnboardingUITests` drives them.
 - **Each screen's scroll view has a `content` identifier**, which its robot swipes in `verifyScrollsOnlyVertically()`. The swipe starts in the right margin, where it can't press a full-width button such as Get started at the largest text sizes. Only labeled elements count, because iOS's own decorations, such as the dimming under the navigation bar, are wider than the screen.
 
 ## Testable requirements
@@ -419,12 +442,13 @@ Each is tested with an exhaustive `TestStore`, with its use cases overridden.
 | ID | Requirement |
 |----|-------------|
 | ONB-1 | ``AppFeature`` presents onboarding when the profile isn't complete, and dismisses it when the profile says it is. |
-| ONB-2 | ``AppFeature`` shows nothing until the first profile arrives. |
+| ONB-2 | ``AppFeature`` shows nothing but the splash screen until the first profile arrives (SPLASH-1 in <doc:SplashScreen>). |
 | ONB-3 | "Log my first cup" completes onboarding, and the composer opens once onboarding is dismissed. |
 | ONB-4 | Continue pushes the next step, in the order in "The flow". |
 | ONB-5 | About you and the bedtime step save on Continue. An empty field saves nothing, the fields fill in once from the saved profile unless the user has changed them, and a failed save still continues. |
 | ONB-6 | Choosing a factor saves it at once, and the step's state changes only when the repository publishes. Pregnancy asks for its trimester before anything is saved. |
 | ONB-7 | Each permission row's action calls its request use case, and the app becoming active calls the refresh. |
+| ONB-SIRI-1 | The Siri and Shortcuts step asks for nothing, and Continue moves on. Permissions continues to it, and it continues to the summary (ONB-4). |
 
 ### UI
 
@@ -434,19 +458,20 @@ Each is tested with an exhaustive `TestStore`, with its use cases overridden.
 | UI-ONB-2 | A name entered in About you appears on the summary and in the Today screen's greeting. |
 | UI-ONB-3 | Every step passes the system accessibility audit (Article VI.4). |
 | UI-ONB-4 | A launch with a completed profile shows the Today screen, as the existing tests expect. |
-| UI-ONB-5 | A factor sets the starting half-life, on its step and on the summary: estrogen gives 8.3 hours, and a third-trimester pregnancy 14.9. |
+| UI-ONB-5 | A chosen factor shows as chosen once it's saved, and pregnancy takes its trimester. Until 2026-09-13 it checked the starting half-life each gave, which the app no longer shows. |
 | UI-ONB-6 | Each permission shows the outcome of asking for it, from the simulated data sources. |
 | UI-ONB-7 | "Log my first cup" finishes onboarding and opens the drink composer (ONB-3). |
 | UI-ONB-8 | Every onboarding screen scrolls only vertically, at the default and the largest accessibility text size. After a sideways swipe, all of its content still sits within the screen's width. |
+| UI-ONB-9 | The Siri and Shortcuts step shows its four phrases to try and the Shortcuts app's button, whose label names Half-Life, and Continue reaches the summary. |
 
 ## Still to decide
 
 - **Whether a daily ceiling is needed.** The Today total's bar is drawn against something. The FDA's figure for healthy adults is 400 mg a day. For pregnancy, ACOG and EFSA say under 200 mg, and Health Canada says 300 mg. If the bar needs a ceiling, it could come from the factors rather than a new question.
 - **The youngest age allowed.** The picker starts at 13, the AI's choice.
-- **Answers that go stale.** A pregnancy moves through its trimesters and ends, and a smoker can quit, which lengthens their half-life within about a week (Faber 2004). Settings (rank 21) can revise the answers. The app could also ask again after a while. A due date would keep the trimester current by itself, but it's more sensitive data than the trimester.
+- **Answers that go stale.** A pregnancy moves through its trimesters and ends, and a smoker can quit, which lengthens their half-life within about a week (Faber 2004). Settings revises the answers when the user changes them there (<doc:Settings>). The app could also ask again after a while. A due date would keep the trimester current by itself, but it's more sensitive data than the trimester.
 - **Which medicines to name.** Only fluvoxamine is named. A general "a medicine that slows caffeine" option would be vaguer, but would cover the moderate inhibitors.
 - **The purpose string for reading Health.** It says Half-Life "reads your caffeine", but nothing reads caffeine from Health. Article V.3.2 asks each purpose string to describe the specific use.
-- **What the summary says about refinement**, once the estimator (rank 9) decides how much data it needs.
+- **What the summary says about refinement.** The estimator (rank 9) needs at least 14 usable nights before the data can move the half-life, and with real nights it usually moves only a little (<doc:HalfLifeEstimator>). The summary could say that the starting estimate is refined from the user's own nights, without promising when or by how much.
 
 ## Sources
 

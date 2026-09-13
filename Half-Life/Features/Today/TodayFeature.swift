@@ -13,8 +13,8 @@ import ComposableArchitecture
 
 /// The Today screen, the app's root feature. It composes one child feature per card.
 ///
-/// The greeting, the decay card, the "Today" and "Last cup" tiles, the one-tap row, and the history card are built so
-/// far. The other drink-log cards join them as they're built. See the Today Screen article.
+/// The greeting, the decay card, the "Today" and "Last cup" tiles, the one-tap row, the history card, and the Apple
+/// Health card, hidden until Health has something to show. See the Today Screen and Apple Health Card articles.
 @Reducer nonisolated struct TodayFeature {
     /// The state of every card on the screen.
     @ObservableState
@@ -31,6 +31,8 @@ import ComposableArchitecture
         var oneTapLog = OneTapLogFeature.State()
         /// The history card's state.
         var history = DrinkLogHistoryFeature.State()
+        /// The Apple Health card's state.
+        var healthSummary = HealthSummaryFeature.State()
     }
 
     /// The actions of every card on the screen.
@@ -47,6 +49,8 @@ import ComposableArchitecture
         case oneTapLog(OneTapLogFeature.Action)
         /// An action for the history card.
         case history(DrinkLogHistoryFeature.Action)
+        /// An action for the Apple Health card.
+        case healthSummary(HealthSummaryFeature.Action)
     }
 
     /// Runs each card's feature on its part of the state.
@@ -68,6 +72,9 @@ import ComposableArchitecture
         }
         Scope(state: \.history, action: \.history) {
             DrinkLogHistoryFeature()
+        }
+        Scope(state: \.healthSummary, action: \.healthSummary) {
+            HealthSummaryFeature()
         }
     }
 }

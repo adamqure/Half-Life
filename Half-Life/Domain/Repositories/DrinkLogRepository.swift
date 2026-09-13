@@ -13,11 +13,12 @@ import Foundation
 
 /// The source of truth for every drink the user has logged.
 ///
-/// An implementation stores drinks through the drink data source, which it shares with ``CaffeineDecayRepository``.
-/// It publishes what the data source holds: after each change the data source signals, it re-reads the drinks and
+/// An implementation stores drinks through the drink data source, which it shares with ``CaffeineDecayRepository``. It
+/// publishes what the data source holds: after each change the data source signals, it re-reads the drinks and
 /// publishes them. It also executes ``DailyCaffeineIntakeRule`` to publish the caffeine logged today, and
-/// ``DrinkLogDayRule`` to publish any one day of the log. The Drink Composer article lists its requirements, DLOG-1 to
-/// DLOG-4, and the Today Screen article adds DLOG-5 to DLOG-9, DAYLOG-1 to DAYLOG-3, and DELETE-1 to DELETE-3.
+/// ``DrinkLogDayRule`` to publish any one day of the log, or the last several, and ``DemoHistoryRule`` to add the demo
+/// history. The Drink Composer article lists its requirements, DLOG-1 to DLOG-4, the Today Screen article adds DLOG-5
+/// to DLOG-9, DAYLOG-1 to DAYLOG-3, and DELETE-1 to DELETE-3, and the Settings article adds DEMOREPO-1 to DEMOREPO-4.
 protocol DrinkLogRepository: Sendable {
     /// Streams every logged drink, oldest first, starting with the current set.
     ///
@@ -44,6 +45,18 @@ protocol DrinkLogRepository: Sendable {
     ///   - calendar: The calendar, and so the time zone, that defines the day.
     func day(containing date: Date, in calendar: Calendar) -> AsyncStream<DrinkLogDay>
 
+    /// Streams the last `count` calendar days of the log, today last, each with its drinks and their caffeine.
+    ///
+    /// Each new subscriber immediately receives the days up to the current one. After that, a subscriber receives new
+    /// days only when they change: after the drink data source signals a change that alters them, and at the first
+    /// minute of each new day. The implementation executes ``DrinkLogDayRule/days(endingOn:count:from:calendar:)``.
+    /// See the Insights article.
+    ///
+    /// - Parameters:
+    ///   - count: How many days, today included.
+    ///   - calendar: The calendar, and so the time zone, that defines the days.
+    func recentDays(_ count: Int, in calendar: Calendar) -> AsyncStream<[DrinkLogDay]>
+
     /// Stores a drink. The updated set is published when the data source signals the change.
     ///
     /// The repository first executes ``DrinkLogRule`` with the current time.
@@ -58,4 +71,22 @@ protocol DrinkLogRepository: Sendable {
     /// - Parameter id: The identifier of the drink to delete.
     /// - Throws: An error if the deletion couldn't be stored. Nothing is published then.
     func delete(_ id: LoggedDrink.ID) async throws
+
+    /// Streams whether the log holds demo drinks, starting with the current answer.
+    ///
+    /// After that, a subscriber receives an answer only when it changes, after a change the data source signals.
+    func hasDemoHistory() -> AsyncStream<Bool>
+
+    /// Replaces the log's demo drinks with the ones ``DemoHistoryRule`` gives for the current time. The user's own
+    /// drinks stay. Every stream is updated when the data source signals the change.
+    ///
+    /// - Parameter calendar: The calendar, and so the time zone, whose days and clock times the demo follows.
+    /// - Throws: An error if the demo drinks couldn't be stored. Nothing changes then.
+    func addDemoHistory(in calendar: Calendar) async throws
+
+    /// Deletes every demo drink, and keeps the user's own. Every stream is updated when the data source signals the
+    /// change.
+    ///
+    /// - Throws: An error if the deletion couldn't be stored. Nothing changes then.
+    func removeDemoHistory() async throws
 }

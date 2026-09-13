@@ -50,4 +50,42 @@ protocol CaffeineDecayRepository: Sendable {
     ///
     /// - Parameter calendar: The calendar, and so the time zone, the bedtime is a time of day in.
     func cutoff(in calendar: Calendar) -> AsyncStream<CaffeineCutoff>
+
+    /// Streams the cutoffs for the next several bedtimes, tonight's first: what the cutoff reminders are scheduled
+    /// from.
+    ///
+    /// Each later night's cutoff assumes nothing more is drunk until then. Each new subscriber immediately receives
+    /// the cutoffs for the current time. After that, a subscriber receives new ones only when they change, on the same
+    /// events as ``cutoff(in:)``. The implementation executes ``CaffeineCutoffRule/cutoffs(_:nights:now:calendar:)``.
+    /// See the Caffeine Cutoff article.
+    ///
+    /// - Parameters:
+    ///   - nights: How many bedtimes to calculate a cutoff for.
+    ///   - calendar: The calendar, and so the time zone, the bedtime is a time of day in.
+    func upcomingCutoffs(nights: Int, in calendar: Calendar) -> AsyncStream<[CaffeineCutoff]>
+
+    /// Streams the drink composer's warning: why `drink`, consumed `secondsAgo` before the current time, breaks the
+    /// cutoff, or `nil` when it fits.
+    ///
+    /// Each new subscriber immediately receives the warning for the current time. After that, a subscriber receives a
+    /// new one only when it changes, on the same events as ``cutoff(in:)``. The implementation executes
+    /// ``CaffeineCutoffRule/warning(_:consumedAt:calendar:)``. See the Caffeine Cutoff article.
+    ///
+    /// - Parameters:
+    ///   - drink: The drink and quantity the composer has chosen.
+    ///   - secondsAgo: How long before the current time it was consumed.
+    ///   - calendar: The calendar, and so the time zone, the bedtime is a time of day in.
+    func cutoffWarning(
+        for drink: FavouriteDrink, secondsAgo: TimeInterval, in calendar: Calendar
+    ) -> AsyncStream<CutoffWarning?>
+
+    /// Streams tonight's sleep window: when the caffeine already logged falls to the sleep threshold, and the 90
+    /// minutes to fall asleep in.
+    ///
+    /// Each new subscriber immediately receives the window for the current time. After that, a subscriber receives a
+    /// new window only when it changes: after a change to the data it comes from, or at the minute the night changes,
+    /// at 4am. The implementation executes ``SleepWindowRule``. See the Insights article.
+    ///
+    /// - Parameter calendar: The calendar, and so the time zone, the night and the bedtime are in.
+    func sleepWindow(in calendar: Calendar) -> AsyncStream<SleepWindow>
 }

@@ -32,6 +32,10 @@ struct TodayRobot: Robot {
         app.descendants(matching: .any)[CaffeineDecayViewAccessibilityID.curve]
     }
 
+    private var curveTimeSpan: XCUIElement {
+        app.descendants(matching: .any)[CaffeineDecayViewAccessibilityID.timeSpan]
+    }
+
     private var caffeineToday: XCUIElement {
         app.descendants(matching: .any)[CaffeineIntakeTodayViewAccessibilityID.total]
     }
@@ -156,6 +160,24 @@ struct TodayRobot: Robot {
             line: line
         )
         XCTAssertTrue(curve.waitForExistence(timeout: 5), "The decay curve didn't appear.", file: file, line: line)
+    }
+
+    /// Checks that the decay curve is labelled with the clock times at its two ends.
+    func verifyCurveTimeSpan(file: StaticString = #filePath, line: UInt = #line) {
+        XCTAssertTrue(
+            curveTimeSpan.waitForExistence(timeout: 5),
+            "The decay curve's start and end times didn't appear.",
+            file: file,
+            line: line
+        )
+        let spoken = curveTimeSpan.label
+        XCTAssertEqual(
+            spoken.matches(of: #/\d{1,2}:\d{2}/#).count,
+            2,
+            "The decay curve's times read \"\(spoken)\", not a start and an end time.",
+            file: file,
+            line: line
+        )
     }
 
     /// Checks that the greeting is for a time of day, and that it's the screen's heading.

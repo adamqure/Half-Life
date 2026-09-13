@@ -30,9 +30,8 @@ struct HalfLifeFactorsFeatureTests {
         }
     }
 
-    @Test func taskReducesTheSavedFactorsAndHalfLifeIntoState() async throws {
-        let halfLife = HalfLifePriorRule().halfLife(for: [.smokes])
-        let profile = UserProfile(halfLifeFactors: [.smokes], halfLife: halfLife)
+    @Test func taskReducesTheSavedFactorsButNotTheHalfLifeIntoState() async throws {
+        let profile = UserProfile(halfLifeFactors: [.smokes], halfLife: HalfLifePriorRule().halfLife(for: [.smokes]))
         let store = TestStore(initialState: HalfLifeFactorsFeature.State()) {
             HalfLifeFactorsFeature()
         } withDependencies: {
@@ -43,7 +42,6 @@ struct HalfLifeFactorsFeatureTests {
         await store.send(.task)
         await store.receive(\.profileUpdated) {
             $0.factors = [.smokes]
-            $0.halfLife = halfLife
         }
         await store.finish()
     }

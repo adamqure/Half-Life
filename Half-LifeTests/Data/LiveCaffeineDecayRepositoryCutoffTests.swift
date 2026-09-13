@@ -173,4 +173,54 @@ struct LiveCaffeineDecayRepositoryCutoffTests {
         #expect(try passed == expected(Self.latte, after: drinks, now: pastIt))
         #expect(passed.latestCup == nil)
     }
+
+    // MARK: - CUTREPO-5: the upcoming cutoffs, for several nights
+
+    func expectedUpcoming(nights: Int, after drinks: [LoggedDrink], now: Date = now) -> [CaffeineCutoff] {
+        let inputs = CaffeineCutoffRule.Inputs(
+            drink: Self.latte, intakes: drinks.map(\.intake), kinetics: .standard, threshold: .standard,
+            bedtime: .standard)
+        return rule.cutoffs(inputs, nights: nights, now: now, calendar: Self.utc)
+    }
+
+    @Test func aNewSubscriberGetsTheUpcomingCutoffsForTheCurrentTime() async throws {
+        let drinks = [Self.drink(hours: 8)]
+        let repository = Self.repository(FakeDrinkLogDataSource(drinks: drinks))
+
+        var upcoming = repository.upcomingCutoffs(nights: 3, in: Self.utc).makeAsyncIterator()
+
+        let first = try #require(await upcoming.next())
+        #expect(first == expectedUpcoming(nights: 3, after: drinks))
+        #expect(first.count == 3)
+    }
+
+    @Test func theUpcomingCutoffsFollowAChangeToTheDrinkLog() async throws {
+        let first = Self.drink(hours: 7)
+        let source = FakeDrinkLogDataSource(drinks: [first])
+        let repository = Self.repository(source)
+        var upcoming = repository.upcomingCutoffs(nights: 2, in: Self.utc).makeAsyncIterator()
+        _ = await upcoming.next()
+
+        let second = Self.drink(hours: 8.5)
+        await source.insert(second)
+        await source.signalChange()
+
+        #expect(try #require(await upcoming.next()) == expectedUpcoming(nights: 2, after: [first, second]))
+    }
+
+    /// The minutes before tonight's cutoff change nothing, so the next value is the one once it has passed.
+    @Test func theUpcomingCutoffsChangeAtAMinuteOnlyWhenACutoffPasses() async throws {
+        let drinks = [Self.drink(hours: 7)]
+        let latestCup = try #require(expectedUpcoming(nights: 2, after: drinks).first?.latestCup)
+        let pastIt = latestCup.addingTimeInterval(60)
+        let minutes = [Self.now.addingTimeInterval(60), Self.now.addingTimeInterval(120), pastIt]
+        let repository = Self.repository(FakeDrinkLogDataSource(drinks: drinks), minutes: minutes)
+
+        var upcoming = repository.upcomingCutoffs(nights: 2, in: Self.utc).makeAsyncIterator()
+        _ = try #require(await upcoming.next())
+
+        let passed = try #require(await upcoming.next())
+        #expect(passed == expectedUpcoming(nights: 2, after: drinks, now: pastIt))
+        #expect(passed.first?.latestCup == nil)
+    }
 }

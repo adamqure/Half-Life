@@ -27,6 +27,8 @@ struct HealthKitRestingHeartRateDataSource: RestingHeartRateDataSource {
     let calendar: Calendar
     /// Runs a statistics query, and returns its average quantity, or `nil` if no sample matched.
     let averageQuantity: @Sendable (HKStatisticsQueryDescriptor) async throws -> HKQuantity?
+    /// Starts an observer query for a sample type, and returns a function that stops it.
+    let observe: @Sendable (HKSampleType, @escaping @Sendable ((any Error)?) -> Void) -> @Sendable () -> Void
 
     /// Creates a resting heart rate data source.
     ///
@@ -35,14 +37,21 @@ struct HealthKitRestingHeartRateDataSource: RestingHeartRateDataSource {
     ///     follows changes to the time zone.
     ///   - averageQuantity: Runs a statistics query and returns its average quantity. Defaults to running it on
     ///     the app's shared health store, `HKHealthStore.halfLife`.
+    ///   - observe: Starts an observer query for a sample type, and returns a function that stops it. Defaults to
+    ///     running it on the shared health store.
     init(
         calendar: Calendar = .autoupdatingCurrent,
         averageQuantity: @escaping @Sendable (HKStatisticsQueryDescriptor) async throws -> HKQuantity? = {
             try await $0.result(for: .halfLife)?.averageQuantity()
-        }
+        },
+        observe:
+            @escaping @Sendable (HKSampleType, @escaping @Sendable ((any Error)?) -> Void) -> @Sendable () -> Void = {
+                HKHealthStore.observeHalfLife($0, handler: $1)
+            }
     ) {
         self.calendar = calendar
         self.averageQuantity = averageQuantity
+        self.observe = observe
     }
 
     /// Returns the average of the resting heart rates recorded during the calendar day that contains `day`.
@@ -70,5 +79,25 @@ struct HealthKitRestingHeartRateDataSource: RestingHeartRateDataSource {
                 "Couldn't read resting heart rate: \(domain, privacy: .public) \(code, privacy: .public)")
             throw error
         }
+    }
+
+    /// Returns a stream for one subscriber that yields after each change HealthKit reports to resting heart rate.
+    ///
+    /// Each subscriber gets its own observer query, which stops when the subscriber stops listening. An error
+    /// HealthKit reports is logged with its domain and code only, and signals nothing (RHR-6 to RHR-8).
+    func changes() -> AsyncStream<Void> {
+        let (stream, continuation) = AsyncStream.makeStream(of: Void.self)
+        let stop = observe(HKQuantityType(.restingHeartRate)) { error in
+            if let error {
+                let domain = (error as NSError).domain
+                let code = (error as NSError).code
+                Self.logger.error(
+                    "Couldn't observe resting heart rate: \(domain, privacy: .public) \(code, privacy: .public)")
+            } else {
+                continuation.yield()
+            }
+        }
+        continuation.onTermination = { _ in stop() }
+        return stream
     }
 }

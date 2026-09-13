@@ -25,10 +25,12 @@ import OSLog
 ///
 /// It publishes any one day of the log too, by executing ``DrinkLogDayRule`` for the day each subscriber asked for.
 /// It recalculates after each change the data source signals, and never follows the clock, because the day is fixed.
+/// The last several days also follow the clock's minutes, so they move on at midnight (Insights, RECENTREPO-1 to 4).
 /// It deletes drinks through the data source, whose change signal updates every stream here and the decay
-/// repository's. It's an actor, off the main actor (constitution Article I.13). The Drink Composer article lists its
-/// requirements, DLOG-1 to DLOG-4, and the Today Screen article lists DLOG-5 to DLOG-9, DAYLOG-1 to DAYLOG-3, and
-/// DELETE-1 to DELETE-3.
+/// repository's. It adds the demo history by executing ``DemoHistoryRule`` at the current time, removes it, and
+/// publishes whether the log holds any. It's an actor, off the main actor (constitution Article I.13). The Drink
+/// Composer article lists its requirements, DLOG-1 to DLOG-4, the Today Screen article lists DLOG-5 to DLOG-9,
+/// DAYLOG-1 to DAYLOG-3, and DELETE-1 to DELETE-3, and the Settings article lists DEMOREPO-1 to DEMOREPO-4.
 actor LiveDrinkLogRepository: DrinkLogRepository {
     private static let logger = Logger(for: LiveDrinkLogRepository.self)
 
@@ -47,14 +49,27 @@ actor LiveDrinkLogRepository: DrinkLogRepository {
         var lastSent: DrinkLogDay?
     }
 
+    /// A recent days subscriber: how many days it follows, the calendar they're in, its stream, and the last days it
+    /// was sent.
+    private struct RecentDaysSubscriber {
+        let count: Int
+        let calendar: Calendar
+        let continuation: AsyncStream<[DrinkLogDay]>.Continuation
+        var lastSent: [DrinkLogDay]?
+    }
+
     private let dataSource: any DrinkLogDataSource
     private let clock: any ClockDataSource
     private let rule = DrinkLogRule()
     private let intakeRule = DailyCaffeineIntakeRule()
     private let dayRule = DrinkLogDayRule()
+    private let demoRule = DemoHistoryRule()
     private var subscribers: [UUID: AsyncStream<[LoggedDrink]>.Continuation] = [:]
     private var intakeSubscribers: [UUID: IntakeSubscriber] = [:]
     private var daySubscribers: [UUID: DaySubscriber] = [:]
+    private var recentDaysSubscribers: [UUID: RecentDaysSubscriber] = [:]
+    /// Each demo history subscriber's stream, and the answer it was last sent.
+    private var demoSubscribers: [UUID: (continuation: AsyncStream<Bool>.Continuation, lastSent: Bool?)] = [:]
     private var isListening = false
     private var changeListener: Task<Void, Never>?
     private var minuteListener: Task<Void, Never>?
@@ -145,6 +160,37 @@ actor LiveDrinkLogRepository: DrinkLogRepository {
         try await dataSource.delete(id)
     }
 
+    /// Streams whether the log holds demo drinks.
+    ///
+    /// A new subscriber immediately receives the current answer. After that, it receives an answer when a change the
+    /// data source signals alters it.
+    nonisolated func hasDemoHistory() -> AsyncStream<Bool> {
+        let (stream, continuation) = AsyncStream.makeStream(of: Bool.self)
+        let id = UUID()
+        continuation.onTermination = { [weak self] _ in
+            Task { await self?.removeDemoSubscriber(id) }
+        }
+        Task { await addDemoSubscriber(id, continuation) }
+        return stream
+    }
+
+    /// Executes ``DemoHistoryRule`` at the clock's current time, and has the data source replace the demo drinks with
+    /// the result. Subscribers get the updated values when the data source signals the change.
+    ///
+    /// - Parameter calendar: The calendar, and so the time zone, whose days and clock times the demo follows.
+    /// - Throws: The data source's error if the drinks couldn't be stored. Nothing changes then.
+    func addDemoHistory(in calendar: Calendar) async throws {
+        try await dataSource.replaceDemoDrinks(with: demoRule.drinks(now: clock.now(), calendar: calendar))
+    }
+
+    /// Has the data source delete every demo drink. Subscribers get the updated values when the data source signals
+    /// the change.
+    ///
+    /// - Throws: The data source's error if the deletion couldn't be stored. Nothing changes then.
+    func removeDemoHistory() async throws {
+        try await dataSource.replaceDemoDrinks(with: [])
+    }
+
     /// Starts listening to the data source before the first set goes out, so no change after it is missed.
     private func addSubscriber(_ id: UUID, _ continuation: AsyncStream<[LoggedDrink]>.Continuation) async {
         await listenForChanges()
@@ -186,6 +232,29 @@ actor LiveDrinkLogRepository: DrinkLogRepository {
         daySubscribers[id] = nil
     }
 
+    /// Starts listening to the data source before the first answer goes out, so no change after it is missed.
+    private func addDemoSubscriber(_ id: UUID, _ continuation: AsyncStream<Bool>.Continuation) async {
+        await listenForChanges()
+        demoSubscribers[id] = (continuation, nil)
+        if let drinks = await readDrinks() {
+            publishDemoHistory(from: drinks, to: [id])
+        }
+    }
+
+    private func removeDemoSubscriber(_ id: UUID) {
+        demoSubscribers[id] = nil
+    }
+
+    /// Sends each of the demo history subscribers `ids` whether `drinks` holds a demo drink, if its answer changed.
+    private func publishDemoHistory(from drinks: [LoggedDrink], to ids: [UUID]) {
+        let hasDemoHistory = drinks.contains(where: \.isDemo)
+        for id in ids {
+            guard let subscriber = demoSubscribers[id], subscriber.lastSent != hasDemoHistory else { continue }
+            demoSubscribers[id] = (subscriber.continuation, hasDemoHistory)
+            subscriber.continuation.yield(hasDemoHistory)
+        }
+    }
+
     /// Subscribes to the data source's changes once, for the life of the repository.
     private func listenForChanges() async {
         guard !isListening else { return }
@@ -198,7 +267,7 @@ actor LiveDrinkLogRepository: DrinkLogRepository {
         }
     }
 
-    /// Follows the clock's minutes once, from the first intake subscriber on. Only the intake follows them.
+    /// Follows the clock's minutes once, from the first intake or recent days subscriber on. Only they follow them.
     private func listenForMinutes() {
         guard minuteListener == nil else { return }
         let minutes = clock.minutes()
@@ -210,9 +279,12 @@ actor LiveDrinkLogRepository: DrinkLogRepository {
     }
 
     /// After the data source signals a change, publishes every drink to every subscriber, the day's intake to each
-    /// intake subscriber whose total changed, and each day subscriber's day if it changed.
+    /// intake subscriber whose total changed, each day and recent days subscriber's days if they changed, and the demo
+    /// history answer to each subscriber whose answer changed.
     private func publishChange() async {
-        guard !subscribers.isEmpty || !intakeSubscribers.isEmpty || !daySubscribers.isEmpty,
+        guard
+            !subscribers.isEmpty || !intakeSubscribers.isEmpty || !daySubscribers.isEmpty
+                || !recentDaysSubscribers.isEmpty || !demoSubscribers.isEmpty,
             let drinks = await readDrinks()
         else { return }
         for subscriber in subscribers.values {
@@ -220,6 +292,8 @@ actor LiveDrinkLogRepository: DrinkLogRepository {
         }
         publishIntake(from: drinks, at: clock.now(), to: Array(intakeSubscribers.keys))
         publishDays(from: drinks, to: Array(daySubscribers.keys))
+        publishRecentDays(from: drinks, at: clock.now(), to: Array(recentDaysSubscribers.keys))
+        publishDemoHistory(from: drinks, to: Array(demoSubscribers.keys))
     }
 
     /// Calculates the day for each of the day subscribers `ids`, in its own calendar, and sends it to those it
@@ -235,15 +309,20 @@ actor LiveDrinkLogRepository: DrinkLogRepository {
         }
     }
 
-    /// Publishes the new day's intake to each intake subscriber whose day has turned by `minute`, or that hasn't been
-    /// sent an intake yet. The drinks are read only then, so the other minutes cost nothing.
+    /// Publishes the new day's intake, and the new recent days, to each subscriber whose day has turned by `minute`,
+    /// or that hasn't been sent a value yet. The drinks are read only then, so the other minutes cost nothing.
     private func publishNewDay(at minute: Date) async {
         let turned = intakeSubscribers.filter { _, subscriber in
             guard let lastSent = subscriber.lastSent else { return true }
             return !subscriber.calendar.isDate(minute, inSameDayAs: lastSent.day)
         }
-        guard !turned.isEmpty, let drinks = await readDrinks() else { return }
+        let turnedRecent = recentDaysSubscribers.filter { _, subscriber in
+            guard let today = subscriber.lastSent?.last?.intake.day else { return true }
+            return !subscriber.calendar.isDate(minute, inSameDayAs: today)
+        }
+        guard !turned.isEmpty || !turnedRecent.isEmpty, let drinks = await readDrinks() else { return }
         publishIntake(from: drinks, at: minute, to: Array(turned.keys))
+        publishRecentDays(from: drinks, at: minute, to: Array(turnedRecent.keys))
     }
 
     /// Calculates the intake at `now` for each of the intake subscribers `ids`, in its own calendar, and sends it to
@@ -268,6 +347,53 @@ actor LiveDrinkLogRepository: DrinkLogRepository {
             Self.logger.error(
                 "Couldn't read the drink log: \(error.domain, privacy: .public) \(error.code, privacy: .public)")
             return nil
+        }
+    }
+}
+
+extension LiveDrinkLogRepository {
+    /// Streams the last `count` calendar days of the log, today last.
+    ///
+    /// A new subscriber immediately receives the days up to the current one. After that, it receives new days when a
+    /// change the data source signals alters them, and at the first minute the clock streams on each new day.
+    ///
+    /// - Parameters:
+    ///   - count: How many days, today included.
+    ///   - calendar: The calendar, and so the time zone, that defines the days.
+    nonisolated func recentDays(_ count: Int, in calendar: Calendar) -> AsyncStream<[DrinkLogDay]> {
+        let (stream, continuation) = AsyncStream.makeStream(of: [DrinkLogDay].self)
+        let id = UUID()
+        continuation.onTermination = { [weak self] _ in
+            Task { await self?.removeRecentDaysSubscriber(id) }
+        }
+        let subscriber = RecentDaysSubscriber(count: count, calendar: calendar, continuation: continuation)
+        Task { await addRecentDaysSubscriber(id, subscriber) }
+        return stream
+    }
+
+    /// Listens to the data source and follows the clock's minutes, so the first days end with the current one.
+    private func addRecentDaysSubscriber(_ id: UUID, _ subscriber: RecentDaysSubscriber) async {
+        await listenForChanges()
+        recentDaysSubscribers[id] = subscriber
+        if let drinks = await readDrinks() {
+            publishRecentDays(from: drinks, at: clock.now(), to: [id])
+        }
+        listenForMinutes()
+    }
+
+    private func removeRecentDaysSubscriber(_ id: UUID) {
+        recentDaysSubscribers[id] = nil
+    }
+
+    /// Sends each of the recent days subscribers `ids` its own days up to `now`, in its calendar, if they changed.
+    private func publishRecentDays(from drinks: [LoggedDrink], at now: Date, to ids: [UUID]) {
+        for id in ids {
+            guard var subscriber = recentDaysSubscribers[id] else { continue }
+            let days = dayRule.days(endingOn: now, count: subscriber.count, from: drinks, calendar: subscriber.calendar)
+            guard days != subscriber.lastSent else { continue }
+            subscriber.lastSent = days
+            recentDaysSubscribers[id] = subscriber
+            subscriber.continuation.yield(days)
         }
     }
 }
