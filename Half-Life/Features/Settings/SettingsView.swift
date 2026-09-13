@@ -17,8 +17,9 @@ import SwiftUI
 /// It's in the app's own style, like onboarding: a large title on the canvas's solid top color, and the rows on cards.
 /// Each row shows its current value where it has one, such as the name or the bedtime, from the sections
 /// the root observes. Tapping a row pushes its screen, which ``SettingsFeature`` holds in its path (constitution
-/// Article I.6). The root's last line is the app's version and build. The root's `screen` identifier is on its scroll
-/// view, which is also what its robot swipes. See the Settings article.
+/// Article I.6). Under the rows are the app's version and build, and a link to the privacy policy
+/// (``PrivacyPolicy``). The root's `screen` identifier is on its scroll view, which is also what its robot swipes. See
+/// the Settings article.
 @MainActor
 struct SettingsView: View {
     /// The tab's store.
@@ -85,14 +86,17 @@ struct SettingsView: View {
                             identifier: SettingsViewAccessibilityID.demoDataRow)
                     }
                 }
-                if let appVersion = store.appVersion {
-                    // The version and build are identifiers, not quantities, so they're shown as they are.
-                    Text("Version \(appVersion.version) (\(appVersion.build))")
-                        .font(.footnote)
-                        .foregroundStyle(Color.textPrimary)
-                        .multilineTextAlignment(.center)
-                        .frame(maxWidth: .infinity)
-                        .accessibilityIdentifier(SettingsViewAccessibilityID.appVersion)
+                VStack(spacing: 0) {
+                    if let appVersion = store.appVersion {
+                        // The version and build are identifiers, not quantities, so they're shown as they are.
+                        Text("Version \(appVersion.version) (\(appVersion.build))")
+                            .font(.footnote)
+                            .foregroundStyle(Color.textPrimary)
+                            .multilineTextAlignment(.center)
+                            .frame(maxWidth: .infinity)
+                            .accessibilityIdentifier(SettingsViewAccessibilityID.appVersion)
+                    }
+                    privacyPolicyLink
                 }
             }
             .padding(.horizontal, Spacing.screenMargin)
@@ -153,6 +157,26 @@ struct SettingsView: View {
 
     private var demoValue: Text? {
         store.demoHistory.hasDemoHistory == true ? Text("Added") : nil
+    }
+
+    /// The link to the privacy policy, which iOS opens outside the app. Its text is underlined and followed by an
+    /// arrow, so it reads as a link without relying on color (Article VI.3). The arrow is decorative, so VoiceOver
+    /// reads only the text, with the link's trait. See the Settings article's "The privacy policy".
+    private var privacyPolicyLink: some View {
+        Link(destination: PrivacyPolicy.url) {
+            HStack(alignment: .firstTextBaseline) {
+                Text("Privacy policy")
+                    .underline()
+                Image(systemName: "arrow.up.right")
+                    .accessibilityHidden(true)
+            }
+            .font(.footnote)
+            .foregroundStyle(Color.textPrimary)
+            .frame(maxWidth: .infinity, minHeight: Sizing.minimumHitTarget)
+            .contentShape(Rectangle())
+        }
+        .accessibilityHint(Text("Opens the privacy policy on GitHub."))
+        .accessibilityIdentifier(SettingsViewAccessibilityID.privacyPolicyLink)
     }
 
     /// Whether the App lock row shows. Like its screen's section, it's hidden on a device with no Face ID or Touch ID,

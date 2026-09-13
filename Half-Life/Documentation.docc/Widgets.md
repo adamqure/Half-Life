@@ -151,6 +151,7 @@ The previews use a temporary file.
 ### The widget extension
 
 - **Target.** `Half-LifeWidgets`, with the bundle identifier `com.quillanq.Half-Life.Widgets` and the folder `Half-LifeWidgets/`. The app embeds it, and both get the App Group entitlement. Its `Info.plist` declares the WidgetKit extension point.
+- **Display name.** iOS won't install the app unless the extension's `Info.plist` has a `CFBundleDisplayName` ("Missing Info.plist value", seen 2026-09-13). The extension's build settings declare it with the placeholder `Localized in InfoPlist.xcstrings`, like the app's. The text, "Half-Life", is a manual entry in `Half-LifeWidgets/InfoPlist.xcstrings`, the extension's own catalog, so its purpose strings stay out of the extension (Article VII.1).
 - **Bundle.** `HalfLifeWidgets`, the `WidgetBundle`, holds `OneTapWidget` and `CaffeineLevelWidget`. Each is a `StaticConfiguration` over `HalfLifeTimelineProvider`, which takes the first timeline ``ObserveWidgetTimelineUseCase`` publishes for each timeline WidgetKit asks for (Article I.18).
 - **Isolation.** The widgets, the bundle, and their views are `@MainActor`, on the line above each declaration (Article IV.1.1).
 - **Composition.** `WidgetCompositionRoot` builds the use case, the repository, and the data sources. The extension links no TCA, SwiftData, HealthKit, or swift-dependencies (Article I.19).
@@ -363,4 +364,3 @@ If WSPIKE-1 or WSPIKE-2 fails, the design returns to the owner with the rejected
 - **Undo.** A tap on the Home Screen has no confirmation, and a stray tap is likelier there than in the app. The drink can be deleted from the Today screen's history card. Delete and undo is roadmap rank 20.
 - **Bug reports.** On iOS, `OSLogStore` reads only the current process's entries, as far as the AI knows. If so, the log export (<doc:Logging>) won't include the extension's. This needs checking.
 - **The Lock Screen and the Action Button.** The owner left them out for now. The same snapshot and intent would serve them.
-- **The extension's display name.** The extension's `Info.plist` declares only the WidgetKit extension point, with no `CFBundleDisplayName`. The widget gallery and the Home Screen should label widgets with the app's name, which the app's `Info.plist` gives, and a name of the extension's own would need its own `InfoPlist.xcstrings` entries (Article VII.1). That's the AI's understanding, not checked on a device, so check it alongside the spike.

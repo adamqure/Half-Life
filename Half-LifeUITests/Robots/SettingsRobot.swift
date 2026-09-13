@@ -67,4 +67,18 @@ struct SettingsRobot: Robot {
             waitForLabel(of: appVersion) { $0.range(of: #"\d+(\.\d+)* \(\d+\)"#, options: .regularExpression) != nil },
             "The app version reads \"\(appVersion.label)\", with no version and build.", file: file, line: line)
     }
+
+    /// Checks that the root links to the privacy policy, under the app's version, with a link that can be tapped.
+    ///
+    /// It doesn't follow the link, because the policy opens outside the app, where no robot can check it.
+    func verifyLinksToThePrivacyPolicy(file: StaticString = #filePath, line: UInt = #line) {
+        let link = app.links[SettingsViewAccessibilityID.privacyPolicyLink]
+        reveal(link, on: screen, "The privacy policy link", file: file, line: line)
+        XCTAssertTrue(link.isHittable, "The privacy policy link can't be tapped.", file: file, line: line)
+        let appVersion = app.staticTexts[SettingsViewAccessibilityID.appVersion]
+        require(appVersion, "The app version", file: file, line: line)
+        XCTAssertGreaterThanOrEqual(
+            link.frame.minY, appVersion.frame.maxY, "The privacy policy link should sit under the app's version.",
+            file: file, line: line)
+    }
 }

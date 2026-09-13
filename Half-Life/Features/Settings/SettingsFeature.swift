@@ -16,7 +16,8 @@ import ComposableArchitecture
 /// The rows are About you, Caffeine and your body, Bedtime, Permissions, App lock, and Demo data. Tapping one pushes
 /// its screen onto the `StackState` path with fresh state, and the screen observes its own data (constitution Article
 /// I.6). The root also runs the profile, app lock, and demo sections, for the values its rows show, and observes the
-/// app's version and build for its last line. See the Settings article, SET-1 to SET-5, and the App Lock article.
+/// app's version and build for the line under its rows. See the Settings article, SET-1 to SET-5, and the App Lock
+/// article.
 @Reducer nonisolated struct SettingsFeature {
     /// A screen pushed onto Settings' navigation stack.
     @Reducer nonisolated enum Path {

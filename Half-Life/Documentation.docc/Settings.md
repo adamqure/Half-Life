@@ -140,13 +140,24 @@ Settings follows the app's one-way data flow (constitution Article I.5), as onbo
 
 ### The app version
 
-The owner asked for it at 15:47 on 2026-09-13, "for my sanity". The last line of Settings' root reads "Version 1.0 (1)", so a screenshot or a TestFlight report shows which build it came from.
+The owner asked for it at 15:47 on 2026-09-13, "for my sanity". The line under Settings' rows reads "Version 1.0 (1)", so a screenshot or a TestFlight report shows which build it came from.
 
 - **It comes through the layers, like any data.** ``BundleAppVersionDataSource`` reads `CFBundleShortVersionString` and `CFBundleVersion` from the app's Info.plist. It's the only code that does (constitution Article I.14). ``LiveAppVersionRepository`` reads it once, when it's created. Its stream sends the version once, then finishes, because the version never changes while the app runs. ``SettingsFeature`` observes it through ``ObserveAppVersionUseCase``, from the root's `task`.
 - **Without both keys, the line doesn't show.** A built app always has them, but the line never shows half a version.
 - **The numbers are the build settings'**, `MARKETING_VERSION` and `CURRENT_PROJECT_VERSION`, which the generated Info.plist fills in. They're shown as they are. They're identifiers, not quantities, so they aren't formatted as numbers (Article VII.3).
 - **It's one line of footnote text in `textPrimary` on the page**, like the sections' notes, so it passes the audit. VoiceOver reads it as text. Its copy is one sentence in the String Catalog, "Version %@ (%@)", so a translator can move the numbers.
 - **It isn't a setting.** It's a line under the rows, not a row or a screen, so it doesn't add a settings screen for its own sake.
+
+### The privacy policy
+
+The owner asked for it at 18:16 on 2026-09-13, so that Beta App Review finds the privacy policy inside the app, as App Review Guideline 5.1.1(i) requires. The root's last line, under the version, is a link, "Privacy policy", that opens `PRIVACY.md` in the repository on GitHub. App Store Connect gives the same address.
+
+- **It's a SwiftUI `Link` in the view.** iOS opens the address itself, as onboarding's `ShortcutsLink` opens the Shortcuts app. The address is a constant, and the link holds no state, so a reducer, a use case, or a data source would have nothing to do (constitution Article III.1). The owner chose this between 18:16 and 18:21, by the AI's clock readings. The alternatives offered were a data source that opens the address through UIKit, as Open Settings does, and an in-app Safari sheet.
+- **It sits under the version**, as a footnote link, the owner's choice at the same time. A row of its own would have looked like a screen of Settings.
+- **The address is ``PrivacyPolicy/url``**, a constant in Presentation, which PRIVACY-1 pins.
+- **It looks like a link without relying on color** (Article VI.3). It's footnote text in `textPrimary`, underlined, with an arrow that says it leaves the app. The arrow is decorative, so VoiceOver skips it. VoiceOver reads the link's label and trait, with the hint "Opens the privacy policy on GitHub." It's at least 44 pt high.
+- **It works once the repository is public.** Until then, GitHub answers the address with "Page not found".
+- **The policy follows the stored data.** It describes the Architecture article's "Data and privacy" table for users, so a change to that table updates `PRIVACY.md` in the same change (<doc:Architecture>).
 
 ## Navigation
 
@@ -270,6 +281,7 @@ Each is tested with an exhaustive `TestStore`, with its use cases overridden.
 | SET-3 | Each row pushes its own screen onto the path, with fresh state: About you, Caffeine and your body, and Bedtime a ``ProfileSettingsFeature`` each, Permissions a ``PermissionsFeature``, App lock an ``AppLockSettingsFeature``, and Demo data a ``DemoDataFeature``. The Apple Health card's session changed Demo data's from ``DemoHistoryFeature`` on 2026-09-13, to add the demo Health data switch. |
 | SET-4 | A pushed screen's actions run its feature. |
 | SET-5 | Once its `task` starts, the root shows the app's version and build, from the repository. |
+| PRIVACY-1 | ``PrivacyPolicy/url``, the address the root's privacy policy link opens, is `PRIVACY.md` on the main branch of `github.com/adamqure/Half-Life`. |
 | SETPROF-1 | The profile sections show the saved profile, refilled from every profile the repository publishes. The age fills in once the current year is known, and a saved age outside the picker is left empty. |
 | SETPROF-2 | The name saves when it's committed, with the age. A newline typed in the name commits it, without the newline. A name being typed isn't replaced by a published profile, and a name that wasn't changed saves nothing. |
 | SETPROF-3 | The age and the bedtime save as soon as they're chosen. |
@@ -292,4 +304,5 @@ Each is tested with an exhaustive `TestStore`, with its use cases overridden.
 | UI-SET-4 | Each permission shows the outcome of asking for it, from the simulated data sources. |
 | UI-SET-5 | Adding the demo drinks fills the history card, each labeled "Demo", and Settings then offers to remove them. Removing them offers to add them again. The Today screen passes the audit with demo drinks showing. |
 | UI-SET-6 | Each Settings screen, the root and all six it opens, passes the system accessibility audit (constitution Article VI.4), through `auditAccessibilityAboveTheTabBar()`. At the end of a screen's scroll, contrast is ignored only for elements under the navigation bar's fade that the first audit checked in full. The owner approved it on 2026-09-13. Caffeine and your body's audit fails until the known issue in "What changed while building" is fixed. |
-| UI-SET-7 | The root's last line shows the app's version and build. |
+| UI-SET-7 | Under the root's rows, a line shows the app's version and build. |
+| UI-SET-8 | The root's last line links to the privacy policy, under the app's version, and the link can be tapped. The test doesn't follow the link, because the policy opens outside the app. |

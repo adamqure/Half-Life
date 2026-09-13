@@ -771,6 +771,7 @@
 				DOCC_MINIMUM_ACCESS_LEVEL = public;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = "Half-LifeWidgets/Info.plist";
+				INFOPLIST_KEY_CFBundleDisplayName = "Localized in InfoPlist.xcstrings";
 				IPHONEOS_DEPLOYMENT_TARGET = 26.5;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
@@ -802,6 +803,7 @@
 				DOCC_MINIMUM_ACCESS_LEVEL = public;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = "Half-LifeWidgets/Info.plist";
+				INFOPLIST_KEY_CFBundleDisplayName = "Localized in InfoPlist.xcstrings";
 				IPHONEOS_DEPLOYMENT_TARGET = 26.5;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",

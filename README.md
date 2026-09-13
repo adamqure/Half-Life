@@ -4,6 +4,8 @@ An iOS app that tracks caffeine by *when* you drink it, not just *how much*. It 
 
 It's built with SwiftUI and The Composable Architecture (TCA), in Clean Architecture layers. The rules every change follows are in `constitution.md` and `CLAUDE.md`, and the architecture is documented in the DocC catalog, `Half-Life/Documentation.docc/`.
 
+The app's privacy policy is [`PRIVACY.md`](PRIVACY.md).
+
 ## Requirements
 
 | Tool | Version | Notes |
@@ -223,3 +225,4 @@ To read the documentation in Xcode, choose Product ▸ Build Documentation.
 | `CLAUDE.md` | Working rules for AI-assisted changes, and the definition of done |
 | `roadmap.md` | The order features are built in |
 | `ai_log.md`, `ai_transcripts/` | The timestamped log and the full transcripts of every AI interaction |
+| `PRIVACY.md` | The app's privacy policy, which App Store Connect and the app's Settings tab link to |

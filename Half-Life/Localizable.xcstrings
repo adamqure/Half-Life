@@ -945,6 +945,9 @@
     "Opening Half-Life." : {
       "comment" : "App Intents: Siri says this as the app opens, after the user agrees to open it."
     },
+    "Opens the privacy policy on GitHub." : {
+      "comment" : "Accessibility hint for Settings' privacy policy link: it opens the policy on the web, outside the app."
+    },
     "Optic ID" : {
       "comment" : "The name of Apple's Optic ID, on onboarding's permission row and summary."
     },
@@ -965,6 +968,9 @@
     },
     "Previous day" : {
       "comment" : "Accessibility label: shows the day before the one in the history card."
+    },
+    "Privacy policy" : {
+      "comment" : "Settings: the link under the app's version that opens the privacy policy on the web."
     },
     "Quantity" : {
 

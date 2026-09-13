@@ -4852,3 +4852,161 @@ This file is the timestamped record of every interaction with AI on the Half-Lif
   - If the model still refuses, the refusal's `explanation` says why. It isn't logged, because it can quote the prompt's health data.
   - The builds and tests ran in a scratch copy of the live tree, with a private scheme in the git-ignored `xcuserdata/` that runs only the unit tests. Other sessions' changes in progress broke the shared test build three times (`SettingsViewAccessibilityID.appVersion`, `AppVersion`, and bf's `timeSpan` tests), and one red was taken with bf's in-progress test file left out of the copy. Around 16:30 and again at 16:4x, the simulator failed to boot while 17 simulators were running; it was erased and rebooted.
   - The audit's other proposals for questions (a call budget, a cap on `getDrinksOnDay`, a length limit on the question, and a token budget test) are still to decide.
+
+### 2026-09-13 17:59 -0400 — Write the TestFlight Beta App Description
+
+- **Started:** 2026-09-13 17:59 -0400
+- **Ended:** 2026-09-13 18:03 -0400
+- **Human:** Adam Ure
+- **AI tool / model:** Claude Code / Claude Opus 5
+- **Transcript:** `ai_transcripts/2026-09-13-1759-83808126.md` (to be exported before the next commit)
+- **Type:** question
+- **Request:** Write the TestFlight Beta App Description, within its 4,000-character limit, while the owner sets up the TestFlight profile.
+- **Interactions:**
+  - `17:59` The owner asked for the Beta App Description.
+- **AI contribution:** Read the README, the roadmap, and the DocC articles for the Today screen, Insights, App Intents, Widgets, Settings, Onboarding, the half-life estimator, the cutoff reminder, and the app lock. Checked the Siri phrases in `HalfLifeShortcuts.swift`, the 13 drinks in `DrinkType`, and the Health types `HealthKitAuthorizationDataSource` requests. Wrote a 3,395-character plain-text description: what the app is, its features, how to try the demo data, how cautiously it words its findings, privacy, what to test, requirements, and how to send feedback. It was handed over in the terminal only, with no file in the repository.
+- **Human changes:** None yet.
+- **Files:** `ai_log.md`
+- **Verification:** Character count measured with Python: 3,395 of 4,000. Every feature claim was checked against the DocC catalog or the source. N/A for tests.
+- **Notes:**
+  - The description says the app only reads from Apple Health, as the code does: `HealthKitAuthorizationDataSource` requests read access to sleep, steps, and resting heart rate, and share access to nothing. Three things disagree with the code. `InfoPlist.xcstrings` has an `NSHealthUpdateUsageDescription` that says drinks are saved to Apple Health. Its `NSHealthShareUsageDescription` says the app reads caffeine. And it has an `NSHealthClinicalHealthRecordsShareUsageDescription`. The README's capabilities table also says the app "writes caffeine to Apple Health". These were raised with the owner, not changed.
+
+### 2026-09-13 17:59 -0400 — Give the widget extension a display name
+
+- **Started:** 2026-09-13 17:59 -0400
+- **Ended:** 2026-09-13 18:06 -0400
+- **Human:** Adam Ure
+- **AI tool / model:** Claude Code / Claude Opus 5
+- **Transcript:** `ai_transcripts/2026-09-13-1759-5edad6ca.md`
+- **Type:** change, debugging
+- **Request:** Fix the install error "Missing Info.plist value. A value for the key 'CFBundleDisplayName' in bundle Half-Life.app/PlugIns/Half-LifeWidgets.appex is required."
+- **Interactions:**
+  - `17:59` The owner pasted the error.
+  - `18:01` The owner asked to skip TDD for this change, because it only changes the project's configuration.
+- **AI contribution:**
+  - Found that the widget target generates its Info.plist with no `CFBundleDisplayName`. The Widgets article had recorded that as a guess ("not checked on a device"), and the install error showed it was wrong.
+  - Added `INFOPLIST_KEY_CFBundleDisplayName = "Localized in InfoPlist.xcstrings"` to the widget target's Debug and Release build settings, the same placeholder the app uses. Added `Half-LifeWidgets/InfoPlist.xcstrings`, the extension's own catalog, with a manual `CFBundleDisplayName` entry, "Half-Life" (Article VII.1). It's a separate catalog so the app's purpose strings stay out of the extension.
+  - The Widgets article records the display name under the extension's target, and drops the item from "Still to decide".
+  - Before the owner's 18:01 decision, the AI had written a failing test, `WidgetExtensionDisplayNameTests`, that read the embedded extension's Info.plist, and created a simulator to run it. Both were deleted without running the test.
+- **Human changes:** Waived test-first development for this configuration change (18:01), so it has no test (constitution Article II.1).
+- **Files:** `Half-Life.xcodeproj/project.pbxproj`, `Half-LifeWidgets/InfoPlist.xcstrings` (added), `Half-Life/Documentation.docc/Widgets.md`, `ai_log.md`.
+- **Verification:**
+  - `xcodebuild -list` opens the project. `xcodebuild build` for the iOS Simulator succeeded, with no warnings. In the built `Half-LifeWidgets.appex`, `Info.plist` has `CFBundleDisplayName` set to the placeholder, and `en.lproj/InfoPlist.strings` sets it to "Half-Life".
+  - `xcodebuild docbuild`: 0 diagnostics for `Half-Life` and `Half-LifeWidgets`.
+  - No tests were run, and coverage wasn't measured. No Swift code changed. The AI didn't install on a device, so the owner still needs to confirm that the error is gone.
+- **Notes:** None.
+
+### 2026-09-13 18:05 -0400 — Write the TestFlight Beta App Review notes
+
+- **Started:** 2026-09-13 18:05 -0400
+- **Ended:** 2026-09-13 18:07 -0400
+- **Human:** Adam Ure
+- **AI tool / model:** Claude Code / Claude Opus 5
+- **Transcript:** `ai_transcripts/2026-09-13-1759-83808126.md`
+- **Type:** question
+- **Request:** Write the notes for the Apple reviewer who approves the build for external testers, within 4,000 characters.
+- **Interactions:**
+  - `18:05` The owner asked for the Beta App Review notes.
+- **AI contribution:** Checked the app's entitlements, its Info.plist build settings (iPhone only, portrait, iOS 26.5), the onboarding flow, and the English labels in `Localizable.xcstrings`, which is the only language the app ships. Wrote 3,449 characters of plain-text notes. They cover no sign-in, the path to the demo data with its exact labels, read-only HealthKit use and when it's requested, the app's health claims, the on-device Apple Intelligence features and their fallbacks, the Siri phrases and widgets, the one local reminder, the optional Face ID lock, and privacy. The notes were handed over in the terminal only, with no file in the repository.
+- **Human changes:** None yet.
+- **Files:** `ai_log.md`
+- **Verification:** Character count measured with Python: 3,449 of 4,000. Each labelled control and each behavior the notes describe was checked against `Localizable.xcstrings` or the DocC catalog. N/A for tests.
+- **Notes:**
+  - `Half-Life.entitlements` has `com.apple.developer.healthkit.background-delivery`, but no code calls `enableBackgroundDelivery` and there's no `UIBackgroundModes`. A reviewer can ask why it's there. The notes don't mention it, and the owner was told.
+  - The Health purpose strings that disagree with the code, from the previous entry, still stand.
+
+### 2026-09-13 18:09 -0400 — Decide whether TestFlight needs a license agreement
+
+- **Started:** 2026-09-13 18:09 -0400
+- **Ended:** 2026-09-13 18:10 -0400
+- **Human:** Adam Ure
+- **AI tool / model:** Claude Code / Claude Opus 5
+- **Transcript:** `ai_transcripts/2026-09-13-1759-83808126.md`
+- **Type:** question
+- **Request:** Asked what to do about a license agreement while setting up TestFlight.
+- **Interactions:**
+  - `18:09` The owner asked about a license agreement.
+- **AI contribution:** Read Apple's App Store Connect help on TestFlight test information and on custom license agreements, and the App Review Guidelines. Answered that none is needed: TestFlight's test information has no license field, and without a custom EULA the App Store applies Apple's standard one. Pointed out that guideline 5.1.1(i) requires a privacy policy, both linked in App Store Connect and reachable inside the app, and that guideline 2.2 applies the review guidelines to TestFlight builds. Searched the repository and found no privacy policy, and no `PrivacyInfo.xcprivacy`. The app's code matched no required-reason API in the search; the only match was a comment. Offered to draft the policy.
+- **Human changes:** None yet.
+- **Files:** `ai_log.md`
+- **Verification:** N/A. Apple's help pages were read on 2026-09-13. The App Store Connect API page for beta app localizations returned no content, so it's unconfirmed whether TestFlight's test information has a privacy policy URL field.
+- **Notes:** Constitution Article V.7 refers to a `PrivacyInfo.xcprivacy` that doesn't exist yet.
+
+### 2026-09-13 17:57 -0400 — Capture App Store screenshots
+
+- **Started:** 2026-09-13 17:57 -0400
+- **Ended:** 2026-09-13 18:11 -0400
+- **Human:** Adam Ure
+- **AI tool / model:** Claude Code / Claude Opus 5
+- **Transcript:** `ai_transcripts/2026-09-13-1757-3fb9e44a.md`
+- **Type:** change
+- **Request:** Gather screenshots for the App Store Connect listing.
+- **Interactions:**
+  - `17:57` The owner asked for App Store Connect screenshots.
+- **AI contribution:** Found that the app is iPhone-only (`TARGETED_DEVICE_FAMILY = 1`), so only the 6.9" iPhone size is needed. Wrote a throwaway UI test in a scratch copy of the repository, not in the working tree. It uses the existing robots and the UI-test launch environment with the simulated language model, adds the demo drinks and demo Health data from Settings, and saves one screenshot per screen. It ran on its own iPhone 17 Pro Max simulator (iOS 26.5) with a status bar override for full signal and battery, and the real clock time. That gave eight 1320×2868 screenshots: Today, the drink composer with the cutoff warning, Insights, the last 7 days, and the Sleep, Resting heart rate, Steps, and Welcome screens. The first run's scrolled Today shot put content under the status bar, and its battery showed a charging bolt, so the AI replaced it with the Steps screen and re-ran every shot. The simulator was deleted afterwards.
+- **Human changes:** None yet.
+- **Files:** `ai_log.md`. The screenshots are in the git-ignored `build/AppStoreScreenshots/`.
+- **Verification:** The scratch UI test passed on both runs. Every image was checked to be 1320×2868 and looked at.
+- **Notes:** The screenshots show "Demo" labels on the drinks and Health data. The What We Noticed card was written by the simulated language model, but it's labelled "Written on your iPhone by Apple Intelligence", so App Review or the reader may take the text for the real model's output.
+
+### 2026-09-13 18:13 -0400 — Write the privacy policy and link it from Settings
+
+- **Started:** 2026-09-13 18:13 -0400
+- **Ended:** 2026-09-13 18:29 -0400
+- **Human:** Adam Ure
+- **AI tool / model:** Claude Code / Claude Opus 5
+- **Transcript:** `ai_transcripts/2026-09-13-1759-83808126.md`
+- **Type:** change
+- **Request:** Write a privacy policy for the app, published in the repository, which is about to become public so the Femmli team can read it. At 18:16 the owner added a link to it in Settings, so Beta App Review doesn't reject the build for having no link in the app.
+- **Interactions:**
+  - `18:13` The owner asked for the privacy policy, hosted in the repository.
+  - `~18:14` The owner chose GitHub issues as the contact, and the policy file alone, with no in-app link. The time is reconstructed from the AI's clock readings at 18:13 and 18:16.
+  - `18:16` The owner asked for a link in Settings after all.
+  - `18:16–18:21` The owner chose a SwiftUI `Link` over a data source or an in-app Safari sheet, and a footnote link under the version over a card of its own. The exact minute wasn't read.
+  - `18:28` The owner stopped the AI's diagnosis of the failing UI test, and asked to commit and push.
+- **AI contribution:**
+  - **The policy.** Checked every claim against the code, not only the docs:
+    - Entitlements: no iCloud container, so the SwiftData store's `cloudKitDatabase: .automatic` stays local.
+    - Health access: `HealthKitAuthorizationDataSource` requests read access to sleep, steps, and resting heart rate, and share access to nothing.
+    - Networking: no `URLSession`, and no MetricKit.
+    - Files: each file's protection class and whether it's left out of backups.
+    - TestFlight: what Apple shares with developers, from Apple's TestFlight privacy page.
+
+    Wrote `PRIVACY.md`, which covers:
+    - what's stored and why, and Apple Health;
+    - what can leave the device: device backups, Siri, Apple Intelligence, notifications, crash reports, and TestFlight;
+    - logs, security, retention and deletion, and the user's choices;
+    - third parties, children, and that the app isn't medical advice;
+    - changes to the policy, and the contact.
+
+    Linked it from the README. Added a paragraph to the Architecture article's "Data and privacy" section: a change to the stored data updates the policy in the same change.
+  - **The Settings link.** Written test-first:
+    - PRIVACY-1: a unit test that pins the URL.
+    - UI-SET-8: the root links to the policy under the version, and the link can be tapped.
+    - `privacyPolicyLink` in `SettingsViewAccessibilityID`.
+    - `SettingsRobot.verifyLinksToThePrivacyPolicy()`.
+
+    Then the code:
+    - `PrivacyPolicy.url`, in Presentation.
+    - A `Link` under the version in `SettingsView`: underlined footnote text with a decorative arrow, at least 44 pt, and the hint "Opens the privacy policy on GitHub."
+    - The two strings, in `Localizable.xcstrings`.
+    - The Settings article's "The privacy policy" section, PRIVACY-1, UI-SET-7 reworded, and UI-SET-8.
+- **Human changes:** Chose the contact, the in-app link, the link style, and its placement. Stopped the work at 18:28 to commit.
+- **Files:**
+  - Added: `PRIVACY.md`, `Half-Life/Features/Settings/PrivacyPolicy.swift`, `Half-LifeTests/Presentation/PrivacyPolicyTests.swift`.
+  - Modified: `README.md`, `Half-Life/Features/Settings/{SettingsView,SettingsFeature,SettingsViewAccessibilityID}.swift`, `Half-Life/Localizable.xcstrings`, `Half-LifeUITests/Robots/SettingsRobot.swift`, `Half-LifeUITests/SettingsUITests.swift`, `Half-Life/Documentation.docc/{Settings,Architecture}.md`, `ai_log.md`.
+- **Verification:**
+  - **Red,** 18:21–18:23, on this task's own simulator and build folder: the unit test didn't compile (`cannot find 'PrivacyPolicy' in scope`), and UI-SET-8 failed ("The privacy policy link didn't appear.").
+  - **Green,** 18:24–18:26: `PrivacyPolicyTests` passed. The root's accessibility audit (UI-SET-6) and its version test (UI-SET-7) passed with the link in place.
+  - **UI-SET-8 still fails, and is committed failing.** The failed run's accessibility hierarchy shows the link where it should be, under the version: `Button, identifier: 'settingsView.privacyPolicyLink', label: 'Privacy policy'`. iOS reports SwiftUI's `Link` as a button, and the robot queries `app.links`. Changing that query to `app.buttons` should fix it, but the change wasn't made or run, because the owner asked to commit at 18:28.
+  - **Not run:** the full unit and UI run, so coverage is unmeasured. `docbuild` was stopped before it finished.
+  - **Lint:** swift-format `--strict` and SwiftLint `--strict` are clean on every changed Swift file. SwiftLint is clean on the whole tree. swift-format finds violations in three files that are unchanged since `e30fadf`: `LogDrinkIntent.swift` (18), `LanguageModelInstructions.swift` (10), and `CutoffReminderFeature.swift` (1). These weren't fixed.
+- **Notes:**
+  - The link returns GitHub's "Page not found" until the repository is public.
+  - **Found while checking the policy, and not changed:**
+    - Device backups include `Profile.json`, which can hold a pregnancy or liver disease, and the "Feel right?" answers. App Review Guideline 5.1.3 says apps "may not store personal health information in iCloud", so these may need `isExcludedFromBackup`, like the half-life estimate.
+    - The Health purpose strings disagree with the code (see the 17:59 entry).
+    - The unused HealthKit background-delivery entitlement (see the 18:05 entry).
+    - There's no `PrivacyInfo.xcprivacy`.
+    - Adding an iCloud container would start syncing the drink log without any code change.
+  - Committed with the rest of the working tree at the owner's request: the widget display name (17:59) and the App Store screenshots log entry (17:57), both finished. This task's simulator, `HalfLife-privacy`, and personal schemes, `HalfLife-UnitTests-privacy` and `HalfLife-UITests-privacy`, in the git-ignored `xcuserdata/`, are left in place.

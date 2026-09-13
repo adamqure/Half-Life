@@ -27,6 +27,8 @@ enum SettingsViewAccessibilityID {
     static let appLockRow = "settingsView.appLockRow"
     /// The row that opens Demo data.
     static let demoDataRow = "settingsView.demoDataRow"
-    /// The root's last line: the app's version and build.
+    /// The line under the rows: the app's version and build.
     static let appVersion = "settingsView.appVersion"
+    /// The root's last line: the link to the privacy policy, under the app's version.
+    static let privacyPolicyLink = "settingsView.privacyPolicyLink"
 }

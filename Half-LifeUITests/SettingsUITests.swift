@@ -11,7 +11,7 @@
 
 import XCTest
 
-/// Drives the Settings tab against UI-SET-1 to UI-SET-6 in the Settings article.
+/// Drives the Settings tab against UI-SET-1 to UI-SET-8 in the Settings article.
 ///
 /// Each test launches past onboarding, with a new profile that has nothing else saved, an empty drink log, and
 /// simulated permissions, then opens the tab, and opens a row's screen where it needs one.
@@ -106,6 +106,14 @@ final class SettingsUITests: XCTestCase {
         let (_, settings) = try launchIntoSettings()
 
         settings.verifyShowsTheAppVersion()
+    }
+
+    /// UI-SET-8: the root links to the privacy policy, under the app's version.
+    @MainActor
+    func testTheRootLinksToThePrivacyPolicy() throws {
+        let (_, settings) = try launchIntoSettings()
+
+        settings.verifyLinksToThePrivacyPolicy()
     }
 
     // MARK: - UI-SET-6: every Settings screen passes the system accessibility audit (constitution Article VI.4)

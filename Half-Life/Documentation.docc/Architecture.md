@@ -540,6 +540,8 @@ System UI that a framework provides, such as the Mail composer or HealthKit's au
 
 All user data stays on the device (constitution Article V.1). The drink log's sync to the user's private CloudKit database, which Article V.1 allows, is deferred to roadmap rank 23 (<doc:DrinkComposer>). List every piece of stored data here.
 
+The privacy policy, `PRIVACY.md` at the repository root, describes this table for users, and Settings links to it (<doc:Settings>). A change to what's stored, where it's stored, whether it's backed up, or what leaves the device updates the policy in the same change.
+
 | Data | Stored in | Protection class | Why it's collected |
 |------|-----------|------------------|--------------------|
 | Logged drinks: type, quantity, caffeine, time consumed, the negligible mark, and the demo mark on the sample drinks Settings adds (<doc:Settings>) | A SwiftData store in the app container, on the device only (``SwiftDataDrinkLogDataSource``) | iOS's default, `NSFileProtectionCompleteUntilFirstUserAuthentication`, chosen by the owner on 2026-09-11 (Article V.4). Siri needs the store while the device is locked after its first unlock. | The decay curve and the drink log. The user logs each drink. |
